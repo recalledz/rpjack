@@ -154,7 +154,7 @@ body {
   height: 40px;                 /* bump it a little for padding */
   padding: 0 1rem;              /* horizontal padding */
 
-  color: grey;                  /* no quotes here */
+  color: #080707;                  /* no quotes here */
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
   border: 2px solid #4CAF50;
   border-radius: 6px;

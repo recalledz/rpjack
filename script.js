@@ -32,6 +32,7 @@ const btn = document.getElementById("clickalipse")
 const attackBtn = document.getElementById("attackBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
+const drawCostDisplay = document.getElementById("drawCostDisplay")
 const handContainer = document.getElementsByClassName("handContainer")[0]
 const dealerContainer = document.getElementsByClassName("dealerContainer")[0]
 const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0]
@@ -222,9 +223,18 @@ function nextStage() {
   respawnDealerStage();
 }
 
-function nextStageChecker () {
-  nextStageBtn.disabled = stageData.kills < 1;
+function drawCashCost() {
+  let totalDrawnCards = deck - 52;
+  let drawnCardsFactor = drawnCards.length;
+  let cashCost = Math.floor(stageData.stage * Math.pow(drawnCardsFactor, 0.5) * totalDrawnCards);
+  return cashCost
 }
+
+function nextStageChecker () {
+    nextStageBtn.disabled = stageData.kills < 1;
+    nextStageBtn.style.background = stageData.kills < 1 ? "grey" : "green"
+}
+
 
 function spawnDealer() {
   const dealerContainerLife = document.createElement("div");
@@ -340,6 +350,11 @@ function drawCard() {
   // 1) Nothing to draw?
   if (deck.length === 0) return null;
 
+  if (cash < drawCashCost() {
+    btn.disabled = cash < drawCashCost();
+    btn.style.background = cash < drawCashCost() ? "grey" : "green";
+  };
+
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
 
@@ -450,7 +465,6 @@ function attack() {
 
 function cashOut() {
   const stats = playerStats();
-  console.log("🪙 cashOut stats:", stats);
   cash = Math.floor(cash + stats.points * (1+ Math.pow(stageData.stage, 0.5))*stats.cashMulti);
   cashDisplay.textContent = `Cash: $${cash}`
   return cash
@@ -506,6 +520,7 @@ nextStageBtn.addEventListener("click", nextStage)
 function updateUi () {
   const stats = playerStats();       // <-- capture the fresh stats
   renderPlayerStats(stats);
+  drawCostDisplay.textContent = `Draw Cost: $${drawCashCost()}`
 }
 
 /*setInterval(updateUi(), 1000);*/
@@ -520,6 +535,6 @@ setInterval(() => {
   renderPlifeDisplay();
   attack();
   updateUi()
-  console.log(deck)
+  console.log(drawnCards)
 }, 5000
 )
