@@ -300,8 +300,10 @@ function dealerDeathAnimation() {
 //========deck functions===========
 
 function cardXp() {
+  // Filter out any undefined/null cards first
+  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
+  
   drawnCards.forEach(card => {
-    if (!card || card.currentLevel === undefined) return; // Skip if card is undefined or missing properties
     card.XpCurrent += stageData.stage;
     while (card.XpCurrent >= card.XpReq) {
       card.XpCurrent -= card.XpReq;
@@ -344,8 +346,11 @@ function drawCard() {
 }
 
 function updateHandDisplay () {
+  // Filter out any undefined/null cards first
+  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
+  
   drawnCards.forEach(card => {
-    if (!card || !card.hpDisplay) return; // Skip if card or its elements are missing
+    if (!card.hpDisplay) return; // Skip if elements are missing
     card.hpDisplay.textContent =`HP: ${card.currentHp}/${card.maxHp}`;
     card.xpLabel.textContent = `LV: ${card.currentLevel} XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
     card.xpBarFill.style.width = `${card.XpCurrent/card.XpReq*100}%`;
@@ -444,6 +449,9 @@ function cashOut() {
 }
 
 function playerStats () {
+  // Filter out any undefined/null cards first
+  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
+  
   const stats = {
     points: 0,
     pDamage: 0,
@@ -454,7 +462,6 @@ function playerStats () {
     damageMultiplier: 1
   }
   for (const card of drawnCards) {
-    if (!card || card.currentLevel === undefined) continue; // Skip if card is undefined or missing properties
     if (card.suit === "Spades")   stats.damageMultiplier += 0.1 * card.currentLevel;
     if (card.suit === "Hearts")   stats.pRegen           += card.currentLevel;
     if (card.suit === "Diamonds") stats.cashMulti        += Math.floor(Math.pow(card.currentLevel, 0.5));
