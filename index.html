@@ -1,16 +1,61 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Page Title</title>
 </head>
 
 <body>
-  Hello world
-  <script src="script.js"></script>
-</body>
 
+  <!---tabs container--->
+  <div class=tabsContainer>
+    <button class="mainTabButton">main</button>
+    <button class="deckTabButton">deck</button>
+  </div>
+
+  <!--------------main tab panel----------------->
+  <div class="mainTab">
+    
+    <div class=dealerContainer> 
+      <div id="stage">Stage 1</div>
+      <span id="kills">kills: 0</span>
+      <div class="dealerLifeDisplay">Life:100</div>   
+      <div class="dCardContainer"></div>
+    </div>
+    
+    <div class=mainTabPanel>
+      <div id="pointsDisplay"> Attack: 0</div>
+      <div id="cashDisplay"> Cash: 0</div>
+      <div id="damageDisplay"> Damage: 0</div>
+      <div id="regenDisplay"> Regen: 0</div>
+      <div id="cashMultiDisplay"> Cash Multi: 0</div>
+      <div id="lifeMultiDisplay"> Life Multi: 0</div>
+      <div id="cardPointsDisplay"> Card Points: 0</div>
+    </div>
+    
+    <div class=buttonsContainer>
+      <button id="clickalipse">🃏 Draw</button>
+      <button id="attackBtn">⚔️ Attack</button>
+      <button id="nextStageBtn" disabled> 🚀 Next Stage</button>
+    </div>
+  
+    <div class=pContainer>
+      <span class="pLifeDisplay">Life:100</span>
+      <span class="pXpDisplay">Xp:0</span>
+    </div>
+  
+    <div class=handContainer>
+    </div>
+  </div>
+  <!--------------deck tab----------------->
+  <div class="deckTab">
+    
+    <div class=deckTabContainer>
+     <!-- <div id="deckDisplay"> Deck: 0</div> -->
+    </div>
+  </div>
+<div id="tooltip"></div>
+</body>
+<script type="module" src="script.js"></script>
 </html>

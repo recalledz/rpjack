@@ -1,4 +1,332 @@
-html {
-  height: 100%;
-  width: 100%;
+* {
+  overflow-x: hidden;
+  font-family: Trebuchet MS;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }
+
+body {
+  background-color: #67a16c;
+  font-family: Trebuchet MS;
+  padding: 5px;
+}
+
+#tooltip {
+  position: absolute;
+  pointer-events: none;      /* mouse “ignores” it */
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  display: none;
+  z-index: 1000;
+  white-space: nowrap;
+}
+.mainTab {
+  display: grid;
+  grid-template-rows: 1.5fr 0.5fr 0.5fr 1fr;
+  grid-template-columns: 1fr 20%;
+  grid-template-areas: 
+  "dealer panel"
+  "buttons panel"
+  "player panel"
+  "hand panel";
+  padding: 5px;
+  height: 100vh;
+}
+
+
+/* tabs container */
+.tabsContainer {
+  grid-area: tabs;
+  gap: 10px;
+  padding: 5px;
+}
+
+.tabsContainer > button {
+  height: 100%;
+  width: 100px;
+  border: 2px solid grey;
+  padding: 5px;
+  border-radius: 8px;
+  background: #000000;
+  box-shadow: 0 0 10px #4CAF50;
+  color: white;
+  text-shadow: 0 0 5px black;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+/*============ main tab panel============== */
+.mainTabPanel {
+  grid-area: panel;
+  border: 2px solid grey;
+  border-radius: 8px;
+  background: #85a38b;
+  box-shadow: 0 0 10px #4CAF50;
+  color: white;
+  text-shadow: 0 0 5px black;
+  font-size: 2rem;
+  cursor: pointer
+}
+
+/* dealer container */
+.dealerContainer {
+  grid-area: dealer;
+  justify-content: center;
+}
+
+.dealerContainer > .dealerLifeDisplay {
+  justify-self: center;
+}
+#stage {
+  justify-self: left;
+  font-size: 20px;
+  color: #2c252b;
+  text-shadow: 0 0 5px black;
+  margin-bottom: 5px
+}
+
+#dealerBarFill {
+  height: 30px;
+  width: 100%;
+  background: red;
+  border: 2px solid grey;
+  transition: width 0.3s;
+}
+
+.dCardContainer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+ .dCard {
+   display: flex;
+   flex-direction: column;
+   height: 95px;
+   width: 75px;
+   border-radius: 8px;
+   padding: 4px;
+   background: white;
+   border: 2px solid grey ;
+}
+
+.dealerLifeContainer {
+  height: 30px;
+  width: 80%;
+  justify-self: center;
+  background: #090b09;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dCard {
+  opacity:    1;
+  transform:  scale(1);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* death state */
+.dCard.dealer-dead {
+  opacity:   0;
+  transform: scale(0.8);
+}
+
+/* buttons container */
+
+.buttonsContainer {
+  grid-area: buttons;
+  text-align: center;
+  padding: 10px;
+  gap: 10px
+}
+
+.buttonsContainer > button {
+  display: inline-flex;         /* turn the button into a flex container */
+  align-items: center;          /* vertically center text & icon */
+  justify-content: center;      /* horizontally center content */
+  gap: 0.5rem;                  /* space between icon & text */
+
+  width: 150px;
+  height: 40px;                 /* bump it a little for padding */
+  padding: 0 1rem;              /* horizontal padding */
+
+  color: grey;                  /* no quotes here */
+  background: linear-gradient(135deg, #f0f0f0, #fafafa);
+  border: 2px solid #4CAF50;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
+
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.buttonsContainer > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
+  background: linear-gradient(135deg, #fafafa, #f0f0f0);
+}
+
+.dCard__icon {
+  width: 5em;      /* scales with font size */
+  height: 1.2em;
+  stroke: #ffdddd;   /* icon outline color */
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+
+.dCard__text {
+  color: #472424;
+  font-weight: bold;
+}
+/* player container */
+
+
+.pContainer {
+  grid-area: player;
+  text-align: center;
+}
+
+.pLifeContainer {
+  height: 30px;
+  width: 80%;
+  justify-self: center;
+  background: #090b09;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#pBarFill {
+  height: 30px;
+  width: 100%;
+  background: red;
+  border: 2px solid grey;
+  transition: width 0.3s;
+}
+
+/* hand container */
+
+.handContainer {
+  display: flex;
+  grid-area: hand;
+  justify-content: center;
+  gap: 10px;
+}
+
+
+.card-wrapper {
+  display: inline-flex;       /* let multiple cards sit side-by-side */
+  flex-direction: column;     /* stack children top→bottom */
+  align-items: center;        /* center the bar under the card */
+  margin: 0 8px;              /* horizontal spacing between cards */
+}
+
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 95px;
+  width: 75px;
+  border-radius: 8px;
+  padding: 4px;
+  background: white;
+  border: 2px solid grey ;
+  margin-bottom: 4px;         /* a little gap before the bar */
+}
+
+.card-value {
+  font-size: 1em;
+  align-self: flex-start;  /* push to left */
+} 
+
+.card-suite {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;           /* make the suit symbol bigger */
+  line-height: 1;            /* so it doesn’t add extra space */
+}
+
+.card-wrapper {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-wrapper:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* track (the “container” behind the fill) */
+.xpBar {
+  position: relative;
+  width: 80%;               /* whatever % of the hand you like */
+  height: 15px;
+  background: #090b09;      /* dark green track */
+  border: 1px solid grey;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* fill (the colored portion) */
+.xpBarFill {
+  position: absolute;
+  top:    0;
+  left:   0;
+  height: 100%;
+  width:  0;                /* start empty */
+  background: yellow;       /* your “fill” color */
+  border-radius: 8px 0 0 8px; /* round only the left corners */
+  transition: width 0.3s ease;
+}
+
+/* label (the text on top) */
+.xpBarLabel {
+  position: absolute;
+  top:    0;
+  left:   50%;
+  transform: translateX(-50%);
+  line-height: 15px;
+  font-size: 10px;
+  color: #238b23;
+  pointer-events: none;     /* clicks pass through */
+}
+
+/*============= deck tab panel============== */
+
+.deckTab {
+  display: grid;
+  grid-template-rows: 20px auto;
+  grid-template-areas: 
+    "tabs"
+    "deck";
+  background-color: #67a16c;
+  gap: 10px;
+  padding: 5px;
+}
+
+.deckTabContainer {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: deck;
+  border: 2px solid grey;
+  border-radius: 8px;
+  background: #85a38b;
+  box-shadow: 0 0 10px #4CAF50;
+  font-size: 20px;
+  cursor: pointer
+}
+
+/*.deckTabContainer span{
+  height: 70px;
+  width: 50px;
+  padding: 20px;
+  background: white;
+  border: 2px solid grey ;
+  border-radius: 8px;
+}*/
