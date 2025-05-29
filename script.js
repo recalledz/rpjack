@@ -301,6 +301,7 @@ function dealerDeathAnimation() {
 
 function cardXp() {
   drawnCards.forEach(card => {
+    if (!card || card.currentLevel === undefined) return; // Skip if card is undefined or missing properties
     card.XpCurrent += stageData.stage;
     while (card.XpCurrent >= card.XpReq) {
       card.XpCurrent -= card.XpReq;
@@ -453,7 +454,7 @@ function playerStats () {
     damageMultiplier: 1
   }
   for (const card of drawnCards) {
-    if (!card) continue; // Skip if card is undefined
+    if (!card || card.currentLevel === undefined) continue; // Skip if card is undefined or missing properties
     if (card.suit === "Spades")   stats.damageMultiplier += 0.1 * card.currentLevel;
     if (card.suit === "Hearts")   stats.pRegen           += card.currentLevel;
     if (card.suit === "Diamonds") stats.cashMulti        += Math.floor(Math.pow(card.currentLevel, 0.5));
