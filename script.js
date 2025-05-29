@@ -96,7 +96,12 @@ function renderTabCard(card) {
     `LV: ${card.currentLevel} XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
   xpBar.append(xpBarFill, xpLabel);
 
-  // 4) Nest and append
+  // 4) Store references on the card object for deck tab
+  card.deckXpBarFill = xpBarFill;
+  card.deckXpLabel = xpLabel;
+  card.deckHpDisplay = cardPane.querySelector(".card-hp");
+
+  // 5) Nest and append
   wrapper.append(cardPane, xpBar);
   deckTabContainer.appendChild(wrapper);
 
@@ -129,17 +134,25 @@ for (let i = 0; i < deck.length; i++) {
 
 function updateDeckDisplay() {
   deck.forEach(card => {
-    // 1) XP bar
+    // Skip if card doesn't have deck tab elements
+    if (!card.deckXpBarFill || !card.deckXpLabel) return;
+    
+    // 1) XP bar for deck tab
     const pct = (card.XpCurrent / card.XpReq) * 100;
-    card.xpBarFill.style.width = `${Math.min(pct, 100)}%`;
+    card.deckXpBarFill.style.width = `${Math.min(pct, 100)}%`;
 
-    // 2) XP/Level/Damage label
-    card.xpLabel.textContent =
+    // 2) XP/Level/Damage label for deck tab
+    card.deckXpLabel.textContent =
       `LV: ${card.currentLevel} ` +
-      `XP: ${card.XpCurrent}/${Math.floor(card.XpReq)} ` +
-      `DMG: ${card.damage}`;
+      `XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
 
-    // 3) If this card is currently on the field, update its HP too
+    // 3) Update HP in deck tab
+    if (card.deckHpDisplay) {
+      card.deckHpDisplay.textContent =
+        `HP: ${card.currentHp}/${card.maxHp}`;
+    }
+
+    // 4) If this card is currently on the field, update its HP too
     if (card.hpDisplay) {
       card.hpDisplay.textContent =
         `HP: ${card.currentHp}/${card.maxHp}`;
@@ -300,10 +313,8 @@ function dealerDeathAnimation() {
 //========deck functions===========
 
 function cardXp() {
-  // Filter out any undefined/null cards first
-  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
-  
   drawnCards.forEach(card => {
+    if (!card) return;
     card.XpCurrent += stageData.stage;
     while (card.XpCurrent >= card.XpReq) {
       card.XpCurrent -= card.XpReq;
@@ -346,11 +357,8 @@ function drawCard() {
 }
 
 function updateHandDisplay () {
-  // Filter out any undefined/null cards first
-  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
-  
   drawnCards.forEach(card => {
-    if (!card.hpDisplay) return; // Skip if elements are missing
+    if (!card || !card.hpDisplay) return; // Skip if card or elements are missing
     card.hpDisplay.textContent =`HP: ${card.currentHp}/${card.maxHp}`;
     card.xpLabel.textContent = `LV: ${card.currentLevel} XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
     card.xpBarFill.style.width = `${card.XpCurrent/card.XpReq*100}%`;
@@ -449,9 +457,6 @@ function cashOut() {
 }
 
 function playerStats () {
-  // Filter out any undefined/null cards first
-  drawnCards = drawnCards.filter(card => card && card.currentLevel !== undefined);
-  
   const stats = {
     points: 0,
     pDamage: 0,
@@ -462,6 +467,7 @@ function playerStats () {
     damageMultiplier: 1
   }
   for (const card of drawnCards) {
+    if (!card) continue;
     if (card.suit === "Spades")   stats.damageMultiplier += 0.1 * card.currentLevel;
     if (card.suit === "Hearts")   stats.pRegen           += card.currentLevel;
     if (card.suit === "Diamonds") stats.cashMulti        += Math.floor(Math.pow(card.currentLevel, 0.5));
