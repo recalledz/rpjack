@@ -344,6 +344,7 @@ function drawCard() {
 
 function updateHandDisplay () {
   drawnCards.forEach(card => {
+    if (!card || !card.hpDisplay) return; // Skip if card or its elements are missing
     card.hpDisplay.textContent =`HP: ${card.currentHp}/${card.maxHp}`;
     card.xpLabel.textContent = `LV: ${card.currentLevel} XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
     card.xpBarFill.style.width = `${card.XpCurrent/card.XpReq*100}%`;
@@ -452,6 +453,7 @@ function playerStats () {
     damageMultiplier: 1
   }
   for (const card of drawnCards) {
+    if (!card) continue; // Skip if card is undefined
     if (card.suit === "Spades")   stats.damageMultiplier += 0.1 * card.currentLevel;
     if (card.suit === "Hearts")   stats.pRegen           += card.currentLevel;
     if (card.suit === "Diamonds") stats.cashMulti        += Math.floor(Math.pow(card.currentLevel, 0.5));
