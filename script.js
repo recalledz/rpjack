@@ -526,15 +526,10 @@ function updateUi () {
 /*setInterval(updateUi(), 1000);*/
 
 setInterval(() => {
-  /*if (pLifeCurrent <= 0) {
-    alert("You died")
-    retry()
-  }*/
-  /*pdealerDamage();*/
-  cdealerDamage()
+  // Only run dealer damage if player has cards
+  if (drawnCards.length > 0) {
+    cdealerDamage();
+  }
   renderPlifeDisplay();
-  attack();
-  updateUi()
-  console.log(drawnCards)
-}, 5000
-)
+  updateUi();
+}, 5000)
