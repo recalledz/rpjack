@@ -350,10 +350,10 @@ function drawCard() {
   // 1) Nothing to draw?
   if (deck.length === 0) return null;
 
-  if (cash < drawCashCost() {
+  if (cash < drawCashCost()) {
     btn.disabled = cash < drawCashCost();
     btn.style.background = cash < drawCashCost() ? "grey" : "green";
-  };
+  }
 
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
