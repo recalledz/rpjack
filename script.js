@@ -33,6 +33,7 @@ const btn = document.getElementById("clickalipse")
 const attackBtn = document.getElementById("attackBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
+const cashDisplay = document.getElementById("cashDisplay")
 /*const drawCostDisplay = document.getElementById("drawCashCost")*/
 const handContainer = document.getElementsByClassName("handContainer")[0]
 const dealerContainer = document.getElementsByClassName("dealerContainer")[0]
@@ -564,7 +565,6 @@ setInterval(() => {
   heartHeal ();
 }, 1000)
 
-setTimeout(() => {
+setInterval(() => {
   cdealerDamage();
-
 }, stageData.attackspeed)
