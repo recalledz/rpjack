@@ -136,7 +136,8 @@ for (let i = 0; i < deck.length; i++) {
 }
 
 function updateDeckDisplay() {
-  deck.forEach(card => {
+  // Update ALL cards in the original deck, including those that have been drawn
+  pDeck.forEach(card => {
     // Skip if card doesn't have deck tab elements
     if (!card.deckXpBarFill || !card.deckXpLabel) return;
     
