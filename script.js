@@ -23,7 +23,7 @@ let stageData = {
   cardXp: 1,
   playerXp: 1,
   dDamage: 1,
-  attackspeed: 1000, //10 sec at start
+  attackspeed: 10000, //10 sec at start
 }
 
 let pDeck = generateDeck()
@@ -336,10 +336,9 @@ function cdealerDamage() {
 
 function dealerDeathAnimation() {
   const dCard = document.querySelector(".dCard:last-child");
-  dCard.classList.add("dealer-dead");
 
   if (!dCard) return;
-
+  dCard.classList.add("dealer-dead");
   dCard.addEventListener("transitionend", e => {
     dCardContainer.innerHTML = "";
     renderDealerCard()
