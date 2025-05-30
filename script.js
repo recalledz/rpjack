@@ -1,4 +1,3 @@
-
 import generateDeck from "./card.js"
 
 let drawnCards = []
@@ -75,6 +74,40 @@ showTab(mainTab);
 //=========card tab==========
 
 function renderTabCard(card) {
+  // Use the same rendering logic as renderCard but append to deck container
+  const wrapper = createCardElement(card);
+
+  // Store references on the card object for deck tab
+  card.deckXpBarFill = wrapper.querySelector(".xpBarFill");
+  card.deckXpLabel = wrapper.querySelector(".xpBarLabel");
+  card.deckHpDisplay = wrapper.querySelector(".card-hp");
+
+  deckTabContainer.appendChild(wrapper);
+
+  wrapper.addEventListener("mouseover", e => {
+      tooltip.innerHTML = `
+        <strong>${card.value}${card.symbol}</strong><br>
+        Level: ${card.currentLevel}<br>
+        XP: ${card.XpCurrent}/${card.XpReq}<br>
+        Damage: ${card.damage}<br>
+      `;
+      tooltip.style.display = "block";
+    });
+
+    // move with the mouse
+    wrapper.addEventListener("mousemove", e => {
+      // offset so the tip doesn't sit *under* the cursor
+      tooltip.style.left = e.pageX + 10 + "px";
+      tooltip.style.top  = e.pageY + 10 + "px";
+    });
+
+    // hide when you leave
+    wrapper.addEventListener("mouseout", () => {
+      tooltip.style.display = "none";
+    }); 
+}
+
+function createCardElement(card) {
   // 1) Wrapper
   const wrapper = document.createElement("div");
   wrapper.classList.add("card-wrapper");
@@ -99,36 +132,10 @@ function renderTabCard(card) {
     `LV: ${card.currentLevel} XP: ${card.XpCurrent}/${Math.floor(card.XpReq)}`;
   xpBar.append(xpBarFill, xpLabel);
 
-  // 4) Store references on the card object for deck tab
-  card.deckXpBarFill = xpBarFill;
-  card.deckXpLabel = xpLabel;
-  card.deckHpDisplay = cardPane.querySelector(".card-hp");
-
-  // 5) Nest and append
+  // 4) Nest and append
   wrapper.append(cardPane, xpBar);
-  deckTabContainer.appendChild(wrapper);
 
-  wrapper.addEventListener("mouseover", e => {
-      tooltip.innerHTML = `
-        <strong>${card.value}${card.symbol}</strong><br>
-        Level: ${card.currentLevel}<br>
-        XP: ${card.XpCurrent}/${card.XpReq}<br>
-        Damage: ${card.damage}<br>
-      `;
-      tooltip.style.display = "block";
-    });
-  
-    // move with the mouse
-    wrapper.addEventListener("mousemove", e => {
-      // offset so the tip doesn’t sit *under* the cursor
-      tooltip.style.left = e.pageX + 10 + "px";
-      tooltip.style.top  = e.pageY + 10 + "px";
-    });
-  
-    // hide when you leave
-    wrapper.addEventListener("mouseout", () => {
-      tooltip.style.display = "none";
-    }); 
+  return wrapper;
 }
 
 for (let i = 0; i < deck.length; i++) {
@@ -140,7 +147,7 @@ function updateDeckDisplay() {
   pDeck.forEach(card => {
     // Skip if card doesn't have deck tab elements
     if (!card.deckXpBarFill || !card.deckXpLabel) return;
-    
+
     // 1) XP bar for deck tab
     const pct = (card.XpCurrent / card.XpReq) * 100;
     card.deckXpBarFill.style.width = `${Math.min(pct, 100)}%`;
@@ -188,13 +195,13 @@ function renderPlayerStats (stats) {
   const lifeMultiDisplay = document.getElementById("lifeMultiDisplay");
   const cashMultiDisplay = document.getElementById("cashMultiDisplay");
   const regenDisplay = document.getElementById("regenDisplay");
-  
+
   damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
   lifeMultiDisplay.textContent = `Life Max: ${Math.floor(stats.pLifeMax)}`;
   cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
-  
+
 }
 
 function renderDealerCard() {
@@ -246,7 +253,7 @@ function nextStage() {
 }*/
 
 /*function drawCostChecker () {
-  
+
   if (cash <= drawCashCost()) {
     btn.disabled = true
     btn.style.background = cash < drawCashCost() ? "grey" : "green";
@@ -296,8 +303,8 @@ function dealerLifeBar() {
 
 function pdealerDamage() {
   const stats = playerStats();
-  
-  
+
+
   stageData.dDamage = Math.floor((Math.random() * 0.5 + 0.5) * stageData.stage) + 1;
   if (stats.pLifeCurrent <= 0) {
     respawnPlayer();
@@ -456,7 +463,7 @@ function heartHeal () {
   target.hpDisplay.textContent =
   `HP: ${target.currentHp}/${target.maxHp}`;
 }
-  
+
 //=========player functions===========
 
 
