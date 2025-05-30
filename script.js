@@ -83,8 +83,8 @@ function renderTabCard(card) {
   const cardPane = document.createElement("div");
   cardPane.classList.add("card");
   cardPane.innerHTML = `
-    <div class="card-value">${card.value}</div>
-    <div class="card-suit">${card.symbol}</div>
+    <div class="card-value" style="color: ${card.color}">${card.value}</div>
+    <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
     <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
   `;
 
@@ -411,8 +411,8 @@ function renderCard(card) {
   const cardPane = document.createElement("div");
   cardPane.classList.add("card");
   cardPane.innerHTML = `
-    <div class="card-value">${card.value}</div>
-    <div class="card-suit">${card.symbol}</div>
+    <div class="card-value" style="color: ${card.color}">${card.value}</div>
+    <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
     <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
   `;
 
