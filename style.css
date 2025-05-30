@@ -220,11 +220,11 @@ body {
 
 
 .card-wrapper {
-  display: inline-flex;       /* let multiple cards sit side-by-side */
+  display: inline-flex;    /* let multiple cards sit side-by-side */ 
+  text-wrap: wrap;
   flex-direction: column;     /* stack children top→bottom */
   align-items: center;        /* center the bar under the card */
   margin: 0 8px;              /* horizontal spacing between cards */
-  height: 100%
 }
 
 
@@ -245,7 +245,7 @@ body {
   align-self: flex-start;  /* push to left */
 } 
 
-.card-suite {
+.card-suit {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -336,12 +336,3 @@ body {
   font-size: 20px;
   cursor: pointer
 }
-
-/*.deckTabContainer span{
-  height: 70px;
-  width: 50px;
-  padding: 20px;
-  background: white;
-  border: 2px solid grey ;
-  border-radius: 8px;
-}*/
