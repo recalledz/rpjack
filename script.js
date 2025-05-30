@@ -324,6 +324,7 @@ function cdealerDamage() {
   card.hpDisplay.textContent =
     `HP: ${card.currentHp}/${card.maxHp}`;
   updateDeckDisplay()
+  animateCardHit(card)
   // if it’s dead, remove it
   if (card.currentHp === 0) {
     // 1) from your data
@@ -331,7 +332,6 @@ function cdealerDamage() {
     // 2) from the DOM
     card.wrapperElement.remove();
   }
- animateCardHit(card)
 }
 
 function dealerDeathAnimation() {
@@ -444,7 +444,7 @@ function heartHeal () {
   if (drawnCards.length === 0) return;
 
   const target = drawnCards[0];
-  if (target.currentHp = target.maxHp) return;
+  if (target.currentHp === target.maxHp) return;
 
   drawnCards.forEach(card => {
     if (card.suit === "Hearts") {
