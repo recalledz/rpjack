@@ -112,6 +112,7 @@ body {
    padding: 4px;
    background: white;
    border: 2px solid grey ;
+   text-align: center;
 }
 
 .dealerLifeContainer {
@@ -223,6 +224,7 @@ body {
   flex-direction: column;     /* stack children top→bottom */
   align-items: center;        /* center the bar under the card */
   margin: 0 8px;              /* horizontal spacing between cards */
+  height: 100%
 }
 
 
@@ -258,6 +260,19 @@ body {
 .card-wrapper:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+@keyframes card-hit {
+  0%   { transform: translateX(0) scale(1); }
+  20%  { transform: translateX(-4px) scale(0.98); }
+  40%  { transform: translateX(4px)  scale(0.98); }
+  60%  { transform: translateX(-2px) scale(1.02); }
+  80%  { transform: translateX(2px)  scale(1.02); }
+  100% { transform: translateX(0)     scale(1); }
+}
+
+.hit-animate {
+  animation: card-hit 0.4s ease-out both;
 }
 
 /* track (the “container” behind the fill) */

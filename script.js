@@ -23,6 +23,7 @@ let stageData = {
   cardXp: 1,
   playerXp: 1,
   dDamage: 1,
+  attackspeed: 1000, //10 sec at start
 }
 
 let pDeck = generateDeck()
@@ -32,7 +33,7 @@ const btn = document.getElementById("clickalipse")
 const attackBtn = document.getElementById("attackBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
-const drawCostDisplay = document.getElementById("drawCostDisplay")
+/*const drawCostDisplay = document.getElementById("drawCashCost")*/
 const handContainer = document.getElementsByClassName("handContainer")[0]
 const dealerContainer = document.getElementsByClassName("dealerContainer")[0]
 const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0]
@@ -82,7 +83,7 @@ function renderTabCard(card) {
   cardPane.classList.add("card");
   cardPane.innerHTML = `
     <div class="card-value">${card.value}</div>
-    <div class="card-suite">${card.symbol}</div>
+    <div class="card-suit">${card.symbol}</div>
     <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
   `;
 
@@ -186,16 +187,17 @@ function renderPlayerStats (stats) {
   const cashMultiDisplay = document.getElementById("cashMultiDisplay");
   const regenDisplay = document.getElementById("regenDisplay");
   
-  damageDisplay.textContent = `Damage: ${stats.pDamage}`;
-  lifeMultiDisplay.textContent = `Life Max: ${stats.pLifeMax}`;
-  cashMultiDisplay.textContent = `Cash Multi: ${stats.cashMulti}`;
+  damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
+  lifeMultiDisplay.textContent = `Life Max: ${Math.floor(stats.pLifeMax)}`;
+  cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
   
 }
 
 function renderDealerCard() {
-  let dDamage = cdealerDamage()
+  let dDamageMin = 0.5 * stageData.stage + 1;
+  let dDamageMax = Math.max(stageData.stage, dDamageMin)
   let dCardAdder = document.createElement("span");
   let cardEffect = null;
   dCardAdder.classList.add("dCard");
@@ -203,7 +205,7 @@ function renderDealerCard() {
   dCardAdder.innerHTML = `
   <i data-lucide="skull" class="dCard__icon"></i>
   <span class="dCard__text">
-    Damage: ${dDamage} – Stage ${stageData.stage}
+    Damage: ${dDamageMin} - ${dDamageMax}
   </span>`
 
 dCardContainer.appendChild(dCardAdder);
@@ -211,6 +213,16 @@ dCardContainer.appendChild(dCardAdder);
 lucide.createIcons();
 }
 
+function renderCardHp() {
+  drawnCards[0].textContent =
+    `HP: ${card.currentHp}/${card.maxHp}`;
+}
+
+function animateCardHit(card) {
+  const w = card.wrapperElement;
+  w.classList.add("hit-animate");
+  w.addEventListener("animationend", () => w.classList.remove("hit-animate"), { once: true });
+}
 
 //=========stage functions===========
 
@@ -223,12 +235,25 @@ function nextStage() {
   respawnDealerStage();
 }
 
-function drawCashCost() {
-  let totalDrawnCards = deck - 52;
+/*function drawCashCost() {
+  let totalDrawnCards = 52 - deck.length;
   let drawnCardsFactor = drawnCards.length;
-  let cashCost = Math.floor(stageData.stage * Math.pow(drawnCardsFactor, 0.5) * totalDrawnCards);
+  let cashCost = Math.floor(1+(stageData.stage * Math.pow(drawnCardsFactor, 0.5) * totalDrawnCards));
+  console.log(cashCost, totalDrawnCards,  drawnCardsFactor, stageData.stage)
   return cashCost
-}
+}*/
+
+/*function drawCostChecker () {
+  
+  if (cash <= drawCashCost()) {
+    btn.disabled = true
+    btn.style.background = cash < drawCashCost() ? "grey" : "green";
+  } else {
+    cash -= drawCashCost();
+    cashDisplay.textContent = `Cash: $${cash}`;
+    btn.disabled = false
+  }
+*/
 
 function nextStageChecker () {
     nextStageBtn.disabled = stageData.kills < 1;
@@ -281,7 +306,6 @@ function pdealerDamage() {
 }
 
 function cdealerDamage() {
-  const stats = playerStats();
   stageData.dDamage = Math.floor(
     (Math.random() * 0.5 + 0.5) * stageData.stage
   ) + 1;
@@ -306,6 +330,7 @@ function cdealerDamage() {
     // 2) from the DOM
     card.wrapperElement.remove();
   }
+ animateCardHit(card)
 }
 
 function dealerDeathAnimation() {
@@ -347,13 +372,9 @@ function cardXp() {
  * Returns the drawn card, or null if the deck was empty.
  */
 function drawCard() {
+  const stats = playerStats();
   // 1) Nothing to draw?
   if (deck.length === 0) return null;
-
-  if (cash < drawCashCost()) {
-    btn.disabled = cash < drawCashCost();
-    btn.style.background = cash < drawCashCost() ? "grey" : "green";
-  }
 
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
@@ -366,7 +387,8 @@ function drawCard() {
 
   // 5) refresh any other UI that shows the deck
   updateDeckDisplay();
-
+  console.log(card)
+  renderPlayerStats(stats);
   // 6) return the drawn card
   return card;
 }
@@ -390,7 +412,7 @@ function renderCard(card) {
   cardPane.classList.add("card");
   cardPane.innerHTML = `
     <div class="card-value">${card.value}</div>
-    <div class="card-suite">${card.symbol}</div>
+    <div class="card-suit">${card.symbol}</div>
     <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
   `;
 
@@ -417,6 +439,23 @@ function renderCard(card) {
   card.xpLabel        = xpLabel;
 }
 
+function heartHeal () {
+  if (drawnCards.length === 0) return;
+
+  const target = drawnCards[0];
+  if (target.currentHp = target.maxHp) return;
+
+  drawnCards.forEach(card => {
+    if (card.suit === "Hearts") {
+      target.currentHp = Math.min
+        (target.currentHp + card.currentLevel, target.maxHp
+        );
+    }
+  });
+  target.hpDisplay.textContent =
+  `HP: ${target.currentHp}/${target.maxHp}`;
+}
+  
 //=========player functions===========
 
 
@@ -517,19 +556,15 @@ nextStageBtn.addEventListener("click", nextStage)
 
 //=========game loop===========
 
-function updateUi () {
-  const stats = playerStats();       // <-- capture the fresh stats
-  renderPlayerStats(stats);
-  drawCostDisplay.textContent = `Draw Cost: $${drawCashCost()}`
-}
 
 /*setInterval(updateUi(), 1000);*/
 
 setInterval(() => {
-  // Only run dealer damage if player has cards
-  if (drawnCards.length > 0) {
-    cdealerDamage();
-  }
   renderPlifeDisplay();
-  updateUi();
-}, 5000)
+  heartHeal ();
+}, 1000)
+
+setTimeout(() => {
+  cdealerDamage();
+
+}, stageData.attackspeed)
