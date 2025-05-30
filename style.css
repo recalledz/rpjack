@@ -26,12 +26,11 @@ body {
 }
 .mainTab {
   display: grid;
-  grid-template-rows: 1.5fr 0.5fr 0.5fr 1fr;
+  grid-template-rows: 1.5fr 0.5fr 1fr;
   grid-template-columns: 1fr 20%;
   grid-template-areas: 
   "dealer panel"
   "buttons panel"
-  "player panel"
   "hand panel";
   padding: 5px;
   height: 100vh;
@@ -68,7 +67,7 @@ body {
   box-shadow: 0 0 10px #4CAF50;
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 2rem;
+  font-size: 1.5rem;
   cursor: pointer
 }
 
@@ -184,36 +183,13 @@ body {
   color: #472424;
   font-weight: bold;
 }
-/* player container */
-
-
-.pContainer {
-  grid-area: player;
-  text-align: center;
-}
-
-.pLifeContainer {
-  height: 30px;
-  width: 80%;
-  justify-self: center;
-  background: #090b09;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-#pBarFill {
-  height: 30px;
-  width: 100%;
-  background: red;
-  border: 2px solid grey;
-  transition: width 0.3s;
-}
 
 /* hand container */
 
 .handContainer {
   display: flex;
   grid-area: hand;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
 }
@@ -221,9 +197,9 @@ body {
 
 .card-wrapper {
   display: inline-flex;    /* let multiple cards sit side-by-side */ 
-  text-wrap: wrap;
   flex-direction: column;     /* stack children top→bottom */
   align-items: center;        /* center the bar under the card */
+  height: max-content;
   margin: 0 8px;              /* horizontal spacing between cards */
 }
 
@@ -312,6 +288,37 @@ body {
   pointer-events: none;     /* clicks pass through */
 }
 
+@keyframes card-heal {
+  0%   { box-shadow: none; }
+  50%  { box-shadow: 0 0 8px 4px rgba(50,255,50,0.75); }
+  100% { box-shadow: none; }
+}
+
+.heal-animate {
+  animation: card-heal 0.6s ease-out both;
+}
+
+@keyframes card-level-up {
+  0% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+  50% {
+    transform: scale(1.2);
+    /* strong gold glow at the halfway point */
+    box-shadow: 0 0 12px 6px rgba(255, 215, 0, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+.levelup-animate {
+  animation: card-level-up 0.6s ease-out both;
+}
+
+
 /*============= deck tab panel============== */
 
 .deckTab {
@@ -330,9 +337,4 @@ body {
   flex-wrap: wrap;
   grid-area: deck;
   border: 2px solid grey;
-  border-radius: 8px;
-  background: #85a38b;
-  box-shadow: 0 0 10px #4CAF50;
-  font-size: 20px;
-  cursor: pointer
 }

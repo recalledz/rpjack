@@ -3,7 +3,6 @@ import generateDeck from "./card.js"
 
 let drawnCards = []
 let cash = 0
-let cardPoints = 0
 
 /*let pLifeMax = 10
 let pLifeCurrent = pLifeMax
@@ -35,7 +34,6 @@ const attackBtn = document.getElementById("attackBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
 const cashDisplay = document.getElementById("cashDisplay")
-const cardPointsDisplay = document.getElementById("cardPointsDisplay")
 /*const drawCostDisplay = document.getElementById("drawCashCost")*/
 const handContainer = document.getElementsByClassName("handContainer")[0]
 const dealerContainer = document.getElementsByClassName("dealerContainer")[0]
@@ -178,12 +176,12 @@ function renderStage () {
   stageDisplay.textContent = `Stage ${stageData.stage}`
 }
 
-/*function renderPlifeDisplay () {
+function renderPlifeDisplay () {
   const stats = playerStats();
   pLifeDisplay.textContent = `Life: ${stats.pLifeCurrent}/${stats.pLifeMax}`;
   const pBarFill = document.getElementById("pBarFill");
   pBarFill.style.width = `${stats.pLifeCurrent/stats.pLifeMax*100}%`;
-}*/
+}
 
 function renderPlayerStats (stats) {
   const damageDisplay= document.getElementById("damageDisplay");
@@ -192,10 +190,10 @@ function renderPlayerStats (stats) {
   const regenDisplay = document.getElementById("regenDisplay");
   
   damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
+  lifeMultiDisplay.textContent = `Life Max: ${Math.floor(stats.pLifeMax)}`;
   cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
-  cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
   
 }
 
@@ -215,6 +213,11 @@ function renderDealerCard() {
 dCardContainer.appendChild(dCardAdder);
 /*dCardAdder.textContent = `Damage: ${dDamage} D ${stageData.stage}`*/
 lucide.createIcons();
+}
+
+function renderCardHp() {
+  drawnCards[0].textContent =
+    `HP: ${card.currentHp}/${card.maxHp}`;
 }
 
 function animateCardHit(card) {
@@ -259,6 +262,7 @@ function nextStageChecker () {
     nextStageBtn.style.background = stageData.kills < 1 ? "grey" : "green"
 }
 
+
 function spawnDealer() {
   const dealerContainerLife = document.createElement("div");
   const dealerBarFill = document.createElement("div")
@@ -290,7 +294,7 @@ function dealerLifeBar() {
   dealerBarFill.style.width = `${stageData.dealerLifeCurrent/stageData.dealerLifeMax*100}%`
 }
 
-/*function pdealerDamage() {
+function pdealerDamage() {
   const stats = playerStats();
   
   
@@ -301,7 +305,7 @@ function dealerLifeBar() {
   }
   stats.pLifeCurrent = stats.pLifeCurrent - stageData.dDamage;
   return stageData.dDamage;
-} */
+}
 
 function cdealerDamage() {
   stageData.dDamage = Math.floor(
@@ -354,11 +358,10 @@ function cardXp() {
       card.XpReq += card.currentLevel * 1.7 * (card.value ** 2);
       card.damage = card.baseDamage * card.currentLevel;
       card.maxHp = card.value * card.currentLevel;
-      card.currentHp = card.maxHp;
-      cardPoints = cardPoints + 1;
-      animateCardLevelUp(card);
+      card.currentHp = card.maxHp
     }
   });
+
   // refresh both UIs
   updateHandDisplay();    // paints hand bars & HP
   updateDeckDisplay();    // paints deck tab bars
@@ -387,21 +390,8 @@ function drawCard() {
   updateDeckDisplay();
   console.log(card)
   renderPlayerStats(stats);
-
   // 6) return the drawn card
-  
   return card;
-}
-
-function updateDrawButton() {
-  const stats = playerStats();
-  if (stats.cardSlots === drawnCards.length) {
-    btn.disabled = true;
-    btn.style.background = "grey";
-  } else {
-    btn.disabled = false;
-    btn.style.background = "green";
-  }
 }
 
 function updateHandDisplay () {
@@ -461,31 +451,18 @@ function heartHeal () {
       target.currentHp = Math.min
         (target.currentHp + card.currentLevel, target.maxHp
         );
-      animateCardHeal(target);
     }
   });
   target.hpDisplay.textContent =
   `HP: ${target.currentHp}/${target.maxHp}`;
 }
-
-function animateCardHeal(card) {
-  const w = card.wrapperElement;
-  w.classList.add("heal-animate");
-  w.addEventListener("animationend", () => w.classList.remove("heal-animate"), { once: true });
-}
-
-function animateCardLevelUp(card) {
-  const w = card.wrapperElement;
-  w.classList.add("levelup-animate");
-  w.addEventListener("animationend", () => w.classList.remove("levelup-animate"), { once: true });
-}
-
+  
 //=========player functions===========
 
 
 function spawnPlayer() {
   const stats = playerStats();
-  /*const pContainerLife = document.createElement("div");
+  const pContainerLife = document.createElement("div");
   const pBarFill = document.createElement("div")
 
   pContainerLife.classList.add("pLifeContainer");
@@ -493,13 +470,10 @@ function spawnPlayer() {
 
   pContainerLife.appendChild(pBarFill);
   pContainer.appendChild(pContainerLife);
-  pLifeDisplay.textContent = `Life: ${stats.pLifeMax}`*/
-  for (let i = 0; i < stats.cardSlots; i++) {
-    drawCard();
-  }
+  pLifeDisplay.textContent = `Life: ${stats.pLifeMax}`
 }
 
-/*function respawnPlayer() {
+function respawnPlayer() {
   const stats = playerStats();
   stats.pLifeCurrent = stats.pLifeMax;
   pLifeDisplay.textContent = `Life: ${stats.pLifeCurrent}/${stats.pLifeMax}`;
@@ -509,7 +483,7 @@ function spawnPlayer() {
   handContainer.innerHTML = "";
   stats.points = 0;
   pointsDisplay.textContent = stats.points;
-} */
+}
 
 function attack() {
   const stats = playerStats();
@@ -524,7 +498,7 @@ function attack() {
     dealerDeathAnimation();
   } else {
     stageData.dealerLifeCurrent = stageData.dealerLifeCurrent - stats.pDamage;
-    dealerLifeDisplay.textContent = `Life: ${Math.floor(stageData.dealerLifeCurrent)}/${stageData.dealerLifeMax}`
+    dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeCurrent}/${stageData.dealerLifeMax}`
     dealerLifeBar()
   }
 }
@@ -544,8 +518,7 @@ function playerStats () {
     cashMulti: 1,
     pLifeMax: 10,
     pLifeCurrent: 10,
-    damageMultiplier: 1,
-    cardSlots: 3, //at start max
+    damageMultiplier: 1
   }
   for (const card of drawnCards) {
     if (!card) continue;
@@ -586,15 +559,11 @@ nextStageBtn.addEventListener("click", nextStage)
 
 
 /*setInterval(updateUi(), 1000);*/
-setInterval(() => {
-  const stats = playerStats();
-  updateDrawButton();
-  
-}, 100)
 
-setInterval(() => {  //healerinterval
+setInterval(() => {
+  renderPlifeDisplay();
   heartHeal ();
-}, 20000)
+}, 1000)
 
 setInterval(() => {
   cdealerDamage();
