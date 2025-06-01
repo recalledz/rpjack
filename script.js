@@ -300,14 +300,16 @@ function onBossDefeat (boss) {
 function respawnDealerStage() {
 
   if (stageData.stage === 10) {
+    const bossHp = calculateEnemyHp(stageData.stage, stageData.world, true);
     const bossConfig = {
       name: "leech king dealer",
       stageData: stageData,
+      maxHp: bossHp,
       damage: calculateEnemyBasicDamage(stageData.stage, stageData.world),
       icon: 'data-lucide="crown"'
     };
     currentEnemy = new Boss(bossConfig);
-    stageData.dealerLifeMax = calculateEnemyHp(stageData.stage, stageData.world, true);
+    stageData.dealerLifeMax = bossHp;
     stageData.dealerLifeCurrent = currentEnemy.currentHp;
     } else {
         currentEnemy = null;
