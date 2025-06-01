@@ -4,9 +4,8 @@ class Boss {
     
     this.name = config.name;
     this.icon = config.icon || '👑';
-    this.maxHp = config.maxHp ?? Math.floor(20 * (Math.pow(stageData.stage, 0.5)) * 1.5); //may recacl later
+    this.maxHp = config.maxHp; //may recacl later
     this.currentHp = this.maxHp;
-    this.damage = config.damage;
     this.xp = config.xp ?? Math.floor(stageData.stage **1.2 * 4.5);
     this.attackInterval = config.attackInterval ?? 10000;
     this.reward = config.reward;
