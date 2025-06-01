@@ -1,35 +1,20 @@
-class Boss {
-  constructor(config) {
-    const stageData = config.stageData;
-    
-    this.name = config.name;
-    this.icon = config.icon || '👑';
-    this.maxHp = config.maxHp; //may recacl later
-    this.currentHp = this.maxHp;
-    this.xp = config.xp ?? Math.floor(stageData.stage **1.2 * 4.5);
-    this.attackInterval = config.attackInterval ?? 10000;
-    this.reward = config.reward;
-    this.attackTimer = 0;
-    this.abilities = config.abilities || [];
-  }
+import enemy from "./enemy.js"
 
-  takeDamage(amount) {
-    this.currentHp = Math.max(0, this.currentHp - amount);
-    if (this.currentHp === 0) this.die();
+class Boss extends enemy {
+  constructor(stage, world, config = {}) {
+    super(stage, world, { 
+      ...config,
+      name: config.name || "Boss",
+      attackInterval: config.attackInterval || 1000,
+    });
+      this.icon = config.icon || "👑";
+      this.abilities = config.abilities || [];
   }
 
   tick(deltaTime) {
-    this.attackTimer += deltaTime;
-    this.abilities.forEach(ability => ability.tick(deltaTime, this))
-  }
-
-  shouldAttack() {
-    return this.attackTimer >= this.attackInterval;
-  }
-
-  resetAttackTimer() {
-    this.attackTimer = 0;
-  }
+    super.tick(deltaTime);
+    this.abilities.forEach(ability => ability.tick(deltaTime, this)
+  )}
     
   die() {
     this.defeated = true;

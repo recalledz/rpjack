@@ -2,6 +2,7 @@
 import generateDeck from "./card.js"
 import addLog from "./log.js"
 import Boss from "./boss.js"
+import Enemy from "./enemy.js"
 
 let drawnCards = []
 let cash = 0
@@ -177,7 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function renderStage () {
   const stageDisplay = document.getElementById("stage");
-  stageDisplay.textContent = `Stage ${stageData.stage}`
+  stageDisplay.textContent = `Stage ${stageData.stage} World ${stageData.world}`
+  console.log(stageData);
 }
 
 /*function renderPlifeDisplay () {
@@ -215,8 +217,6 @@ function renderDealerCard() {
     `;
     dCardContainer.appendChild(dCardAdder);
   } else {
-      let dDamageMin = 0.5 * stageData.stage + 1;
-      let dDamageMax = Math.max(stageData.stage, dDamageMin)
       let dCardAdder = document.createElement("span");
       let cardEffect = null;
       dCardAdder.classList.add("dCard");
@@ -224,7 +224,7 @@ function renderDealerCard() {
       dCardAdder.innerHTML = `
       <i data-lucide="skull" class="dCard__icon"></i>
       <span class="dCard__text">
-        Damage: ${dDamageMin} - ${dDamageMax}
+        Damage: ${minDamage} - ${maxDamage}
       </span>`
     
     dCardContainer.appendChild(dCardAdder);
@@ -270,7 +270,31 @@ function nextStageChecker () {
 //dealer
 
 function spawnDealer() {
-  const dealerContainerLife = document.createElement("div");
+  const stage = stageData.stage;
+  const world = stageData.world;
+
+  const maxHp = calculateEnemyHp(stage, world);
+  const {minDamage, maxDamage} = calculateEnemyBasicDamage(stage, world)
+  const damage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+  currentEnemy = new Enemy (stage, world, {
+    maxHp,
+    damage,
+    onAttack: (enemy) => {
+      cDealerDamage(enemy.damage, null, enemy.name);
+      },
+    onDeafeat: () => {
+      respawnDealer();
+    }
+  });
+
+  stageData.dealerLifeMax = currentEnemy.maxHp;
+  stageData.dealerLifeCurrent = currentEnemy.currentHp;
+
+  dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeCurrent}/${stageData.dealerLifeMax}`;
+  dealerLifeBar();
+}
+  
+ /* const dealerContainerLife = document.createElement("div");
   const dealerBarFill = document.createElement("div")
 
   dealerContainerLife.classList.add("dealerLifeContainer");
@@ -279,7 +303,7 @@ function spawnDealer() {
   dealerContainerLife.appendChild(dealerBarFill);
   dealerLifeDisplay.insertAdjacentElement("afterend", dealerContainerLife);
   dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeMax}`
-}
+}*/
 
 function respawnDealer() {
   dealerDeathAnimation()
@@ -299,34 +323,20 @@ function onBossDefeat (boss) {
 
 function respawnDealerStage() {
 
-  if (stageData.stage === 10) {
-    const bossHp = calculateEnemyHp(stageData.stage, stageData.world, true);
-    const bossConfig = {
-      name: "leech king dealer",
-      stageData: stageData,
-      maxHp: bossHp,
-      damage: calculateEnemyBasicDamage(stageData.stage, stageData.world),
-      icon: 'data-lucide="crown"'
-    };
-    currentEnemy = new Boss(bossConfig);
-    stageData.dealerLifeMax = bossHp;
-    stageData.dealerLifeCurrent = currentEnemy.currentHp;
-    } else {
-        currentEnemy = null;
-      stageData.dealerLifeMax = calculateEnemyHp(stageData.stage, stageData.world);
-      stageData.dealerLifeCurrent = stageData.dealerLifeMax;
+  if (stageData.stage % 10 === 0) {
+    spawnBoss();
+  } else {
+    spawnDealer();
   }
-  dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeCurrent}/${stageData.dealerLifeMax}`
-  dealerLifeBar()
 }
 
 function dealerLifeBar() {
   const dealerBarFill = document.getElementById("dealerBarFill")
-  dealerBarFill.style.width = `${stageData.dealerLifeCurrent/stageData.dealerLifeMax*100}%`
+  dealerBarFill.style.width = `${stageData.dealerLifeCurrent/stageData.dealerLifeMax *100}%`
 }
 
 function calculateEnemyHp(stage, world, isBoss = false) {
-  const baseHp = 10 + stage * 15 + world * 10;
+  const baseHp = 10 + stage * 15 + world * 100;
   if (isBoss) {
     return Math.floor(baseHp * 2.5);  // bosses are significantly stronger
   }
@@ -344,7 +354,7 @@ function calculateEnemyBasicDamage(stage, world) {
     baseDamage = Math.floor(0.1 * stage * stage)
   }
   
-  const scaledDamage = baseDamage * world;
+  const scaledDamage = baseDamage * (world **2);
   const maxDamage = Math.max(scaledDamage, 1);
   const minDamage = Math.floor( 0.5 * maxDamage) + 1;
   
@@ -545,17 +555,16 @@ function spawnPlayer() {
 }
 
 function respawnPlayer() {
-  stats.pLifeCurrent = stats.pLifeMax;
-  pLifeDisplay.textContent = `Life: ${stats.pLifeCurrent}/${stats.pLifeMax}`;
   drawnCards = [];
   deck = [...pDeck];
   handContainer.innerHTML = "";
   stats.points = 0;
   pointsDisplay.textContent = stats.points;
+  spawnPlayer();
+  stageData.stage = 1;
 }
 
 function attack() {
-  const stats = playerStats();
   
   if (currentEnemy instanceof Boss) {
     // Handle boss damage
@@ -563,7 +572,6 @@ function attack() {
     stageData.dealerLifeCurrent = currentEnemy.currentHp;
     
     if (currentEnemy.currentHp <= 0) {
-      stageData.world = stageData.world + 1
       onBossDefeat(currentEnemy);
       respawnDealer();
       dealerLifeBar();
@@ -595,7 +603,6 @@ function attack() {
 }
 
 function cashOut() {
-  const stats = playerStats();
   cash = Math.floor(cash + stats.points * (1+ Math.pow(stageData.stage, 0.5))*stats.cashMulti);
   cashDisplay.textContent = `Cash: $${cash}`
   return cash
@@ -624,6 +631,7 @@ spawnDealer();
 renderStage ();
 spawnPlayer();
 nextStageChecker();
+
 
 btn.addEventListener("click", drawCard)
 attackBtn.addEventListener("click", attack)
