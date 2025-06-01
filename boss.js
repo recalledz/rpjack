@@ -21,16 +21,18 @@ class Boss {
 
   tick(deltaTime) {
     this.abilities.forEach(ability => ability.tick(deltaTime, this))
-    
-    this.attackTimer += deltaTime;
-    if (this.attackTimer >= this.attackInterval) {
-      bossAttackHandler(this);
-      this.attackTimer = 0;
-    }
   }
 
+  shouldAttack() {
+    return this.attackTimer >= this.attackInterval;
+  }
+
+  resetAttackTimer() {
+    this.attackTimer = 0;
+  }
+    
   die() {
-    onBossDefeat(this)
+    this.defeated = true;
   }
 }
 

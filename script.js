@@ -202,21 +202,35 @@ function renderPlayerStats (stats) {
 }
 
 function renderDealerCard() {
-  let dDamageMin = 0.5 * stageData.stage + 1;
-  let dDamageMax = Math.max(stageData.stage, dDamageMin)
-  let dCardAdder = document.createElement("span");
-  let cardEffect = null;
-  dCardAdder.classList.add("dCard");
-
-  dCardAdder.innerHTML = `
-  <i data-lucide="skull" class="dCard__icon"></i>
-  <span class="dCard__text">
-    Damage: ${dDamageMin} - ${dDamageMax}
-  </span>`
-
-dCardContainer.appendChild(dCardAdder);
-/*dCardAdder.textContent = `Damage: ${dDamage} D ${stageData.stage}`*/
-lucide.createIcons();
+  
+  if (currentEnemy instanceof Boss) {
+    let dCardAdder = document.createElement("span");
+    dCardAdder.classList.add("dCard");
+    dCardAdder.innerHTML = `
+      <i ${currentEnemy.icon} class="dCard__icon"></i>
+      <span class="dCard__text">
+        ${currentEnemy.name}<br>
+        Damage: ${currentEnemy.damage.minDamage} - ${currentEnemy.damage.maxDamage}
+      </span>
+    `;
+    dCardContainer.appendChild(dCardAdder);
+  } else {
+      let dDamageMin = 0.5 * stageData.stage + 1;
+      let dDamageMax = Math.max(stageData.stage, dDamageMin)
+      let dCardAdder = document.createElement("span");
+      let cardEffect = null;
+      dCardAdder.classList.add("dCard");
+    
+      dCardAdder.innerHTML = `
+      <i data-lucide="skull" class="dCard__icon"></i>
+      <span class="dCard__text">
+        Damage: ${dDamageMin} - ${dDamageMax}
+      </span>`
+    
+    dCardContainer.appendChild(dCardAdder);
+    /*dCardAdder.textContent = `Damage: ${dDamage} D ${stageData.stage}`*/
+    lucide.createIcons();
+  }
 }
 
 function animateCardHit(card) {
@@ -280,13 +294,22 @@ function respawnDealer() {
   dealerLifeBar(); 
 }
 
+
+function onBossDefeat (boss) {
+  cardXp(boss.xp);
+  //awardJokerCard();
+  //nextWorld(); // or stageData.world++
+  addLog(`${boss.name} was defeated!`);
+  currentEnemy = null;
+}
+
 function respawnDealerStage() {
 
   if (stageData.stage === 10) {
     currentEnemy = new Boss ({
       name: "leech king dealer",
       stageData: stageData,
-      damage: calculateEnemyBasicDamage(stageData.stage, stageData.world)
+      damage: calculateEnemyBasicDamage(stageData.stage, stageData.world),
     });
     stageData.dealerLifeMax = currentEnemy.maxHp;
     stageData.dealerLifeCurrent = currentEnemy.currentHp;
@@ -344,7 +367,15 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   }
 
   // define damage as either the passed‐in amount or based on the stage, the damage amount scales on stage
-  const dDamage = damageAmount ?? calculateEnemyBasicDamage (stageData.stage, stageData.world);
+  let dDamage;
+  if (damageAmount && typeof damageAmount === "object" && damageAmount.minDamage !== undefined) {
+    // damageAmount is a range object: { minDamage, maxDamage }
+    const { minDamage, maxDamage } = damageAmount;
+    dDamage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+  } else if (typeof damageAmount === "number") {
+    // already a number
+    dDamage = damageAmount;
+  }
 
   // target the front‐line card
   const card = drawnCards[0];
@@ -379,9 +410,6 @@ function dealerDeathAnimation() {
   }, { once: true });
 }
 
-function bossAttackHandler(boss) {
-  cDealerDamage(boss.damage, null, boss.name);
-}
 //========deck functions===========
 
 function cardXp(xpAmount) {
@@ -621,6 +649,13 @@ setInterval(() => {
   const stats = playerStats();
   if (currentEnemy instanceof Boss) {
     currentEnemy.tick(1000);
+    if (currentEnemy.shouldAttack()) {
+      cDealerDamage(currentEnemy.damage, null, currentEnemy.name);
+      currentEnemy.resetAttackTimer();
+    }
+    if (currentEnemy.defeated) {
+      onBossDefeat(currentEnemy);
+    }
   }
   updateDrawButton();
   renderPlayerStats(stats);
