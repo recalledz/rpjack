@@ -1,17 +1,23 @@
 
 import generateDeck from "./card.js"
+import addLog from "./log.js"
+import Boss from "./boss.js"
 
 let drawnCards = []
 let cash = 0
 let cardPoints = 0
+let currentEnemy = null;
 
-/*let pLifeMax = 10
-let pLifeCurrent = pLifeMax
-let pDamage = 0
-let pRegen = 0
-let cashMulti = 0
-let damageMultiplier = 0*/
-
+const stats = {
+  points: 0,
+  pDamage: 0,
+  pRegen: 0,
+  cashMulti: 1,
+  pLifeMax: 10,
+  pLifeCurrent: 10,
+  damageMultiplier: 1,
+  cardSlots: 3, //at start max
+}
 
 
 let stageData = {
@@ -23,7 +29,6 @@ let stageData = {
   kills: 0,
   cardXp: 1,
   playerXp: 1,
-  dDamage: 1,
   attackspeed: 10000, //10 sec at start
 }
 
@@ -38,10 +43,7 @@ const cashDisplay = document.getElementById("cashDisplay")
 const cardPointsDisplay = document.getElementById("cardPointsDisplay")
 /*const drawCostDisplay = document.getElementById("drawCashCost")*/
 const handContainer = document.getElementsByClassName("handContainer")[0]
-const dealerContainer = document.getElementsByClassName("dealerContainer")[0]
 const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0]
-const pContainer = document.getElementsByClassName("pContainer")[0]
-const pLifeDisplay = document.getElementsByClassName("pLifeDisplay")[0]
 const killsDisplay = document.getElementById("kills")
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
@@ -279,8 +281,20 @@ function respawnDealer() {
 }
 
 function respawnDealerStage() {
-  stageData.dealerLifeMax = Math.floor(stageData.dealerLifeMax * (Math.pow(stageData.stage, 0.5)));
-  stageData.dealerLifeCurrent = stageData.dealerLifeMax;
+
+  if (stageData.stage === 10) {
+    currentEnemy = new Boss ({
+      name: "leech king dealer",
+      stageData: stageData,
+      damage: calculateEnemyBasicDamage(stageData.stage, stageData.world)
+    });
+    stageData.dealerLifeMax = currentEnemy.maxHp;
+    stageData.dealerLifeCurrent = currentEnemy.currentHp;
+    } else {
+        currentEnemy = null;
+      stageData.dealerLifeMax = Math.floor(stageData.dealerLifeMax * (Math.pow(stageData.stage, 0.5)));
+      stageData.dealerLifeCurrent = stageData.dealerLifeMax;
+  }
   dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeCurrent}/${stageData.dealerLifeMax}`
   dealerLifeBar()
 }
@@ -303,19 +317,41 @@ function dealerLifeBar() {
   return stageData.dDamage;
 } */
 
-function cdealerDamage() {
-  stageData.dDamage = Math.floor(
-    (Math.random() * 0.5 + 0.5) * stageData.stage
-  ) + 1;
+function calculateEnemyBasicDamage(stage, world) {
+  let baseDamage;
+  
+  if (stage === 10) {
+    baseDamage = stage * 2;
+  } else if (stage <= 10) {
+    baseDamage = stage
+  } else {
+    baseDamage = Math.floor(0.1 * stage * stage)
+  }
+  
+  const scaledDamage = baseDamage * world;
+  const maxDamage = Math.max(scaledDamage, 1);
+  const minDamage = Math.floor((Math.random() * 0.5) * maxDamage) + 1;
+  
+  return { minDamage, maxDamage };
+}
+
+function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
 
   // if there’s no card, nothing to do
-  if (drawnCards.length === 0) return;
+  if (drawnCards.length === 0) { 
+    respawnPlayer(); 
+    return;
+  }
+
+  // define damage as either the passed‐in amount or based on the stage, the damage amount scales on stage
+  const dDamage = damageAmount ?? calculateEnemyBasicDamage (stageData.stage, stageData.world);
 
   // target the front‐line card
   const card = drawnCards[0];
 
   // subtract **one** hit’s worth
-  card.currentHp = Math.max(0, card.currentHp - stageData.dDamage);
+  card.currentHp = Math.max(0, card.currentHp - dDamage);
+  addLog(`${source} hit ${card.value}${card.symbol} for ${dDamage} damage!`, "damage")
 
   // update its specific HP display
   card.hpDisplay.textContent =
@@ -329,6 +365,7 @@ function cdealerDamage() {
     // 2) from the DOM
     card.wrapperElement.remove();
   }
+  // Optional ability logic (e.g., healing, fireball
 }
 
 function dealerDeathAnimation() {
@@ -342,14 +379,17 @@ function dealerDeathAnimation() {
   }, { once: true });
 }
 
+function bossAttackHandler(boss) {
+  cDealerDamage(boss.damage, null, boss.name);
+}
 //========deck functions===========
 
-function cardXp() {
+function cardXp(xpAmount) {
   drawnCards.forEach(card => {
     if (!card) return;
-    card.XpCurrent += stageData.stage;
+    card.XpCurrent += xpAmount;
     while (card.XpCurrent >= card.XpReq) {
-      card.XpCurrent -= card.XpReq;
+      xpAmount -= card.XpReq;
       card.currentLevel++;
       card.XpReq += card.currentLevel * 1.7 * (card.value ** 2);
       card.damage = card.baseDamage * card.currentLevel;
@@ -357,6 +397,7 @@ function cardXp() {
       card.currentHp = card.maxHp;
       cardPoints = cardPoints + 1;
       animateCardLevelUp(card);
+      addLog(`${card.value}${card.symbol} leveled up to level ${card.currentLevel}!`, "level")
     }
   });
   // refresh both UIs
@@ -499,7 +540,7 @@ function spawnPlayer() {
   }
 }
 
-/*function respawnPlayer() {
+function respawnPlayer() {
   const stats = playerStats();
   stats.pLifeCurrent = stats.pLifeMax;
   pLifeDisplay.textContent = `Life: ${stats.pLifeCurrent}/${stats.pLifeMax}`;
@@ -509,17 +550,17 @@ function spawnPlayer() {
   handContainer.innerHTML = "";
   stats.points = 0;
   pointsDisplay.textContent = stats.points;
-} */
+}
 
 function attack() {
   const stats = playerStats();
   if (stageData.dealerLifeCurrent - stats.pDamage <= 0) {
     stageData.kills += 1;
     killsDisplay.textContent = `Kills: ${stageData.kills}`
-    respawnDealer()
-    dealerLifeBar()
-    cardXp() 
-    cashOut()
+    respawnDealer();
+    dealerLifeBar();
+    cardXp(stageData.stage ** 1.2); 
+    cashOut();
     nextStageChecker();
     dealerDeathAnimation();
   } else {
@@ -537,17 +578,7 @@ function cashOut() {
 }
 
 function playerStats () {
-  const stats = {
-    points: 0,
-    pDamage: 0,
-    pRegen: 0,
-    cashMulti: 1,
-    pLifeMax: 10,
-    pLifeCurrent: 10,
-    damageMultiplier: 1,
-    cardSlots: 3, //at start max
-  }
-  for (const card of drawnCards) {
+ for (const card of drawnCards) {
     if (!card) continue;
     if (card.suit === "Spades")   stats.damageMultiplier += 0.1 * card.currentLevel;
     if (card.suit === "Hearts")   stats.pRegen           += card.currentLevel;
@@ -588,7 +619,11 @@ nextStageBtn.addEventListener("click", nextStage)
 /*setInterval(updateUi(), 1000);*/
 setInterval(() => {
   const stats = playerStats();
+  if (currentEnemy instanceof Boss) {
+    currentEnemy.tick(1000);
+  }
   updateDrawButton();
+  renderPlayerStats(stats);
   
 }, 100)
 
@@ -597,5 +632,5 @@ setInterval(() => {  //healerinterval
 }, 20000)
 
 setInterval(() => {
-  cdealerDamage();
+  cDealerDamage();
 }, stageData.attackspeed)

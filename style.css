@@ -31,7 +31,7 @@ body {
   grid-template-areas: 
   "dealer panel"
   "buttons panel"
-  "hand panel";
+  "hand logPanel";
   padding: 5px;
   height: 100vh;
 }
@@ -67,8 +67,17 @@ body {
   box-shadow: 0 0 10px #4CAF50;
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 1.5rem;
+  font-size: 1rem;
   cursor: pointer
+}
+
+#log-panel {
+  grid-area: logPanel;
+  border: 2px solid grey;
+  border-radius: 8px;
+  color: white;
+  text-shadow: 0 0 5px black;
+  font-size: 1rem;
 }
 
 /* dealer container */
@@ -271,7 +280,7 @@ body {
   left:   0;
   height: 100%;
   width:  0;                /* start empty */
-  background: yellow;       /* your “fill” color */
+  background: #3d3f85;       /* your “fill” color */
   border-radius: 8px 0 0 8px; /* round only the left corners */
   transition: width 0.3s ease;
 }
@@ -284,7 +293,7 @@ body {
   transform: translateX(-50%);
   line-height: 15px;
   font-size: 10px;
-  color: #238b23;
+  color: white;
   pointer-events: none;     /* clicks pass through */
 }
 
