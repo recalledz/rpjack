@@ -306,11 +306,13 @@ function onBossDefeat (boss) {
 function respawnDealerStage() {
 
   if (stageData.stage === 10) {
-    currentEnemy = new Boss ({
+    const bossConfig = {
       name: "leech king dealer",
       stageData: stageData,
       damage: calculateEnemyBasicDamage(stageData.stage, stageData.world),
-    });
+      icon: 'data-lucide="crown"'
+    };
+    currentEnemy = new Boss(bossConfig);
     stageData.dealerLifeMax = currentEnemy.maxHp;
     stageData.dealerLifeCurrent = currentEnemy.currentHp;
     } else {
@@ -582,19 +584,41 @@ function respawnPlayer() {
 
 function attack() {
   const stats = playerStats();
-  if (stageData.dealerLifeCurrent - stats.pDamage <= 0) {
-    stageData.kills += 1;
-    killsDisplay.textContent = `Kills: ${stageData.kills}`
-    respawnDealer();
-    dealerLifeBar();
-    cardXp(stageData.stage ** 1.2); 
-    cashOut();
-    nextStageChecker();
-    dealerDeathAnimation();
+  
+  if (currentEnemy instanceof Boss) {
+    // Handle boss damage
+    currentEnemy.takeDamage(stats.pDamage);
+    stageData.dealerLifeCurrent = currentEnemy.currentHp;
+    
+    if (currentEnemy.currentHp <= 0) {
+      stageData.kills += 1;
+      killsDisplay.textContent = `Kills: ${stageData.kills}`;
+      onBossDefeat(currentEnemy);
+      respawnDealer();
+      dealerLifeBar();
+      cashOut();
+      nextStageChecker();
+      dealerDeathAnimation();
+    } else {
+      dealerLifeDisplay.textContent = `Life: ${Math.floor(currentEnemy.currentHp)}/${currentEnemy.maxHp}`;
+      dealerLifeBar();
+    }
   } else {
-    stageData.dealerLifeCurrent = stageData.dealerLifeCurrent - stats.pDamage;
-    dealerLifeDisplay.textContent = `Life: ${Math.floor(stageData.dealerLifeCurrent)}/${stageData.dealerLifeMax}`
-    dealerLifeBar()
+    // Handle regular enemy damage
+    if (stageData.dealerLifeCurrent - stats.pDamage <= 0) {
+      stageData.kills += 1;
+      killsDisplay.textContent = `Kills: ${stageData.kills}`;
+      respawnDealer();
+      dealerLifeBar();
+      cardXp(stageData.stage ** 1.2); 
+      cashOut();
+      nextStageChecker();
+      dealerDeathAnimation();
+    } else {
+      stageData.dealerLifeCurrent = stageData.dealerLifeCurrent - stats.pDamage;
+      dealerLifeDisplay.textContent = `Life: ${Math.floor(stageData.dealerLifeCurrent)}/${stageData.dealerLifeMax}`;
+      dealerLifeBar();
+    }
   }
 }
 

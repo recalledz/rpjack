@@ -20,6 +20,7 @@ class Boss {
   }
 
   tick(deltaTime) {
+    this.attackTimer += deltaTime;
     this.abilities.forEach(ability => ability.tick(deltaTime, this))
   }
 
