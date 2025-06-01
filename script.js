@@ -321,6 +321,33 @@ function onBossDefeat (boss) {
   currentEnemy = null;
 }
 
+function spawnBoss() {
+  const stage = stageData.stage;
+  const world = stageData.world;
+
+  const maxHp = calculateEnemyHp(stage, world, true); // true for boss
+  const {minDamage, maxDamage} = calculateEnemyBasicDamage(stage, world);
+  const damage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+  
+  currentEnemy = new Boss(stage, world, {
+    maxHp,
+    damage: damage * 1.5, // bosses hit harder
+    xp: stage * 10, // more XP for bosses
+    attackInterval: 2000, // 2 second attack interval
+    name: `Stage ${stage} Boss`,
+    icon: 'data-lucide="crown"',
+    onDefeat: () => {
+      onBossDefeat(currentEnemy);
+    }
+  });
+
+  stageData.dealerLifeMax = currentEnemy.maxHp;
+  stageData.dealerLifeCurrent = currentEnemy.currentHp;
+
+  dealerLifeDisplay.textContent = `Life: ${stageData.dealerLifeCurrent}/${stageData.dealerLifeMax}`;
+  dealerLifeBar();
+}
+
 function respawnDealerStage() {
 
   if (stageData.stage % 10 === 0) {
