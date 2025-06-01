@@ -1,3 +1,4 @@
+
 entrypoint = "index.html"
 modules = ["web"]
 
@@ -18,16 +19,8 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "echo \"Serving HTML, open the Preview to see your output."
+args = "echo 'Serving HTML, open the Preview to see your output. To see changes you make, you can hit the refresh button in the preview, you do not have to stop and run again. Console logs are available in the Preview devtools or your browser devtools.' && static-web-server -w ./.config/static-web-server.toml"
 waitForPort = 80
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "To see changes you make, you can hit the refresh button in the preview, you do not have to stop and run again."
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "Console logs are available in the Preview devtools or your browser devtools.\" && static-web-server -w ./.config/static-web-server.toml"
 
 [[ports]]
 localPort = 80
