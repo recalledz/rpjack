@@ -14,44 +14,11 @@ body {
 }
 
 .casino-section {
-  position: relative;
   border: 3px solid #d4af37;
   border-radius: 8px;
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
   box-shadow: 0 0 10px #d4af37;
-  overflow: hidden;
-}
-
-.casino-section.slot-animate::after,
-.casino-section.slot-animate-boss::after {
-  content: "";
-  position: absolute;
-  left: -3px;
-  top: -3px;
-  right: -3px;
-  bottom: -3px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(255,215,0,0.8), rgba(255,215,0,0));
-  transform: translateY(-100%);
-}
-
-.casino-section.slot-animate::after {
-  animation: slotRun 0.6s linear forwards;
-}
-
-.casino-section.slot-animate-boss::after {
-  background: linear-gradient(to bottom, rgba(255,215,0,1), rgba(255,215,0,0));
-  animation: slotRunBoss 1s linear forwards;
-}
-
-@keyframes slotRun {
-  to { transform: translateY(100%); }
-}
-
-@keyframes slotRunBoss {
-  to { transform: translateY(100%) scale(1.1); opacity: 0; }
 }
 
 #tooltip {
@@ -153,14 +120,6 @@ body {
   background: red;
   border: 2px solid grey;
   transition: width 0.3s;
-}
-
-#dealerBarFill.bar-dead {
-  animation: barDeath 0.5s ease-out forwards;
-}
-
-@keyframes barDeath {
-  to { background: darkred; opacity: 0; }
 }
 
 
@@ -385,10 +344,6 @@ body {
   line-height: 1;            /* so it doesn’t add extra space */
 }
 
-.card-hp {
-  color: black;
-}
-
 .card-wrapper {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -408,15 +363,6 @@ body {
 
 .hit-animate {
   animation: card-hit 0.4s ease-out both;
-}
-
-.card-dead {
-  animation: cardDeath 0.5s ease-out forwards;
-}
-
-@keyframes cardDeath {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.5); }
 }
 
 /* track (the “container” behind the fill) */
