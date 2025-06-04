@@ -1,9 +1,18 @@
 
-import generateDeck from "./card.js"
-import addLog from "./log.js"
-import Enemy from "./enemy.js"
-import {Boss, BossTemplates} from "./boss.js"
-import { AbilityRegistry } from "./dealerabilities.js"; 
+import generateDeck from "./card.js";
+import addLog from "./log.js";
+import Enemy from "./enemy.js";
+import { Boss, BossTemplates } from "./boss.js";
+import { AbilityRegistry } from "./dealerabilities.js";
+
+// If running in Node (no `document` global), bootstrap a minimal DOM.
+if (typeof document === "undefined") {
+  const { JSDOM } = await import("jsdom");
+  const dom = new JSDOM("<!DOCTYPE html><body></body></html>");
+  global.window = dom.window;
+  global.document = dom.window.document;
+  global.performance = dom.window.performance;
+}
 
 
 
@@ -228,6 +237,8 @@ function renderDealerCard() {
     
   const dCardPane = document.createElement("div");
   dCardPane.classList.add("dCardPane");
+  const typeClass = currentEnemy instanceof Boss ? "boss" : "dealer";
+  dCardPane.classList.add(typeClass);
   
   const dCardAbilityPane = document.createElement("div");
   dCardAbilityPane.classList.add("dCardAbilityPane");
