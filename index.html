@@ -6,6 +6,21 @@
   <title>Page Title</title>
 </head>
 
+  <label>Cash: <input id="debugCash" type="number" value="10000" style="width: 60px;"></label>
+    <button onclick="devTools.giveCash()">Give</button>
+    <br>
+
+    <label>Damage Mult: <input id="debugDamageMult" type="number" value="1" step="0.1" style="width: 50px;"></label>
+    <button onclick="devTools.setDamageMult()">Set</button>
+    <br><br>
+
+    <button onclick="devTools.spawnBoss()">Spawn Boss</button>
+    <button onclick="devTools.spawnDealer()">Spawn Dealer</button>
+    <button onclick="devTools.killEnemy()">Kill Enemy</button>
+    <button onclick="devTools.advanceStage()">Next Stage</button>
+    <br>
+    <button onclick="devTools.logEnemy()">Log Enemy</button>
+  </div>
 <body>
 
   <!---tabs container--->

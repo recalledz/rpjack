@@ -1,24 +1,36 @@
-import enemy from "./enemy.js"
+import Enemy from "./enemy.js"
 
-class Boss extends enemy {
+ export class Boss extends Enemy {
   constructor(stage, world, config = {}) {
     super(stage, world, { 
       ...config,
       name: config.name || "Boss",
-      attackInterval: config.attackInterval || 1000,
+      attackInterval: config.attackInterval || 3000,
     });
-      this.icon = config.icon || "👑";
+      this.icon = config.icon;
       this.abilities = config.abilities || [];
   }
 
   tick(deltaTime) {
     super.tick(deltaTime);
-    this.abilities.forEach(ability => ability.tick(deltaTime, this)
-  )}
+    this.abilities.forEach(ability => ability.tick(deltaTime, this));
+  }
     
   die() {
     this.defeated = true;
   }
 }
 
-export default Boss
+export const BossTemplates = {
+  1: {
+    name: "Coqui del Mar",
+    icon: "skull",
+    abilityKeys: ["healing.heal"],
+  },
+  2: {
+    name: "Ogre",
+    icon: "shield",
+    abilityKeys: ["defense.shield"],
+  },
+  // Add more worlds here
+};

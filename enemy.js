@@ -1,4 +1,4 @@
-class enemy  {
+class Enemy  {
   constructor(stage, world, config = {}) {
     this.stage = stage;
     this.world = world;
@@ -9,7 +9,7 @@ class enemy  {
     this.currentHp = this.maxHp;
     this.damage = config.damage 
     this.xp = config.xp
-    this.attackInterval = config.attackInterval
+    this.attackInterval = config.attackInterval || 10000;
     this.abilities = config.abilities || [];
     this.attackTimer = 0;
 
@@ -34,7 +34,7 @@ class enemy  {
     this.attackTimer += deltaTime;
     this.abilities.forEach(ability => ability.tick(deltaTime, this))
     if (this.attackTimer >= this.attackInterval) {
-      this.attack();
+      if (this.onAttack) this.onAttack(this);
       this.attackTimer = 0;
     }
   }
@@ -42,4 +42,4 @@ class enemy  {
   
 }
 
-export default enemy
+export default Enemy
