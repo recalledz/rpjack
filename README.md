@@ -21,12 +21,11 @@ A dynamic card-based combat game where cards represent characters. The player fi
 
 ## 🗂️ Project Structure
 /index.html
-/styles.css
-/main.js
-/player.js
+/style.css
+/script.js
+/card.js
 /enemy.js ← Base enemy logic
-/abilities.js ← Ability registry & factory
-/ui.js ← Card rendering & UI logic
+/dealerabilities.js ← Ability registry & factory
 /.codex/tasks.md ← Codex task manager
 
 
