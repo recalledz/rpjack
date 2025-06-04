@@ -17,4 +17,4 @@ function addLog(message, type = "default") {
   logContainer.scrollTop = logContainer.scrollHeight;
 }
 
-export default addLog; 
+export default addLog;
