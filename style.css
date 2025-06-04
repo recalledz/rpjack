@@ -148,6 +148,17 @@ body {
   position: relative;
 }
 
+.dCardPane.dealer {
+  background: linear-gradient(to bottom right, #fff, #eee);
+  border-color: #888;
+}
+
+.dCardPane.boss {
+  background: linear-gradient(to bottom right, #441414, #6b0000);
+  border-color: #aa3333;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+
 .dCard__icon {
   width: 3em;
   height: 3em;

@@ -238,6 +238,8 @@ function renderDealerCard() {
     
   const dCardPane = document.createElement("div");
   dCardPane.classList.add("dCardPane");
+  const typeClass = currentEnemy instanceof Boss ? "boss" : "dealer";
+  dCardPane.classList.add(typeClass);
   
   const dCardAbilityPane = document.createElement("div");
   dCardAbilityPane.classList.add("dCardAbilityPane");
