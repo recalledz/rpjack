@@ -228,7 +228,6 @@ function renderPlayerStats(stats) {
 }
 
 function renderDealerCard() {
-    console.log("renderDealerCard called");
     const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world) //calculate damage for the current stage min and max
   
   
@@ -249,7 +248,6 @@ function renderDealerCard() {
   
   
      let abilitiesHTML = `<div class="dCard_abilities">`;
-     console.log("Boss abilities:", currentEnemy.abilities);
         for (const ability of currentEnemy.abilities) {
           const icon = ability.icon || "sparkles";
           const label = ability.label || "Ability";
@@ -461,7 +459,8 @@ function spawnBoss() {
 } 
 
 function updateDealerLifeDisplay() {
-`Life: ${currentEnemy.currentHp}/${currentEnemy.maxHp}`;
+  dealerLifeDisplay.textContent =
+    `Life: ${currentEnemy.currentHp}/${currentEnemy.maxHp}`;
   renderDealerLifeBar();
   renderDealerLifeBarFill();
 }
@@ -528,7 +527,6 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
     const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
     const dCardPane = document.querySelector(".dCardPane")
   
-    console.log("Wrapper found:", dCardWrapper) 
     if (!dCardWrapper) return;
     
       dCardWrapper.classList.add("dealer-dead");
@@ -546,19 +544,11 @@ function cardXp(xpAmount) {
   drawnCards.forEach(card => {
     if (!card) return;
 
-    let xp = xpAmount; // each card own xp bucket
-    card.XpCurrent += xp;
-  
-    while (card.XpCurrent >= card.XpReq) {
-      card.XpCurrent -= card.XpReq;
-      card.currentLevel++;
-      card.XpReq += card.currentLevel * 1.7 * (card.value ** 2);
-      card.damage = card.baseDamage * card.currentLevel;
-      card.maxHp = card.value * card.currentLevel;
-      card.currentHp = card.maxHp;
-      cardPoints = cardPoints + 1;
+    const leveled = card.gainXp(xpAmount);
+    if (leveled) {
+      cardPoints += 1;
       animateCardLevelUp(card);
-      addLog(`${card.value}${card.symbol} leveled up to level ${card.currentLevel}!`, "level")
+      addLog(`${card.value}${card.symbol} leveled up to level ${card.currentLevel}!`, "level");
     }
   });
   // refresh both UIs
