@@ -70,7 +70,7 @@
 - Preparing for Codex-based task and documentation management
 
 ## Notes
-- Ability registry is in `abilityRegistry.js`.
+- Ability registry is in `dealerabilities.js`.
 - Cards render in `renderDealerCard()`.
 - Lucide icons are used for visual consistency.
 - All UI logic is JS-based; no framework.
