@@ -29,7 +29,7 @@ export const BossTemplates = {
   },
   2: {
     name: "Ogre",
-    icon: "shield",
+    icon: "frog",
     abilityKeys: ["defense.shield"],
   },
   // Add more worlds here

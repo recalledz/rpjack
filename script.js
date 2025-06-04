@@ -17,6 +17,7 @@ if (typeof document === "undefined") {
 
 
 let drawnCards = []
+let discardPile = []
 let cash = 0
 let cardPoints = 0
 let currentEnemy = null;
@@ -54,6 +55,7 @@ const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
 const cashDisplay = document.getElementById("cashDisplay")
 const cardPointsDisplay = document.getElementById("cardPointsDisplay")
+const discardDisplay = document.getElementById("discardDisplay")
 const handContainer = document.getElementsByClassName("handContainer")[0]
 const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0]
 const killsDisplay = document.getElementById("kills")
@@ -180,10 +182,17 @@ function updateDeckDisplay() {
   });
 }
 
+function updateDiscardDisplay() {
+  if (discardDisplay) {
+    discardDisplay.textContent = `Discarded: ${discardPile.length}`;
+  }
+}
+
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
-  renderDealerCard(); 
+  renderDealerCard();
+  updateDiscardDisplay();
   requestAnimationFrame(gameLoop)
 });
 
@@ -307,8 +316,9 @@ function renderDealerCard() {
            }
          abilitiesHTML += `</div>`;
 
+         const iconColor = getDealerIconColor(stageData.stage);
          dCardPane.innerHTML = `
-           <i data-lucide="skull" class="dCard__icon"></i>
+           <i data-lucide="skull" class="dCard__icon" style="stroke:${iconColor}"></i>
            <span class="dCard__text">
              ${currentEnemy.name}<br>
              Damage: ${minDamage} - ${maxDamage}
@@ -323,6 +333,7 @@ function renderDealerCard() {
       // append wrapper to container
         dCardContainer.appendChild(dCardWrapper);
          lucide.createIcons();
+        dCardWrapper.querySelector('.dCard__icon').style.stroke = iconColor;
      }
   }
 
@@ -380,7 +391,7 @@ function spawnDealer() {
   });
 
   updateDealerLifeDisplay();
-  dealerDeathAnimation();
+  renderDealerCard();
 }
 
 function updateDealerLifeBar(enemy) {
@@ -413,9 +424,13 @@ function onDealerDefeat() {
   healCardsOnKill();
   stageData.kills += 1;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
-  dealerDeathAnimation();
+  playSlotEffect(false);
   nextStageChecker();
-  respawnDealerStage();
+  dealerDeathAnimation(() => {
+    dealerBarDeathEffect(() => {
+      respawnDealerStage();
+    });
+  });
 } // need to define xp formula
 
 function onBossDefeat(boss) {
@@ -426,8 +441,13 @@ function onBossDefeat(boss) {
   currentEnemy = null;
 
   healCardsOnKill();
+  playSlotEffect(true);
   nextWorld();
-  respawnDealerStage();
+  dealerDeathAnimation(() => {
+    dealerBarDeathEffect(() => {
+      respawnDealerStage();
+    });
+  });
 }
 
 function spawnBoss() {
@@ -457,8 +477,8 @@ function spawnBoss() {
   });
 
   updateDealerLifeDisplay();
-  dealerDeathAnimation()
-} 
+  renderDealerCard();
+}
 
 function updateDealerLifeDisplay() {
   dealerLifeDisplay.textContent =
@@ -491,6 +511,12 @@ function calculateEnemyBasicDamage(stage, world) {
   return { minDamage, maxDamage };
 }
 
+function getDealerIconColor(stage) {
+  const ratio = Math.min(1, (stage - 1) / 9);
+  const lightness = 70 - ratio * 50; // 70% -> 20%
+  return `hsl(0, 100%, ${lightness}%)`;
+}
+
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
 
   // if there’s no card, nothing to do
@@ -517,27 +543,48 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   animateCardHit(card)
   // if it’s dead, remove it
   if (card.currentHp === 0) {
-    // 1) from your data
     drawnCards.shift();
-    // 2) from the DOM
-    card.wrapperElement.remove();
+    discardPile.push(card);
+    card.wrapperElement.classList.add("card-dead");
+    card.wrapperElement.addEventListener("animationend", () => {
+      card.wrapperElement.remove();
+      updateDiscardDisplay();
+    }, { once: true });
   }
   // Optional ability logic (e.g., healing, fireball
 }
 
-  function dealerDeathAnimation() {
+  function dealerDeathAnimation(callback) {
     const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
-    const dCardPane = document.querySelector(".dCardPane")
-  
-    if (!dCardWrapper) return;
-    
-      dCardWrapper.classList.add("dealer-dead");
-    dCardPane.classList.add("dealer-dead")
+    const dCardPane = document.querySelector(".dCardPane");
+
+    if (!dCardWrapper) { callback?.(); return; }
+
+    dCardWrapper.classList.add("dealer-dead");
+    dCardPane.classList.add("dealer-dead");
 
     dCardWrapper.addEventListener("animationend", () => {
-       dCardContainer.innerHTML = "";
-      renderDealerCard()
+      dCardContainer.innerHTML = "";
+      callback?.();
     }, { once: true });
+  }
+
+  function dealerBarDeathEffect(callback) {
+    const barFill = document.getElementById("dealerBarFill");
+    if (!barFill) { callback?.(); return; }
+    barFill.classList.add("bar-dead");
+    barFill.addEventListener("animationend", () => {
+      removeDealerLifeBar();
+      callback?.();
+    }, { once: true });
+  }
+
+  function playSlotEffect(isBoss = false) {
+    document.querySelectorAll('.casino-section').forEach(el => {
+      const cls = isBoss ? 'slot-animate-boss' : 'slot-animate';
+      el.classList.add(cls);
+      el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+    });
   }
 
 //========deck functions===========
@@ -686,11 +733,12 @@ function spawnPlayer() {
   for (let i = 0; i < stats.cardSlots; i++) {
     drawCard();
   }
+  updateDiscardDisplay();
 }
 
 function respawnPlayer() {
   drawnCards = [];
-  deck = [...pDeck];
+  deck = pDeck.filter(c => !discardPile.includes(c));
   handContainer.innerHTML = "";
   stats.points = 0;
   pointsDisplay.textContent = stats.points;
