@@ -49,3 +49,20 @@ To get started:
 ## 👾 Author
 Built in collaboration with ChatGPT & Codex.
 
+## 🧪 Node-based Testing
+When running automated tests in Node, there is no browser `document` object.
+`script.js` now detects this case and creates a minimal DOM using
+[JSDOM](https://github.com/jsdom/jsdom). Install the dependency and import the
+script in your tests:
+
+```bash
+npm install --save-dev jsdom
+```
+
+```javascript
+import "./script.js";
+```
+
+This will bootstrap `window`, `document` and `performance` globals so modules
+depending on them can run under Node.
+
