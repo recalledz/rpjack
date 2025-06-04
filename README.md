@@ -11,6 +11,7 @@ A dynamic card-based combat game where cards represent characters. The player fi
 - Dealer and Boss types with unique abilities
 - Real-time cooldown logic and ability overlays
 - Realtime combat tick system
+- Cards recover 1 HP after each enemy kill
 - Reincarnation, experience, traits (planned)
 
 ## 🧠 Tech Stack
