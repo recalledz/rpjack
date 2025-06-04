@@ -39,6 +39,9 @@ export class Card {
     this.maxHp = value;
     this.currentHp = this.maxHp;
 
+    // Amount of HP this card recovers each time an enemy is killed
+    this.hpPerKill = 1;
+
     this.job = null;
     this.traits = [];
   }
@@ -60,6 +63,14 @@ export class Card {
     this.damage = this.baseDamage * this.currentLevel;
     this.maxHp = this.value * this.currentLevel;
     this.currentHp = this.maxHp;
+  }
+
+  healFromKill() {
+    this.currentHp = Math.min(this.maxHp, this.currentHp + this.hpPerKill);
+  }
+
+  upgradeHpPerKill(amount = 1) {
+    this.hpPerKill += amount;
   }
 
   takeDamage(amount) {

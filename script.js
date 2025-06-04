@@ -407,9 +407,10 @@ function respawnDealerStage() {
 }
 
 function onDealerDefeat() {
-  
+
   cardXp(stageData.stage ** 1.2 * stageData.world);
   cashOut();
+  healCardsOnKill();
   stageData.kills += 1;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   dealerDeathAnimation();
@@ -424,6 +425,7 @@ function onBossDefeat(boss) {
   addLog(`${boss.name} was defeated!`);
   currentEnemy = null;
 
+  healCardsOnKill();
   nextWorld();
   respawnDealerStage();
 }
@@ -666,6 +668,15 @@ function animateCardLevelUp(card) {
   const w = card.wrapperElement;
   w.classList.add("levelup-animate");
   w.addEventListener("animationend", () => w.classList.remove("levelup-animate"), { once: true });
+}
+
+function healCardsOnKill() {
+  drawnCards.forEach(card => {
+    if (!card) return;
+    card.healFromKill();
+  });
+  updateHandDisplay();
+  updateDeckDisplay();
 }
 
 //=========player functions===========
