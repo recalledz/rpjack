@@ -228,7 +228,6 @@ function renderPlayerStats(stats) {
 }
 
 function renderDealerCard() {
-    console.log("renderDealerCard called");
     const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world) //calculate damage for the current stage min and max
   
   
@@ -248,8 +247,7 @@ function renderDealerCard() {
    if (currentEnemy instanceof Boss) {
   
   
-     let abilitiesHTML = `<div class="dCard_abilities">`;
-     console.log("Boss abilities:", currentEnemy.abilities);
+    let abilitiesHTML = `<div class="dCard_abilities">`;
         for (const ability of currentEnemy.abilities) {
           const icon = ability.icon || "sparkles";
           const label = ability.label || "Ability";
@@ -527,8 +525,6 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   function dealerDeathAnimation() {
     const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
     const dCardPane = document.querySelector(".dCardPane")
-  
-    console.log("Wrapper found:", dCardWrapper) 
     if (!dCardWrapper) return;
     
       dCardWrapper.classList.add("dealer-dead");
