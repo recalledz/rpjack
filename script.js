@@ -45,6 +45,16 @@ let stageData = {
   attackspeed: 10000, //10 sec at start
 }
 
+function getDealerIconStyle(stage) {
+  const capped = Math.max(1, Math.min(10, stage));
+  const t = (capped - 1) / 9; // 0 → 1
+  const saturation = 30 + t * 70; // 30% → 100%
+  const lightness = 55 - t * 35; // 55% → 20%
+  const color = `hsl(0, ${saturation}%, ${lightness}%)`;
+  const blur = 1 + t * 4; // 1px → 5px
+  return { color, blur };
+}
+
 let pDeck = generateDeck()
 let deck = [...pDeck]
 
@@ -307,8 +317,9 @@ function renderDealerCard() {
            }
          abilitiesHTML += `</div>`;
 
+         const { color, blur } = getDealerIconStyle(stageData.stage);
          dCardPane.innerHTML = `
-           <i data-lucide="skull" class="dCard__icon"></i>
+           <i data-lucide="skull" class="dCard__icon" style="stroke:${color}; filter: drop-shadow(0 0 ${blur}px ${color});"></i>
            <span class="dCard__text">
              ${currentEnemy.name}<br>
              Damage: ${minDamage} - ${maxDamage}
