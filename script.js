@@ -46,6 +46,16 @@ let stageData = {
   attackspeed: 10000, //10 sec at start
 }
 
+function getDealerIconStyle(stage) {
+  const capped = Math.max(1, Math.min(10, stage));
+  const t = (capped - 1) / 9; // 0 → 1
+  const saturation = 30 + t * 70; // 30% → 100%
+  const lightness = 55 - t * 35; // 55% → 20%
+  const color = `hsl(0, ${saturation}%, ${lightness}%)`;
+  const blur = 1 + t * 4; // 1px → 5px
+  return { color, blur };
+}
+
 let pDeck = generateDeck()
 let deck = [...pDeck]
 
@@ -248,8 +258,9 @@ function renderDealerCard() {
     
    if (currentEnemy instanceof Boss) {
   
-  
+
      let abilitiesHTML = `<div class="dCard_abilities">`;
+
         for (const ability of currentEnemy.abilities) {
           const icon = ability.icon || "sparkles";
           const label = ability.label || "Ability";
@@ -309,8 +320,9 @@ function renderDealerCard() {
            }
          abilitiesHTML += `</div>`;
 
+         const { color, blur } = getDealerIconStyle(stageData.stage);
          dCardPane.innerHTML = `
-           <i data-lucide="skull" class="dCard__icon"></i>
+           <i data-lucide="skull" class="dCard__icon" style="stroke:${color}; filter: drop-shadow(0 0 ${blur}px ${color});"></i>
            <span class="dCard__text">
              ${currentEnemy.name}<br>
              Damage: ${minDamage} - ${maxDamage}
@@ -416,8 +428,10 @@ function onDealerDefeat() {
   stageData.kills += 1;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   dealerDeathAnimation();
-  nextStageChecker();
-  respawnDealerStage();
+  dealerBarDeathAnimation(() => {
+    nextStageChecker();
+    respawnDealerStage();
+  });
 } // need to define xp formula
 
 function onBossDefeat(boss) {
@@ -524,6 +538,7 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
       drawnCards.shift();
       // 2) from the DOM
       card.wrapperElement.remove();
+
       discardCard(card);
       updatePlayerStats(stats);
       updateDrawButton();
@@ -536,15 +551,27 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   function dealerDeathAnimation() {
     const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
     const dCardPane = document.querySelector(".dCardPane")
-  
     if (!dCardWrapper) return;
     
       dCardWrapper.classList.add("dealer-dead");
     dCardPane.classList.add("dealer-dead")
 
     dCardWrapper.addEventListener("animationend", () => {
-       dCardContainer.innerHTML = "";
+      dCardContainer.innerHTML = "";
       renderDealerCard()
+    }, { once: true });
+  }
+
+  function dealerBarDeathAnimation(callback) {
+    const bar = document.querySelector(".dealerLifeContainer");
+    if (!bar) {
+      if (callback) callback();
+      return;
+    }
+    bar.classList.add("bar-dead");
+    bar.addEventListener("animationend", () => {
+      removeDealerLifeBar();
+      if (callback) callback();
     }, { once: true });
   }
 
@@ -689,6 +716,7 @@ function animateCardLevelUp(card) {
   w.classList.add("levelup-animate");
   w.addEventListener("animationend", () => w.classList.remove("levelup-animate"), { once: true });
 }
+
 
 function animateCardDeath(card, callback) {
   const w = card.wrapperElement;
