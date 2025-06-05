@@ -188,7 +188,7 @@ body {
 }
 
 .dCardPane.boss {
-  background: linear-gradient(to bottom right, #441414, #6b0000);
+  background: linear-gradient(to bottom right, #947f7f, #c20f0f);
   border-color: #aa3333;
   box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
 }

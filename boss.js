@@ -24,7 +24,7 @@ import Enemy from "./enemy.js"
 export const BossTemplates = {
   1: {
     name: "Coqui del Mar",
-    icon: "skull",
+    icon: "waves",
     abilityKeys: ["healing.heal"],
   },
   2: {
