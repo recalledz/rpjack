@@ -36,7 +36,7 @@ body {
 .mainTab {
   display: grid;
   grid-template-rows: 1.5fr 0.5fr 1fr;
-  grid-template-columns: auto 1fr 20%;
+  grid-template-columns: 20% 1fr 20%;
   grid-template-areas:
     "dealer dealer panel"
     "buttons buttons panel"
@@ -345,6 +345,8 @@ body {
   align-items: center;
   border: 2px solid rgba(255, 255, 100, 0.6);
   border-radius: 8px;
+  overflow: hidden;
+  position: relative;
 }
 
 
@@ -374,8 +376,9 @@ body {
   width: 75px;
   border-radius: 8px;
   border: 2px solid grey;
-  margin-bottom: 4px;
+  margin: 0 auto;
   object-fit: cover;
+  display: block;
 }
 
 .card-value {
