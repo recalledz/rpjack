@@ -360,10 +360,10 @@ body {
 /* hand container */
 
 .handContainer {
-  display: flex;
+  display: grid;
   grid-area: hand;
-  flex-wrap: wrap;
-  justify-content: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
   gap: 10px;
 }
 
@@ -383,15 +383,14 @@ body {
 
 
 .card-wrapper {
-  display: inline-flex;    /* let multiple cards sit side-by-side */
-  flex-direction: column;     /* stack children top→bottom */
-  align-items: center;        /* center the bar under the card */
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   height: max-content;
-  margin: 0 8px;              /* horizontal spacing between cards */
-  flex: 1 1 calc(33% - 20px); /* allow 3 per row */
-  max-width: 120px;
-  min-width: 60px;
-}
+  width: 100%;
+  max-width: 160px;
+
 
 
 .card {
