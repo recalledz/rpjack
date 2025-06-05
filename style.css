@@ -369,15 +369,16 @@ body {
 
 .discardContainer {
   display: flex;
-  grid-area: discard;
-  width: 85px;
-  height: 105px;
+  width: 75px;
+  height: 95px;
   justify-content: center;
   align-items: center;
   border: 2px solid rgba(255, 255, 100, 0.6);
   border-radius: 8px;
   overflow: hidden;
   position: relative;
+  margin-top: auto;
+  align-self: center;
 }
 
 
