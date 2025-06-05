@@ -768,24 +768,16 @@ function renderJokers() {
   if (!jokerContainer) return;
   jokerContainer.innerHTML = "";
   unlockedJokers.forEach(joker => {
-    const tile = document.createElement("div");
-    tile.classList.add("joker-tile");
-    tile.textContent = joker.name;
-    tile.addEventListener("click", () => openJokerDetails(joker));
-    jokerContainer.appendChild(tile);
+    const img = document.createElement("img");
+    img.classList.add("joker-card");
+    img.src = joker.image;
+    img.alt = joker.name;
+    jokerContainer.appendChild(img);
   });
 }
 
 function openJokerDetails(joker) {
-  const overlay = document.createElement("div");
-  overlay.classList.add("joker-overlay");
-  overlay.innerHTML = `
-    <div class="joker-card">
-      <img src="${joker.image}" alt="${joker.name}">
-      <div class="joker-desc">${joker.description}</div>
-    </div>`;
-  overlay.addEventListener("click", () => overlay.remove());
-  document.body.appendChild(overlay);
+  // Legacy overlay display no longer used
 }
 
 function awardJokerCard() {
