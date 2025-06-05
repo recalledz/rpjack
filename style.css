@@ -439,6 +439,16 @@ body {
   animation: card-heal 0.6s ease-out both;
 }
 
+@keyframes card-death {
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+.death-animate {
+  animation: card-death 0.5s ease-out forwards;
+}
+
 @keyframes card-level-up {
   0% {
     transform: scale(1);

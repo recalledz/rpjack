@@ -531,10 +531,15 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   animateCardHit(card)
   // if it’s dead, remove it
   if (card.currentHp === 0) {
-    // 1) from your data
-    drawnCards.shift();
-    // 2) from the DOM
-    card.wrapperElement.remove();
+    animateCardDeath(card, () => {
+      // 1) from your data
+      drawnCards.shift();
+      // 2) from the DOM
+      card.wrapperElement.remove();
+      updatePlayerStats(stats);
+      updateDrawButton();
+      updateDeckDisplay();
+    });
   }
   // Optional ability logic (e.g., healing, fireball
 }
@@ -694,6 +699,19 @@ function animateCardLevelUp(card) {
   const w = card.wrapperElement;
   w.classList.add("levelup-animate");
   w.addEventListener("animationend", () => w.classList.remove("levelup-animate"), { once: true });
+}
+
+function animateCardDeath(card, onComplete) {
+  const w = card.wrapperElement;
+  w.classList.add("death-animate");
+  w.addEventListener(
+    "animationend",
+    () => {
+      w.classList.remove("death-animate");
+      if (typeof onComplete === "function") onComplete();
+    },
+    { once: true }
+  );
 }
 
 function healCardsOnKill() {
