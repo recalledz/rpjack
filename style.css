@@ -72,7 +72,7 @@ body {
   background: rgba(133, 163, 139, 0.5);
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .mainTabPanel > div {
@@ -123,7 +123,7 @@ body {
   border-radius: 8px;
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 1rem;
+  font-size: 1.2rem;
   max-height: 150px;
   overflow-y: auto;
 }
@@ -323,22 +323,23 @@ body {
 
 /* buttons container */
 
+
 .buttonsContainer {
   grid-area: buttons;
-  text-align: center;
-  padding: 10px;
-  gap: 10px
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 .buttonsContainer > button {
-  display: inline-flex;         /* turn the button into a flex container */
-  align-items: center;          /* vertically center text & icon */
+  display: flex;                /* turn the button into a flex container */
+  align-items: center;          /* vertically center icon */
   justify-content: center;      /* horizontally center content */
-  gap: 0.5rem;                  /* space between icon & text */
 
-  width: 150px;
-  height: 40px;                 /* bump it a little for padding */
-  padding: 0 1rem;              /* horizontal padding */
+  width: 40px;
+  height: 40px;
+  padding: 0;
 
   color: #080707;                  /* no quotes here */
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
@@ -346,7 +347,7 @@ body {
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
 
-  font-size: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
