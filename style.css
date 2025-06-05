@@ -35,13 +35,13 @@ body {
 }
 .mainTab {
   display: grid;
-  grid-template-rows: 1.5fr 0.5fr 1fr 0.4fr;
-  grid-template-columns: 20% 1fr 20%;
+  grid-template-rows: 1fr 0.4fr 0.75fr 0.75fr;
+  grid-template-columns: 1fr 20%;
   grid-template-areas:
-    "dealer dealer sidePanel"
-    "buttons buttons sidePanel"
-    "hand hand sidePanel"
-    "jokers jokers sidePanel";
+    "dealer sidePanel"
+    "buttons sidePanel"
+    "hand sidePanel"
+    "jokers sidePanel";
   padding: 5px;
   height: 100vh;
 }
@@ -627,4 +627,5 @@ body {
   max-width: 100%;
   border-radius: 4px;
   margin-bottom: 8px;
+  object-fit: cover;
 }

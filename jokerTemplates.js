@@ -4,7 +4,7 @@ export const HealingJoker = {
   isJoker: true,
   abilityType: "heal",
   baseValue: 10,
-  image: "assets/jokers/healing_joker.png",
+  image: "img/healerJoker.png",
   awardCondition: "defeat_boss_world_1",
 
   getScaledPower(context = {}) {
