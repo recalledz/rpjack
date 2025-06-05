@@ -38,9 +38,9 @@ body {
   grid-template-rows: 1.5fr 0.5fr 1fr;
   grid-template-columns: 20% 1fr 20%;
   grid-template-areas:
-    "dealer dealer panel"
-    "buttons buttons panel"
-    "discard hand logPanel";
+    "dealer dealer sidePanel"
+    "buttons buttons sidePanel"
+    "discard hand sidePanel";
   padding: 5px;
   height: 100vh;
 }
@@ -69,7 +69,6 @@ body {
 
 /*============ main tab panel============== */
 .mainTabPanel {
-  grid-area: panel;
   background: rgba(133, 163, 139, 0.5);
   color: white;
   text-shadow: 0 0 5px black;
@@ -88,13 +87,45 @@ body {
   margin-bottom: 0;
 }
 
+/*========= side panel & vignettes =========*/
+.sidePanel {
+  grid-area: sidePanel;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vignette-toggle {
+  width: 100%;
+  padding: 4px 6px;
+  background: linear-gradient(135deg, #f0f0f0, #fafafa);
+  border: 2px solid #4CAF50;
+  border-radius: 6px;
+  color: #080707;
+  box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
+  cursor: pointer;
+}
+
+.vignette-toggle:hover {
+  box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
+}
+
+.vignette-content {
+  display: none;
+}
+
+.vignette.open .vignette-content {
+  display: block;
+}
+
 #log-panel {
-  grid-area: logPanel;
   border: 2px solid grey;
   border-radius: 8px;
   color: white;
   text-shadow: 0 0 5px black;
   font-size: 1rem;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 /* dealer container */
@@ -338,26 +369,28 @@ body {
 
 .discardContainer {
   display: flex;
-  grid-area: discard;
-  width: 85px;
-  height: 105px;
+  width: 75px;
+  height: 95px;
   justify-content: center;
   align-items: center;
   border: 2px solid rgba(255, 255, 100, 0.6);
   border-radius: 8px;
   overflow: hidden;
   position: relative;
+  margin-top: auto;
+  align-self: center;
 }
 
 
 .card-wrapper {
+
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   height: max-content;
   width: 100%;
   max-width: 160px;
-}
+
 
 
 .card {

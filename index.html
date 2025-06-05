@@ -39,16 +39,37 @@
       <div class="dCardContainer"></div>
     </div>
     
-    <div class="mainTabPanel casino-section">
-      <div id="pointsDisplay"> Attack: 0</div>
-      <div id="cashDisplay"> Cash: 0</div>
-      <div id="damageDisplay"> Damage: 0</div>
-      <div id="regenDisplay"> Regen: 0</div>
-      <div id="cashMultiDisplay"> Cash Multi: 0</div>
-      <div id="lifeMultiDisplay"> Life Multi: 0</div>
-      <div id="cardPointsDisplay"> Card Points: 0</div>
+    <div class="sidePanel">
+      <div class="vignette stats open">
+        <button class="vignette-toggle">Stats</button>
+        <div class="vignette-content">
+          <div class="mainTabPanel casino-section">
+            <div id="pointsDisplay"> Attack: 0</div>
+            <div id="cashDisplay"> Cash: 0</div>
+            <div id="damageDisplay"> Damage: 0</div>
+            <div id="regenDisplay"> Regen: 0</div>
+            <div id="cashMultiDisplay"> Cash Multi: 0</div>
+            <div id="lifeMultiDisplay"> Life Multi: 0</div>
+            <div id="cardPointsDisplay"> Card Points: 0</div>
+          </div>
+        </div>
+      </div>
+      <div class="vignette upgrades">
+        <button class="vignette-toggle">Upgrades</button>
+        <div class="casino-section vignette-content">
+          <p>Coming soon...</p>
+        </div>
+      </div>
+      <div class="vignette log">
+        <button class="vignette-toggle">Log</button>
+        <div class="casino-section vignette-content" id="log-panel">
+          <div id="game-log"></div>
+        </div>
+      </div>
+      <div class="discardContainer casino-section">
+        <img src="img/basic deck.png" alt="Card Back" class="card-back" />
+      </div>
     </div>
-    <div id=game-log></div>
     
     <div class="buttonsContainer casino-section">
       <button id="clickalipse">🃏 Draw</button>
@@ -56,9 +77,6 @@
       <button id="nextStageBtn" disabled> 🚀 Next Stage</button>
     </div>
 
-    <div class="discardContainer casino-section">
-  <img src="img/basic deck.png" alt="Card Back" class="card-back" />
-    </div>
     <div class="handContainer casino-section">
     </div>
   <!--------------deck tab----------------->
