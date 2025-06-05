@@ -2,13 +2,14 @@ import Enemy from "./enemy.js"
 
  export class Boss extends Enemy {
   constructor(stage, world, config = {}) {
-    super(stage, world, { 
+    super(stage, world, {
       ...config,
       name: config.name || "Boss",
       attackInterval: config.attackInterval || 3000,
     });
-      this.icon = config.icon;
-      this.abilities = config.abilities || [];
+    this.icon = config.icon;
+    this.iconColor = config.iconColor;
+    this.abilities = config.abilities || [];
   }
 
   tick(deltaTime) {
@@ -24,12 +25,14 @@ import Enemy from "./enemy.js"
 export const BossTemplates = {
   1: {
     name: "Coqui del Mar",
-    icon: "skull",
+    icon: "waves",
+    iconColor: "blue",
     abilityKeys: ["healing.heal"],
   },
   2: {
     name: "Ogre",
     icon: "shield",
+    iconColor: "gray",
     abilityKeys: ["defense.shield"],
   },
   // Add more worlds here
