@@ -329,10 +329,10 @@ body {
 /* hand container */
 
 .handContainer {
-  display: flex;
+  display: grid;
   grid-area: hand;
-  flex-wrap: wrap;
-  justify-content: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
   gap: 10px;
 }
 
@@ -351,29 +351,31 @@ body {
 
 
 .card-wrapper {
-  display: inline-flex;    /* let multiple cards sit side-by-side */ 
-  flex-direction: column;     /* stack children top→bottom */
-  align-items: center;        /* center the bar under the card */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   height: max-content;
-  margin: 0 8px;              /* horizontal spacing between cards */
+  width: 100%;
+  max-width: 160px;
 }
 
 
 .card {
   display: flex;
   flex-direction: column;
-  height: 95px;
-  width: 75px;
+  width: 100%;
+  aspect-ratio: 3 / 4;         /* keep card shape */
   border-radius: 8px;
   padding: 4px;
   background: white;
   border: 2px solid grey ;
   margin-bottom: 4px;         /* a little gap before the bar */
+  font-size: 2vmin;            /* scale content with screen */
 }
 
 .card-back {
-  height: 95px;
-  width: 75px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   border-radius: 8px;
   border: 2px solid grey;
   margin: 0 auto;
@@ -391,7 +393,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 40px;           /* make the suit symbol bigger */
+  font-size: 3em;            /* scale with card font */
   line-height: 1;            /* so it doesn’t add extra space */
 }
 
@@ -425,12 +427,12 @@ body {
 .xpBar {
   position: relative;
   width: 80%;               /* whatever % of the hand you like */
-  height: 15px;
+  height: 1em;
   background: #090b09;      /* dark green track */
   border: 1px solid grey;
   border-radius: 8px;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 0.5em;
   box-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
 
@@ -452,8 +454,8 @@ body {
   top:    0;
   left:   50%;
   transform: translateX(-50%);
-  line-height: 15px;
-  font-size: 10px;
+  line-height: 1em;
+  font-size: 0.6em;
   color: white;
   pointer-events: none;     /* clicks pass through */
 }
