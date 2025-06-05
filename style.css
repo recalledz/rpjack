@@ -40,7 +40,7 @@ body {
   grid-template-areas:
     "dealer dealer sidePanel"
     "buttons buttons sidePanel"
-    "discard hand sidePanel";
+    "hand hand sidePanel";
   padding: 5px;
   height: 100vh;
 }
@@ -426,7 +426,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 3em;            /* scale with card font */
+  font-size: 5em;            /* scale with card font */
   line-height: 1;            /* so it doesn’t add extra space */
 }
 
