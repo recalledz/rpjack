@@ -9,19 +9,21 @@
 - Game loop updated for real-time cooldown tracking
 - GitHub repository connected and Replit integration enabled
 - Finalize card visual polish for dealers
+- Create Card class to unify structure
+  - Store HP, attack, level, XP, job, suit, traits
+  - Define methods for leveling, XP gain, and combat damage
+  - Include references to job affinity and trait bonuses
+-Add appropriate icons to each dealer/boss card
+-Increase size/intensity of icons depending on stage
 
 ---
 
 ## 🚧 Upcoming Goals
 - Fix dev tools: spawn boss does not update stage stats properly
-- Add appropriate icons to each dealer/boss card
-- Increase size/intensity of icons depending on stage
+
 
 ### 🃏 Card System Overhaul
-- Create Card class to unify structure
-  - Store HP, attack, level, XP, job, suit, traits
-  - Define methods for leveling, XP gain, and combat damage
-  - Include references to job affinity and trait bonuses
+-implement card xp system that scales with stages
 - Implement affinities: each card has a job alignment
   - Types: Strength, Dexterity, Mind, Chaos, Holy
   - Influence stat scaling, ability unlocks, and synergy bonuses
