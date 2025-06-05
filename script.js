@@ -56,6 +56,7 @@ function getDealerIconStyle(stage) {
   return { color, blur };
 }
 
+
 let pDeck = generateDeck()
 let deck = [...pDeck]
 
@@ -278,8 +279,9 @@ function renderDealerCard() {
         }
       abilitiesHTML += `</div>`;
       
+      const iconColor = currentEnemy.iconColor || "#a04444";
       dCardPane.innerHTML = `
-        <i data-lucide="${currentEnemy.icon}" class="dCard__icon"></i>
+        <i data-lucide="${currentEnemy.icon}" class="dCard__icon" style="color:${iconColor}"></i>
         <span class="dCard__text">
           ${currentEnemy.name}<br>
           Damage: ${minDamage} - ${maxDamage}
@@ -461,6 +463,7 @@ function spawnBoss() {
     maxHp: calculateEnemyHp(stage, world, true), // true for boss
     name: template.name,
     icon: template.icon,
+    iconColor: template.iconColor,
     abilities,
     onAttack: (boss) => {
       const { minDamage, maxDamage } = calculateEnemyBasicDamage(stage, world)
