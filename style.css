@@ -36,11 +36,11 @@ body {
 .mainTab {
   display: grid;
   grid-template-rows: 1.5fr 0.5fr 1fr;
-  grid-template-columns: 1fr 20%;
-  grid-template-areas: 
-  "dealer panel"
-  "buttons panel"
-  "hand logPanel";
+  grid-template-columns: auto 1fr 20%;
+  grid-template-areas:
+    "dealer dealer panel"
+    "buttons buttons panel"
+    "discard hand logPanel";
   padding: 5px;
   height: 100vh;
 }
@@ -335,6 +335,15 @@ body {
   gap: 10px;
 }
 
+.discardContainer {
+  display: flex;
+  grid-area: discard;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
+}
+
 
 .card-wrapper {
   display: inline-flex;    /* let multiple cards sit side-by-side */ 
@@ -355,6 +364,18 @@ body {
   background: white;
   border: 2px solid grey ;
   margin-bottom: 4px;         /* a little gap before the bar */
+}
+
+.card-back {
+  height: 95px;
+  width: 75px;
+  border-radius: 8px;
+  border: 2px solid grey;
+  margin-bottom: 4px;
+}
+
+.card-back.basic-red {
+  background: repeating-linear-gradient(45deg, #b00, #b00 10px, #f66 10px, #f66 20px);
 }
 
 .card-value {
@@ -467,6 +488,21 @@ body {
 
 .levelup-animate {
   animation: card-level-up 0.6s ease-out both;
+}
+
+@keyframes card-death {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.card-death {
+  animation: card-death 0.5s ease-out forwards;
 }
 
 
