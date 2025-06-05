@@ -4,6 +4,7 @@ import addLog from "./log.js";
 import Enemy from "./enemy.js";
 import { Boss, BossTemplates } from "./boss.js";
 import { AbilityRegistry } from "./dealerabilities.js";
+import { AllJokerTemplates } from "./jokerTemplates.js";
 
 // If running in Node (no `document` global), bootstrap a minimal DOM.
 if (typeof document === "undefined") {
@@ -76,6 +77,9 @@ const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0
 const killsDisplay = document.getElementById("kills")
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
+const jokerContainer = document.getElementsByClassName("jokerContainer")[0]
+
+const unlockedJokers = [];
 
 
 //=========tabs==========
@@ -211,6 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   renderDealerCard();
   initVignetteToggles();
+  renderJokers();
   requestAnimationFrame(gameLoop)
 });
 
@@ -452,8 +457,7 @@ function onDealerDefeat() {
 
 function onBossDefeat(boss) {
   cardXp(boss.xp);
-  //awardJokerCard();
-  //nextWorld(); // or stageData.world++
+  awardJokerCard();
   addLog(`${boss.name} was defeated!`);
   currentEnemy = null;
 
@@ -758,6 +762,39 @@ function healCardsOnKill() {
   });
   updateHandDisplay();
   updateDeckDisplay();
+}
+
+function renderJokers() {
+  if (!jokerContainer) return;
+  jokerContainer.innerHTML = "";
+  unlockedJokers.forEach(joker => {
+    const tile = document.createElement("div");
+    tile.classList.add("joker-tile");
+    tile.textContent = joker.name;
+    tile.addEventListener("click", () => openJokerDetails(joker));
+    jokerContainer.appendChild(tile);
+  });
+}
+
+function openJokerDetails(joker) {
+  const overlay = document.createElement("div");
+  overlay.classList.add("joker-overlay");
+  overlay.innerHTML = `
+    <div class="joker-card">
+      <img src="${joker.image}" alt="${joker.name}">
+      <div class="joker-desc">${joker.description}</div>
+    </div>`;
+  overlay.addEventListener("click", () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+
+function awardJokerCard() {
+  const template = AllJokerTemplates[stageData.world - 1];
+  if (!template) return;
+  if (unlockedJokers.find(j => j.id === template.id)) return;
+  unlockedJokers.push(template);
+  addLog(`${template.name} unlocked!`, "info");
+  renderJokers();
 }
 
 //=========player functions===========
