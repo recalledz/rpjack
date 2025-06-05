@@ -256,8 +256,9 @@ function renderDealerCard() {
     
    if (currentEnemy instanceof Boss) {
   
-  
+
      let abilitiesHTML = `<div class="dCard_abilities">`;
+
         for (const ability of currentEnemy.abilities) {
           const icon = ability.icon || "sparkles";
           const label = ability.label || "Ability";
@@ -541,7 +542,6 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   function dealerDeathAnimation() {
     const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
     const dCardPane = document.querySelector(".dCardPane")
-  
     if (!dCardWrapper) return;
     
       dCardWrapper.classList.add("dealer-dead");

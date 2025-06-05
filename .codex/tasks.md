@@ -8,11 +8,11 @@
 - Dealer HP system and healing logic for abilities
 - Game loop updated for real-time cooldown tracking
 - GitHub repository connected and Replit integration enabled
+- Finalize card visual polish for dealers
 
 ---
 
 ## 🚧 Upcoming Goals
-- Finalize card visual polish for dealers
 - Fix dev tools: spawn boss does not update stage stats properly
 - Add appropriate icons to each dealer/boss card
 - Increase size/intensity of icons depending on stage
