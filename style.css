@@ -19,6 +19,44 @@ body {
   padding: 8px;
   background: rgba(0, 0, 0, 0.2);
   box-shadow: 0 0 10px #d4af37;
+  position: relative;
+  overflow: hidden;
+}
+
+.casino-section::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0));
+  background-size: 100% 200%;
+  background-position: top;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+
+.casino-section.gold-sweep::after {
+  animation: goldSweep 0.6s linear forwards;
+}
+
+.casino-section.boss-sweep::after {
+  animation: goldSweepBoss 1s linear forwards;
+}
+
+@keyframes goldSweep {
+  from { opacity: 1; background-position: top; }
+  to   { opacity: 0; background-position: bottom; }
+}
+
+@keyframes goldSweepBoss {
+  0%   { opacity: 1; background-position: top; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; background-position: bottom; }
 }
 
 #tooltip {
@@ -342,6 +380,10 @@ body {
   align-items: center;
   font-size: 40px;           /* make the suit symbol bigger */
   line-height: 1;            /* so it doesn’t add extra space */
+}
+
+.card-hp {
+  color: black;
 }
 
 .card-wrapper {
