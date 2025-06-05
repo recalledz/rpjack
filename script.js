@@ -104,6 +104,15 @@ deckTabButton.addEventListener("click", () => {
 })
 
 showTab(mainTab);
+
+function initVignetteToggles() {
+  document.querySelectorAll('.vignette-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.parentElement;
+      v.classList.toggle('open');
+    });
+  });
+}
 //=========card tab==========
 
 function renderTabCard(card) {
@@ -199,7 +208,8 @@ function updateDeckDisplay() {
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
-  renderDealerCard(); 
+  renderDealerCard();
+  initVignetteToggles();
   requestAnimationFrame(gameLoop)
 });
 
