@@ -406,6 +406,19 @@ function respawnDealerStage() {
   }
 }
 
+function animateGoldBorder(isBoss = false) {
+  document.querySelectorAll('.casino-section').forEach(el => {
+    el.classList.remove('gold-sweep', 'boss-sweep');
+    // force reflow to restart animation
+    void el.offsetWidth;
+    const cls = isBoss ? 'boss-sweep' : 'gold-sweep';
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => {
+      el.classList.remove(cls);
+    }, { once: true });
+  });
+}
+
 function onDealerDefeat() {
 
   cardXp(stageData.stage ** 1.2 * stageData.world);
@@ -414,6 +427,7 @@ function onDealerDefeat() {
   stageData.kills += 1;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   dealerDeathAnimation();
+  animateGoldBorder(false);
   nextStageChecker();
   respawnDealerStage();
 } // need to define xp formula
@@ -426,6 +440,7 @@ function onBossDefeat(boss) {
   currentEnemy = null;
 
   healCardsOnKill();
+  animateGoldBorder(true);
   nextWorld();
   respawnDealerStage();
 }
