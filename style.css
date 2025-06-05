@@ -132,6 +132,23 @@ body {
   overflow: hidden;
 }
 
+.dealerLifeContainer.bar-dead {
+  animation: barDeath 0.5s ease-out forwards;
+}
+
+@keyframes barDeath {
+  0% {
+    background: #090b09;
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  100% {
+    background: red;
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+
 /* Card container */
 .dCardContainer {
   margin-top: 5px;

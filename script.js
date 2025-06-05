@@ -425,8 +425,10 @@ function onDealerDefeat() {
   stageData.kills += 1;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   dealerDeathAnimation();
-  nextStageChecker();
-  respawnDealerStage();
+  dealerBarDeathAnimation(() => {
+    nextStageChecker();
+    respawnDealerStage();
+  });
 } // need to define xp formula
 
 function onBossDefeat(boss) {
@@ -546,8 +548,21 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
     dCardPane.classList.add("dealer-dead")
 
     dCardWrapper.addEventListener("animationend", () => {
-       dCardContainer.innerHTML = "";
+      dCardContainer.innerHTML = "";
       renderDealerCard()
+    }, { once: true });
+  }
+
+  function dealerBarDeathAnimation(callback) {
+    const bar = document.querySelector(".dealerLifeContainer");
+    if (!bar) {
+      if (callback) callback();
+      return;
+    }
+    bar.classList.add("bar-dead");
+    bar.addEventListener("animationend", () => {
+      removeDealerLifeBar();
+      if (callback) callback();
     }, { once: true });
   }
 
