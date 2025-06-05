@@ -1,5 +1,5 @@
 
-import generateDeck from "./card.js";
+import generateDeck, { shuffleArray } from "./card.js";
 import addLog from "./log.js";
 import Enemy from "./enemy.js";
 import { Boss, BossTemplates } from "./boss.js";
@@ -65,6 +65,7 @@ let deck = [...pDeck]
 
 const btn = document.getElementById("clickalipse")
 const attackBtn = document.getElementById("attackBtn")
+const redrawBtn = document.getElementById("redrawBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
 const cashDisplay = document.getElementById("cashDisplay")
@@ -780,6 +781,19 @@ function respawnPlayer() {
   stageData.stage = 1;
 }
 
+function redrawHand() {
+  deck.push(...drawnCards);
+  drawnCards = [];
+  handContainer.innerHTML = "";
+  shuffleArray(deck);
+  for (let i = 0; i < stats.cardSlots && deck.length > 0; i++) {
+    drawCard();
+  }
+  updateDrawButton();
+  updateDeckDisplay();
+  updatePlayerStats(stats);
+}
+
 function attack() {
 
   if (!currentEnemy) return;
@@ -873,6 +887,7 @@ nextStageChecker();
 
 btn.addEventListener("click", drawCard)
 attackBtn.addEventListener("click", attack)
+redrawBtn.addEventListener("click", redrawHand)
 nextStageBtn.addEventListener("click", nextStage)
 
 /*function retry() {
