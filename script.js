@@ -18,6 +18,9 @@ if (typeof document === "undefined") {
 
 let drawnCards = []
 let discardPile = []
+const cardBackImages = {
+  "basic-red": "img/basic deck.png"
+}
 let cash = 0
 let cardPoints = 0
 let currentEnemy = null;
@@ -679,10 +682,13 @@ function renderCard(card) {
 }
 
 function renderDiscardCard(card) {
-  const cardBack = document.createElement("div");
-  cardBack.classList.add("card-back", card.backType);
-  discardContainer.appendChild(cardBack);
-  card.discardElement = cardBack;
+  discardContainer.innerHTML = "";
+  const img = document.createElement("img");
+  img.alt = "Card Back";
+  img.src = cardBackImages[card.backType] || cardBackImages["basic-red"];
+  img.classList.add("card-back", card.backType);
+  discardContainer.appendChild(img);
+  card.discardElement = img;
 }
 
 function discardCard(card) {

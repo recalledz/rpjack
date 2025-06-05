@@ -339,10 +339,12 @@ body {
 .discardContainer {
   display: flex;
   grid-area: discard;
-  flex-wrap: wrap;
+  width: 85px;
+  height: 105px;
   justify-content: center;
-  align-items: flex-start;
-  gap: 5px;
+  align-items: center;
+  border: 2px solid rgba(255, 255, 100, 0.6);
+  border-radius: 8px;
 }
 
 
@@ -373,10 +375,7 @@ body {
   border-radius: 8px;
   border: 2px solid grey;
   margin-bottom: 4px;
-}
-
-.card-back.basic-red {
-  background: repeating-linear-gradient(45deg, #b00, #b00 10px, #f66 10px, #f66 20px);
+  object-fit: cover;
 }
 
 .card-value {
@@ -467,9 +466,18 @@ body {
 }
 
 @keyframes card-death {
-  0%   { transform: scale(1);   opacity: 1; }
-  50%  { transform: scale(0.8); opacity: 0.7; }
-  100% { transform: scale(0.5); opacity: 0; }
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.card-death {
+  animation: card-death 0.5s ease-out forwards;
 }
 
 .death-animate {
