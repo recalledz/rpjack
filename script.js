@@ -363,6 +363,7 @@ function renderDealerCard() {
 
 function animateCardHit(card) {
   const w = card.wrapperElement;
+  if (!w) return;
   w.classList.add("hit-animate");
   w.addEventListener("animationend", () => w.classList.remove("hit-animate"), { once: true });
 }
@@ -551,14 +552,16 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   card.hpDisplay.textContent =
     `HP: ${card.currentHp}/${card.maxHp}`;
   updateDeckDisplay()
-  animateCardHit(card)
+  if (card.wrapperElement) {
+    animateCardHit(card)
+  }
   // if it’s dead, remove it
   if (card.currentHp === 0) {
     animateCardDeath(card, () => {
       // 1) from your data
       drawnCards.shift();
       // 2) from the DOM
-      card.wrapperElement.remove();
+      card.wrapperElement?.remove();
 
       discardCard(card);
       updatePlayerStats(stats);
@@ -744,6 +747,10 @@ function animateCardLevelUp(card) {
 
 function animateCardDeath(card, callback) {
   const w = card.wrapperElement;
+  if (!w) {
+    callback?.();
+    return;
+  }
   w.classList.add("card-death");
   w.addEventListener(
     "animationend",
