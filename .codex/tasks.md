@@ -9,31 +9,40 @@
 - Game loop updated for real-time cooldown tracking
 - GitHub repository connected and Replit integration enabled
 - Finalize card visual polish for dealers
+- Create Card class to unify structure
+  - Store HP, attack, level, XP, job, suit, traits
+  - Define methods for leveling, XP gain, and combat damage
+  - Include references to job affinity and trait bonuses
+-Add appropriate icons to each dealer/boss card
+-Increase size/intensity of icons depending on stage
 
 ---
 
 ## 🚧 Upcoming Goals
 - Fix dev tools: spawn boss does not update stage stats properly
-- Add appropriate icons to each dealer/boss card
-- Increase size/intensity of icons depending on stage
 
+## fixes
+
+-synchronize dealer bar life and card death animation, they are happening in different frames at times
+## UI
+
+- buttons in middle take too much space, make them more compact, consider cicle buttons with only icons instead
+- 
 ### 🃏 Card System Overhaul
-- Create Card class to unify structure
-  - Store HP, attack, level, XP, job, suit, traits
-  - Define methods for leveling, XP gain, and combat damage
-  - Include references to job affinity and trait bonuses
+-implement card xp system that scales with stages
 - Implement affinities: each card has a job alignment
   - Types: Strength, Dexterity, Mind, Chaos, Holy
   - Influence stat scaling, ability unlocks, and synergy bonuses
 
 ### 🔁 Game Progression
 - Implement start screen:
-  - Triggered when all cards die, no cards defend, or player prestiges
+  - Triggered when all cards die, all cards on hand are defeated, or player prestiges
   - Player selects deck loadout and Joker cards
+  - deck lodout selection is locked until defeating world boss 2. before this, a screen just appears saying you are defeated. player may select to start by pressing a button, or after a timer, it automatically progresses.
+  -all deck hp cards is reset to maximium. player is bought to stage 1 of current world. upgardes are reset. card levels are reset. 
 - Redraw mechanic:
   - Player may redraw hand for escalating cost
   - Cost resets on start screen or clearing world
-- Add enemy life bar animation (e.g., breaking or depleting bar on death)
 
 ### 🧙 Joker System
 - Player abilities triggered by clicking Joker card

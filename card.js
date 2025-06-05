@@ -22,13 +22,15 @@ const names = {
 };
 
 export class Card {
-  constructor(suit, value) {
+  constructor(suit, value, backType = 'basic-red') {
     this.suit = suit;
     this.value = value;
     this.name = names[value] || String(value);
     this.symbol = suitSymbols[suit];
     this.color = suitColors[suit];
     this.id = `${value}_of_${suit}`;
+
+    this.backType = backType;
 
     this.currentLevel = 1;
     this.XpCurrent = 0;

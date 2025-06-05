@@ -17,6 +17,7 @@ if (typeof document === "undefined") {
 
 
 let drawnCards = []
+let discardPile = []
 let cash = 0
 let cardPoints = 0
 let currentEnemy = null;
@@ -65,6 +66,7 @@ const pointsDisplay = document.getElementById("pointsDisplay")
 const cashDisplay = document.getElementById("cashDisplay")
 const cardPointsDisplay = document.getElementById("cardPointsDisplay")
 const handContainer = document.getElementsByClassName("handContainer")[0]
+const discardContainer = document.getElementsByClassName("discardContainer")[0]
 const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0]
 const killsDisplay = document.getElementById("kills")
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
@@ -531,10 +533,17 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   animateCardHit(card)
   // if it’s dead, remove it
   if (card.currentHp === 0) {
-    // 1) from your data
-    drawnCards.shift();
-    // 2) from the DOM
-    card.wrapperElement.remove();
+    animateCardDeath(card, () => {
+      // 1) from your data
+      drawnCards.shift();
+      // 2) from the DOM
+      card.wrapperElement.remove();
+
+      discardCard(card);
+      updatePlayerStats(stats);
+      updateDrawButton();
+      updateDeckDisplay();
+    });
   }
   // Optional ability logic (e.g., healing, fireball
 }
@@ -666,6 +675,18 @@ function renderCard(card) {
   card.xpLabel = xpLabel;
 }
 
+function renderDiscardCard(card) {
+  const cardBack = document.createElement("div");
+  cardBack.classList.add("card-back", card.backType);
+  discardContainer.appendChild(cardBack);
+  card.discardElement = cardBack;
+}
+
+function discardCard(card) {
+  discardPile.push(card);
+  renderDiscardCard(card);
+}
+
 function heartHeal() {
   if (drawnCards.length === 0) return;
 
@@ -696,6 +717,20 @@ function animateCardLevelUp(card) {
   w.addEventListener("animationend", () => w.classList.remove("levelup-animate"), { once: true });
 }
 
+
+function animateCardDeath(card, callback) {
+  const w = card.wrapperElement;
+  w.classList.add("card-death");
+  w.addEventListener(
+    "animationend",
+    () => {
+      w.classList.remove("card-death");
+      callback?.();
+    },
+    { once: true }
+  );
+}
+
 function healCardsOnKill() {
   drawnCards.forEach(card => {
     if (!card) return;
@@ -716,8 +751,10 @@ function spawnPlayer() {
 
 function respawnPlayer() {
   drawnCards = [];
-  deck = [...pDeck];
+  deck = pDeck.filter(c => c.currentHp > 0);
   handContainer.innerHTML = "";
+  discardContainer.innerHTML = "";
+  discardPile = [];
   stats.points = 0;
   pointsDisplay.textContent = stats.points;
   spawnPlayer();
