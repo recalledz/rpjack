@@ -779,14 +779,24 @@ function healCardsOnKill() {
 
 function renderJokers() {
   if (!jokerContainers.length) return;
+
   jokerContainers.forEach(container => {
     container.innerHTML = "";
     unlockedJokers.forEach(joker => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("card-wrapper", "joker-wrapper");
+
+      const card = document.createElement("div");
+      card.classList.add("card");
+
       const img = document.createElement("img");
-      img.classList.add("joker-card");
+      img.classList.add("joker-image");
       img.src = joker.image;
       img.alt = joker.name;
-      container.appendChild(img);
+
+      card.appendChild(img);
+      wrapper.appendChild(card);
+      container.appendChild(wrapper);
     });
   });
 }

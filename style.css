@@ -446,7 +446,7 @@ body {
 }
 
 .card-value {
-  font-size: 1em;
+  font-size: 2em;
   align-self: flex-start;  /* push to left */
 } 
 
@@ -461,7 +461,7 @@ body {
 
 .card-hp {
   color: #000;
-  font-size: 0.8em;
+  font-size: 2em;
 }
 
 .card-wrapper {
@@ -603,20 +603,31 @@ body {
 }
 
 /* Joker container and tiles */
-.jokerContainer {
-  grid-area: jokers;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
+.joker-wrapper {
+  max-width: 160px;
+  width: 100%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-
-.joker-card {
-  width: 75px;
-  height: 95px;
+.joker-wrapper .card {
+  width: 100%;
+  aspect-ratio: 3 / 4;
   border-radius: 8px;
+  padding: 4px;
+  background: white;
   border: 2px solid grey;
-  object-fit: cover;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.joker-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* or try 'cover' for tighter framing */
+  border-radius: 6px;  /* optional: mimic the inner edge */
 }
 
