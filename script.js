@@ -369,8 +369,15 @@ function renderDealerCard() {
 function animateCardHit(card) {
   const w = card.wrapperElement;
   if (!w) return;
-  w.classList.add("hit-animate");
-  w.addEventListener("animationend", () => w.classList.remove("hit-animate"), { once: true });
+  const target = card.cardElement || w;
+  target.classList.remove("hit-animate");
+  void target.offsetWidth;
+  target.classList.add("hit-animate");
+  target.addEventListener(
+    "animationend",
+    () => target.classList.remove("hit-animate"),
+    { once: true }
+  );
 }
 
 
@@ -699,6 +706,7 @@ function renderCard(card) {
 
   // 5) Save references for later updates
   card.wrapperElement = wrapper;
+  card.cardElement = cardPane;
   card.hpDisplay = cardPane.querySelector(".card-hp");
   card.xpBar = xpBar;
   card.xpBarFill = xpBarFill;
