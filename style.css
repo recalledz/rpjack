@@ -133,6 +133,8 @@ body {
 .dealerContainer {
   grid-area: dealer;
   justify-content: center;
+  width: 100%;             /* use full grid width */
+  overflow-x: hidden;       /* prevent side scroll from large content */
 }
 
 .dealerContainer > .dealerLifeDisplay {
@@ -187,7 +189,10 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-} 
+  flex-wrap: wrap;    /* allow cards to wrap within the container */
+  width: 100%;        /* fill available space */
+  overflow-x: hidden; /* avoid horizontal scrolling */
+}
 
 /* Dealer card base */
 .dCardWrapper {
@@ -585,6 +590,9 @@ body {
   display: flex;
   justify-content: center;
   gap: 6px;
+  flex-wrap: wrap;    /* wrap joker cards when necessary */
+  width: 100%;        /* take up full width of grid area */
+  overflow-x: hidden; /* prevent sideways scrolling */
 }
 
 
