@@ -757,15 +757,17 @@ function animateCardDeath(card, callback) {
     callback?.();
     return;
   }
+  const onEnd = () => {
+    w.classList.remove("card-death");
+    w.removeEventListener("animationend", onEnd);
+    callback?.();
+  };
+
+  w.addEventListener("animationend", onEnd, { once: true });
   w.classList.add("card-death");
-  w.addEventListener(
-    "animationend",
-    () => {
-      w.classList.remove("card-death");
-      callback?.();
-    },
-    { once: true }
-  );
+
+  // Fallback: ensure removal even if animation events don't fire
+  setTimeout(onEnd, 600);
 }
 
 function healCardsOnKill() {
