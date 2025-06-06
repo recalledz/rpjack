@@ -35,6 +35,7 @@ const stats = {
   pLifeCurrent: 10,
   damageMultiplier: 1,
   cardSlots: 3, //at start max
+  attackSpeed: 5000, //ms between automatic attacks
 }
 
 
@@ -80,6 +81,9 @@ const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
 const jokerContainers = document.querySelectorAll(".jokerContainer")
 
 const unlockedJokers = [];
+
+// Track auto attack interval
+let autoAttackId = null;
 
 
 //=========tabs==========
@@ -848,6 +852,18 @@ function attack() {
     renderDealerLifeBarFill();
   }
 }
+
+function toggleAutoAttack() {
+  if (autoAttackId) {
+    clearInterval(autoAttackId);
+    autoAttackId = null;
+    attackBtn.classList.remove("active");
+  } else {
+    attack(); // immediate attack when toggled on
+    autoAttackId = setInterval(attack, stats.attackSpeed);
+    attackBtn.classList.add("active");
+  }
+}
 /*if (currentEnemy instanceof Boss) {
   // Handle boss damage
   currentEnemy.takeDamage(stats.pDamage);
@@ -925,7 +941,7 @@ nextStageChecker();
 
 
 btn.addEventListener("click", drawCard)
-attackBtn.addEventListener("click", attack)
+attackBtn.addEventListener("click", toggleAutoAttack)
 redrawBtn.addEventListener("click", redrawHand)
 nextStageBtn.addEventListener("click", nextStage)
 
