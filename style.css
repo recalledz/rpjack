@@ -604,7 +604,9 @@ body {
 
 /* Joker container and tiles */
 .jokerContainer {
+  grid-area: jokers;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
 }
