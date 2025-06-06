@@ -77,7 +77,7 @@ const dealerLifeDisplay = document.getElementsByClassName("dealerLifeDisplay")[0
 const killsDisplay = document.getElementById("kills")
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
-const jokerContainer = document.getElementsByClassName("jokerContainer")[0]
+const jokerContainers = document.querySelectorAll(".jokerContainer")
 
 const unlockedJokers = [];
 
@@ -772,14 +772,16 @@ function healCardsOnKill() {
 }
 
 function renderJokers() {
-  if (!jokerContainer) return;
-  jokerContainer.innerHTML = "";
-  unlockedJokers.forEach(joker => {
-    const img = document.createElement("img");
-    img.classList.add("joker-card");
-    img.src = joker.image;
-    img.alt = joker.name;
-    jokerContainer.appendChild(img);
+  if (!jokerContainers.length) return;
+  jokerContainers.forEach(container => {
+    container.innerHTML = "";
+    unlockedJokers.forEach(joker => {
+      const img = document.createElement("img");
+      img.classList.add("joker-card");
+      img.src = joker.image;
+      img.alt = joker.name;
+      container.appendChild(img);
+    });
   });
 }
 
