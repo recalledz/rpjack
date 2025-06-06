@@ -560,22 +560,28 @@ body {
 
 
 /*============= deck tab panel============== */
+
 .deckTab {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-rows: 20px auto;
+  grid-template-areas: 
+    "tabs"
+    "deck";
   background-color: #67a16c;
+  gap: 10px;
   padding: 5px;
 }
 
 .deckTabContainer {
   display: flex;
   flex-wrap: wrap;
+  grid-area: deck;
   border: 2px solid grey;
 }
 
 /* Joker container and tiles */
 .jokerContainer {
+  grid-area: jokers;
   display: flex;
   justify-content: center;
   gap: 6px;
