@@ -1,69 +1,197 @@
-# 🃏 Card Game – Incremental RPG Combat System
 
-## 🔍 Overview
-A dynamic card-based combat game where cards represent characters. The player fights against enemy cards (Dealers and Bosses), each with abilities, cooldowns, and visual effects. Inspired by blackjack and idle mechanics.
 
-## 🧩 Key Features
-- Card-based stat and level system
-- classic cards: clubs, hearts, diamonds and spades
-- job system for cards when reaching certain level thresholds
-- jobs are available depending on suit
-- Dealer and Boss types with unique abilities
-- Real-time cooldown logic and ability overlays
-- Realtime combat tick system
-- Cards recover 1 HP after each enemy kill
-- Reincarnation, experience, traits (planned)
 
-## 🧠 Tech Stack
-- HTML, CSS, Vanilla JavaScript
-- Lucide Icons
-- Replit + GitHub integration
-- Codex-enabled development
+---
 
-## 🗂️ Project Structure
+🃏 Card Game – Incremental RPG Combat System
+
+🔍 Overview
+
+A dynamic card-based combat game where cards represent characters. Players battle against enemy cards (Dealers and Bosses), each possessing unique abilities, cooldowns, and visual effects. Inspired by blackjack and idle mechanics, the game emphasizes strategic deck building, progression, and resource management.
+
+🧩 Key Features
+
+Card-Based Stat and Level System: Classic cards—Clubs, Hearts, Diamonds, and Spades—each with unique attributes and effects.
+
+Job System: Unlock specialized roles for cards upon reaching level thresholds, with jobs determined by card suits.
+
+Dealer and Boss Encounters: Face off against enemies with distinct abilities and escalating challenges.
+
+Real-Time Combat Mechanics: Engage in battles with cooldown logic, ability overlays, and a combat tick system.
+
+Healing Mechanics: Cards recover 1 HP after each enemy defeat.
+
+Progression Systems:
+
+Stages and Worlds: Advance through stages, encountering bosses at milestones (e.g., stage 10) and progressing to new worlds with increased difficulty.
+
+Auto-Attack: Activate automated attacks with adjustable speeds, influenced by card stats.
+
+Prestige System: Reset progress for long-term benefits, including deck reshuffling, HP refill, and stage resets.
+
+
+Resource Management:
+
+Cash: Earned based on active card values and current stage/world.
+
+Mana: Unlock and manage mana for casting abilities and activating jokers.
+
+
+Attributes and Stats:
+
+Strength: Increases power and HP; reduces attack speed and ability accuracy.
+
+Dexterity: Enhances ability accuracy, attack speed, and critical hits; decreases ability power.
+
+Mind: Boosts ability power; reduces HP and strength.
+
+Chaos: Amplifies critical damage and ability power.
+
+Holy: Reduces cooldowns.
+
+
+Jokers: Active abilities requiring mana, with limited slots and customizable effects.
+
+Traits: Late-game mechanics where enemies possess special traits (e.g., double damage, shields) that can be inherited by player cards.
+
+
+🧠 Tech Stack
+
+Frontend: HTML, CSS, Vanilla JavaScript
+
+Icons: Lucide Icons
+
+Development Tools: Replit, GitHub integration, Codex-enabled development
+
+
+🗂️ Project Structure
+
 /index.html
 /style.css
-/enemy.js ← Base enemy logic
+/enemy.js           ← Base enemy logic
 /dealerabilities.js ← Ability registry & factory
-/card.js ← Card class & deck generation
-/script.js ← Game logic
-/.codex/tasks.md ← Codex task manager
+/card.js            ← Card class & deck generation
+/script.js          ← Game logic
+/.codex/tasks.md    ← Codex task manager
+
+🔧 Codex Integration
+
+This repository utilizes Codex for smart task automation. Tasks are listed in .codex/tasks.md.
+
+Getting Started:
+
+1. Connect Codex to your GitHub repository.
 
 
-## 🔧 Codex Integration
-This repo uses Codex for smart task automation. Tasks are listed in `.codex/tasks.md`.
+2. Open this repository in the ChatGPT Codex tab.
 
-To get started:
-1. Connect Codex to your GitHub repo
-2. Open this repo in ChatGPT Codex tab
-3. Pick or assign a task from `.codex/tasks.md`
 
-## 🚧 Upcoming Goals
-- Finalize card visual polish
-- Implement player stats on board
-- Complete main layout polish and them casino/ changing per world
-- Introduce joker system
-- Introduce upgrade system
-- Introduce mana system
-- Introduce jobs, traits, and reincarnation logic
+3. Select or assign tasks from .codex/tasks.md.
 
-## 👾 Author
+
+
+📊 Balancing Framework
+
+A structured approach to manage and balance game elements.
+
+🏹 Player & Global Upgrades
+
+Upgrade Name	Base Value	Max Value	Cost Formula	Notes
+
+Card Slots	3	?	100 * level^2	Increase the number of active cards
+Global Damage Multiplier	1.0	?	200 * level^2	Amplify all damage dealt
+Auto-Attack Speed	10000 ms	2000 ms	300 * level^2.2	Reduce time between automated attacks
+Mana Regeneration	0	?	150 * level^2	Increase mana recovery rate
+Maximum Mana	0	?	200 * level^2.3	Increase total mana capacity
+Base Card HP	value	?	100 * level^2	Enhance base HP for all cards
+Card HP per Kill	1	?	100 * level	HP recovered by cards after each kill
+
+
+🃏 Card Progression
+
+Stat	Scaling Formula	Notes
+
+Damage	value * level	Base damage scales with card value and level
+Max HP	value * level * baseHPMultiplier	HP influenced by card value, level, and attributes
+Ability Power	Tied to attribute/stat	Determines potency of magical abilities
+XP Requirement	XpReq = value * (level^2)	Higher value cards require more XP to level up
+
+
+🎴 Suit Effects
+
+Suit	Effect Description
+
+Hearts	Healing effects and HP bonuses
+Spades	Enhanced attack and critical hit scaling
+Diamonds	Increased cash gains
+Clubs	Boosted XP gain and auto-attack efficiency
+
+
+🧠 Attributes
+
+Attribute	Effects
+
+Strength	+Damage, +HP, -Attack Speed, -Ability Accuracy
+Dexterity	+Ability Accuracy, +Attack Speed, +Critical Hit Chance, -Ability Power
+Mind	+Ability Power, -HP, -Strength
+Chaos	+Critical Damage, +Ability Power
+Holy	-Cooldowns
+
+
+Attributes influence resource gathering, passive skill trees, and job unlocks.
+
+🧙‍♂️ Jobs
+
+Unlocked when cards reach level 10. Jobs are permanent and provide unique abilities.
+
+Job Type	Based On	Effects
+
+Warrior	Strength	High HP, taunt abilities
+Rogue	Dexterity	Increased critical hits and speed
+Mage	Mind	Powerful magical attacks
+Trickster	Chaos	Unpredictable effects and burst damage
+Priest	Holy	Healing and support abilities
+
+
+🃏 Jokers
+
+Active abilities that require mana to use.
+
+Feature	Base Value	Cost Formula	Notes
+
+Max Slots	2	500 * level^2.5	Maximum number of jokers equipped
+Mana Cost	Varies	Depends on effect	Mana required to activate
+Cooldown	Varies	base - (Holy%)	Reduced by Holy attribute
+
+
+🚧 Upcoming Goals
+
+Finalize card visual designs
+
+Implement player stats display on the board
+
+Complete main layout polish with casino theme variations per world
+
+Introduce joker system with active abilities
+
+Develop comprehensive upgrade and mana systems
+
+Implement jobs, traits, and reincarnation mechanics
+
+
+👾 Author
+
 Built in collaboration with ChatGPT & Codex.
 
-## 🧪 Node-based Testing
-When running automated tests in Node, there is no browser `document` object.
-`script.js` now detects this case and creates a minimal DOM using
-[JSDOM](https://github.com/jsdom/jsdom). Install the dependency and import the
-script in your tests:
+🧪 Node-based Testing
 
-```bash
+For automated testing in Node.js environments without a browser document object, script.js detects this scenario and creates a minimal DOM using JSDOM. Install the dependency and import the script in your tests:
+
 npm install --save-dev jsdom
-```
 
-```javascript
 import "./script.js";
-```
 
-This will bootstrap `window`, `document` and `performance` globals so modules
-depending on them can run under Node.
+This setup bootstraps window, document, and performance globals, allowing modules dependent on them to run under Node.js.
 
+
+---
