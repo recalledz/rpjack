@@ -990,11 +990,20 @@ function gameLoop(currentTime) {
 
 //devtools
 
+function toggleDebug() {
+  const panel = document.getElementById("debugPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.shiftKey && e.key === "D") {
-    const panel = document.getElementById("debugPanel");
-    panel.style.display = panel.style.display === "none" ? "block" : "none";
+    toggleDebug();
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("debugToggle");
+  if (btn) btn.addEventListener("click", toggleDebug);
 });
 
 window.devTools = {

@@ -13,6 +13,30 @@ body {
   color: #fff;
 }
 
+#debugPanel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 1000;
+  color: white;
+}
+
+#debugToggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
+  background: #222;
+  color: #fff;
+  border: 1px solid #d4af37;
+  border-radius: 4px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
 .casino-section {
   border: 3px solid #d4af37;
   border-radius: 8px;
