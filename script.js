@@ -1030,7 +1030,19 @@ window.devTools = {
   spawnBoss,
   spawnDealer,
   cDealerDamage,
-  killEnemy: () => currentEnemy?.takeDamage?.(currentEnemy.maxHp),
+  killEnemy: () => {
+    if (!currentEnemy) return;
+    currentEnemy.takeDamage(currentEnemy.maxHp);
+    if (currentEnemy instanceof Boss) {
+      currentEnemy.onDefeat?.();
+    }
+  },
+  killBoss: () => {
+    if (currentEnemy instanceof Boss) {
+      currentEnemy.takeDamage(currentEnemy.maxHp);
+      currentEnemy.onDefeat?.();
+    }
+  },
   logEnemy: () => console.log(currentEnemy),
   advanceStage: () => nextStage(),
 
