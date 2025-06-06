@@ -5,8 +5,10 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <title>Page Title</title>
 </head>
-
-  <label>Cash: <input id="debugCash" type="number" value="10000" style="width: 60px;"></label>
+<body>
+  <button id="debugToggle" class="debug-toggle">Debug</button>
+  <div id="debugPanel" style="display:none;">
+    <label>Cash: <input id="debugCash" type="number" value="10000" style="width: 60px;"></label>
     <button onclick="devTools.giveCash()">Give</button>
     <br>
 
@@ -21,7 +23,6 @@
     <br>
     <button onclick="devTools.logEnemy()">Log Enemy</button>
   </div>
-<body>
 
   <!---tabs container--->
   <div class=tabsContainer>
