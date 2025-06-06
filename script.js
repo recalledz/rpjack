@@ -562,10 +562,11 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   }
   // if it’s dead, remove it
   if (card.currentHp === 0) {
+    // immediately remove from data so new draws don't shift the wrong card
+    drawnCards.shift();
+
     animateCardDeath(card, () => {
-      // 1) from your data
-      drawnCards.shift();
-      // 2) from the DOM
+      // 1) from the DOM
       card.wrapperElement?.remove();
 
       discardCard(card);
