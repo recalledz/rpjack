@@ -369,8 +369,16 @@ function renderDealerCard() {
 function animateCardHit(card) {
   const w = card.wrapperElement;
   if (!w) return;
+  // Remove the class if it's already applied so the animation can restart
+  w.classList.remove("hit-animate");
+  // Trigger a reflow to ensure the browser acknowledges the removal
+  void w.offsetWidth;
   w.classList.add("hit-animate");
-  w.addEventListener("animationend", () => w.classList.remove("hit-animate"), { once: true });
+  w.addEventListener(
+    "animationend",
+    () => w.classList.remove("hit-animate"),
+    { once: true }
+  );
 }
 
 
