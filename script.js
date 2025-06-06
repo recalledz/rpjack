@@ -369,14 +369,15 @@ function renderDealerCard() {
 function animateCardHit(card) {
   const w = card.wrapperElement;
   if (!w) return;
-  // Remove the class if it's already applied so the animation can restart
-  w.classList.remove("hit-animate");
-  // Trigger a reflow to ensure the browser acknowledges the removal
-  void w.offsetWidth;
-  w.classList.add("hit-animate");
-  w.addEventListener(
+
+  const target = card.cardElement || w;
+  target.classList.remove("hit-animate");
+  void target.offsetWidth;
+  target.classList.add("hit-animate");
+  target.addEventListener(
     "animationend",
-    () => w.classList.remove("hit-animate"),
+    () => target.classList.remove("hit-animate"),
+
     { once: true }
   );
 }
@@ -707,6 +708,7 @@ function renderCard(card) {
 
   // 5) Save references for later updates
   card.wrapperElement = wrapper;
+  card.cardElement = cardPane;
   card.hpDisplay = cardPane.querySelector(".card-hp");
   card.xpBar = xpBar;
   card.xpBarFill = xpBarFill;
