@@ -4,9 +4,12 @@
   "type": "module",
   "main": "script.js",
   "scripts": {
-    "start": "node script.js"
+    "start": "node script.js",
+    "dev": "live-server /storage/emulated/0/Documents/project-start",
+    "build": "echo 'No build step yet — just copying files manually.'"
   },
   "dependencies": {
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "lodash": "^4.17.21"
   }
 }

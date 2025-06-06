@@ -120,6 +120,10 @@ body {
   gap: 10px;
 }
 
+.mainTabPanel.casino-section {
+  font-size: 0.5rem;
+}
+
 .vignette-toggle {
   width: 100%;
   padding: 4px 6px;
@@ -148,7 +152,7 @@ body {
   border-radius: 8px;
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 1.2rem;
+  font-size: 0.5rem;
   max-height: 150px;
   overflow-y: auto;
 }
