@@ -78,30 +78,6 @@ const killsDisplay = document.getElementById("kills")
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
 const jokerContainers = document.querySelectorAll(".jokerContainer")
-const defeatOverlay = document.getElementById("defeatOverlay")
-const restartOverlayBtn = document.getElementById("restartOverlayBtn")
-
-let defeatTimeout = null;
-
-function showDefeatScreen() {
-  if (!defeatOverlay) return;
-  defeatOverlay.style.display = "flex";
-  defeatTimeout = setTimeout(restartFromDefeat, 5000);
-}
-
-function hideDefeatScreen() {
-  if (!defeatOverlay) return;
-  defeatOverlay.style.display = "none";
-  if (defeatTimeout) {
-    clearTimeout(defeatTimeout);
-    defeatTimeout = null;
-  }
-}
-
-function restartFromDefeat() {
-  hideDefeatScreen();
-  respawnPlayer();
-}
 
 const unlockedJokers = [];
 
@@ -246,8 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDealerCard();
   initVignetteToggles();
   renderJokers();
-
-  if (restartOverlayBtn) restartOverlayBtn.addEventListener("click", restartFromDefeat); at 
   renderPlayerAttackBar();
   requestAnimationFrame(gameLoop)
 });
@@ -620,9 +594,9 @@ function calculateEnemyBasicDamage(stage, world) {
 
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
 
-  // Player has no defending cards
+  // if there’s no card, nothing to do
   if (drawnCards.length === 0) {
-    showDefeatScreen();
+    respawnPlayer();
     return;
   }
 
@@ -715,10 +689,7 @@ function cardXp(xpAmount) {
  */
 function drawCard() {
   // 1) Nothing to draw?
-  if (deck.length === 0) {
-    showDefeatScreen();
-    return null;
-  }
+  if (deck.length === 0) return null;
 
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
@@ -915,7 +886,6 @@ function spawnPlayer() {
 }
 
 function respawnPlayer() {
-  hideDefeatScreen();
   drawnCards = [];
   deck = pDeck.filter(c => c.currentHp > 0);
   handContainer.innerHTML = "";
