@@ -690,3 +690,25 @@ body {
   to { opacity: 0; transform: translate(-50%, -20px); }
 }
 
+.upgrade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.5rem;
+}
+
+.upgrade-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.upgrade-item button {
+  padding: 1px 4px;
+  font-size: 0.5rem;
+  background: linear-gradient(135deg, #f0f0f0, #fafafa);
+  border: 1px solid #4CAF50;
+  border-radius: 4px;
+  cursor: pointer;
+}
+

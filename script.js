@@ -34,8 +34,12 @@ const stats = {
   pLifeMax: 10,
   pLifeCurrent: 10,
   damageMultiplier: 1,
+  upgradeDamageMultiplier: 1,
   cardSlots: 3, //at start max
   attackSpeed: 5000, //ms between automatic attacks
+  maxMana: 0,
+  currentMana: 0,
+  manaRegen: 0,
 }
 
 
@@ -50,6 +54,62 @@ let stageData = {
   playerXp: 1,
   attackspeed: 10000, //10 sec at start
 }
+
+const upgrades = {
+  cardSlots: {
+    name: "Card Slots",
+    level: 0,
+    baseValue: 3,
+    costFormula: level => 100 * (level ** 2),
+    effect: player => {
+      player.cardSlots = upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
+    }
+  },
+  globalDamage: {
+    name: "Global Damage Multiplier",
+    level: 0,
+    baseValue: 1.0,
+    costFormula: level => 200 * (level ** 2),
+    effect: player => {
+      player.upgradeDamageMultiplier =
+        upgrades.globalDamage.baseValue + 0.1 * upgrades.globalDamage.level;
+    }
+  },
+  autoAttackSpeed: {
+    name: "Auto-Attack Speed",
+    level: 0,
+    baseValue: 10000,
+    costFormula: level => Math.floor(300 * (level ** 2.2)),
+    effect: player => {
+      player.attackSpeed = Math.max(
+        2000,
+        upgrades.autoAttackSpeed.baseValue - 100 * upgrades.autoAttackSpeed.level
+      );
+    }
+  },
+  manaRegen: {
+    name: "Mana Regeneration",
+    level: 0,
+    baseValue: 0,
+    costFormula: level => 150 * (level ** 2),
+    effect: player => {
+      player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
+    }
+  },
+  maxMana: {
+    name: "Maximum Mana",
+    level: 0,
+    baseValue: 0,
+    costFormula: level => Math.floor(200 * (level ** 2.3)),
+    effect: player => {
+      player.maxMana =
+        upgrades.maxMana.baseValue + 5 * upgrades.maxMana.level;
+      if (player.currentMana > player.maxMana) {
+        player.currentMana = player.maxMana;
+      }
+    }
+  }
+};
 
 function getDealerIconStyle(stage) {
   const capped = Math.max(1, Math.min(10, stage));
@@ -123,6 +183,60 @@ function initVignetteToggles() {
       v.classList.toggle('open');
     });
   });
+}
+
+function renderUpgrades() {
+  const container = document.querySelector('.upgrade-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  Object.entries(upgrades).forEach(([key, up]) => {
+    const row = document.createElement('div');
+    row.classList.add('upgrade-item');
+    row.dataset.key = key;
+
+    const label = document.createElement('span');
+    label.textContent = `${up.name} (Lv. ${up.level})`;
+
+    const cost = up.costFormula(up.level + 1);
+    const btn = document.createElement('button');
+    btn.textContent = `Buy $${cost}`;
+    if (cash < cost) btn.disabled = true;
+    btn.addEventListener('click', () => purchaseUpgrade(key));
+
+    row.append(label, btn);
+    container.appendChild(row);
+  });
+}
+
+function updateUpgradeButtons() {
+  document.querySelectorAll('.upgrade-item').forEach(row => {
+    const key = row.dataset.key;
+    const btn = row.querySelector('button');
+    if (!key || !btn) return;
+    const up = upgrades[key];
+    const cost = up.costFormula(up.level + 1);
+    btn.disabled = cash < cost;
+    btn.textContent = `Buy $${cost}`;
+  });
+}
+
+function purchaseUpgrade(key) {
+  const up = upgrades[key];
+  const cost = up.costFormula(up.level + 1);
+  if (cash < cost) return;
+  cash -= cost;
+  cashDisplay.textContent = `Cash: $${cash}`;
+  up.level += 1;
+  up.effect(stats);
+  if (key === 'cardSlots') {
+    while (drawnCards.length < stats.cardSlots && deck.length > 0) {
+      drawCard();
+    }
+  }
+  renderUpgrades();
+  updateDrawButton();
+  renderPlayerStats(stats);
 }
 //=========card tab==========
 
@@ -221,6 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   renderDealerCard();
   initVignetteToggles();
+  Object.values(upgrades).forEach(u => u.effect(stats));
+  renderUpgrades();
   renderJokers();
   renderPlayerAttackBar();
   requestAnimationFrame(gameLoop)
@@ -278,12 +394,20 @@ function renderPlayerStats(stats) {
   const damageDisplay = document.getElementById("damageDisplay");
   const cashMultiDisplay = document.getElementById("cashMultiDisplay");
   const regenDisplay = document.getElementById("regenDisplay");
+  const manaDisplay = document.getElementById("manaDisplay");
+  const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 
   damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
   cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
   cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
+  if (manaDisplay) {
+    manaDisplay.textContent = `Mana: ${Math.floor(stats.currentMana)}/${stats.maxMana}`;
+  }
+  if (manaRegenDisplay) {
+    manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen}`;
+  }
 
 }
 
@@ -964,13 +1088,14 @@ function attack() {
 function cashOut() {
   cash = Math.floor(cash + stats.points * (1 + Math.pow(stageData.stage, 0.5)) * stats.cashMulti);
   cashDisplay.textContent = `Cash: $${cash}`
+  updateUpgradeButtons();
   return cash
 }
 
 function updatePlayerStats() {
   // Reset base stats
   stats.pDamage = 0;
-  stats.damageMultiplier = 1;
+  stats.damageMultiplier = stats.upgradeDamageMultiplier;
   stats.pRegen = 0;
   stats.cashMulti = 1;
   stats.pLifeMax = 100;
@@ -1126,6 +1251,8 @@ window.devTools = {
   giveCash: () => {
     const amount = parseInt(document.getElementById("debugCash").value) || 0;
     cash += amount;
+    cashDisplay.textContent = `Cash: $${cash}`;
+    updateUpgradeButtons();
   },
 
   setStageWorld: () => {
