@@ -381,6 +381,47 @@ body {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+/* auto attack progress bars */
+.playerAttackBar {
+  width: 80%;
+  height: 6px;
+  background: #090b09;
+  border: 1px solid grey;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.playerAttackFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: grey;
+}
+
+.enemyAttackBar {
+  width: 50%;
+  height: 4px;
+  background: #090b09;
+  border: 1px solid grey;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px auto 0;
+  position: relative;
+}
+
+.enemyAttackFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: grey;
+}
+
 .buttonsContainer > button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
@@ -446,7 +487,7 @@ body {
 }
 
 .card-value {
-  font-size: 1em;
+  font-size: 2em;
   align-self: flex-start;  /* push to left */
 } 
 
@@ -461,10 +502,11 @@ body {
 
 .card-hp {
   color: #000;
-  font-size: 0.8em;
+  font-size: 2em;
 }
 
 .card-wrapper {
+  position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .card-wrapper:hover {
@@ -603,19 +645,49 @@ body {
 }
 
 /* Joker container and tiles */
-.jokerContainer {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
+.joker-wrapper {
+  max-width: 160px;
+  width: 100%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-
-.joker-card {
-  width: 75px;
-  height: 95px;
+.joker-wrapper .card {
+  width: 100%;
+  aspect-ratio: 3 / 4;
   border-radius: 8px;
+  padding: 4px;
+  background: white;
   border: 2px solid grey;
-  object-fit: cover;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.joker-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* or try 'cover' for tighter framing */
+  border-radius: 6px;  /* optional: mimic the inner edge */
+}
+
+.damage-float {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  color: red;
+  font-weight: bold;
+  pointer-events: none;
+  text-shadow: 0 0 2px #000;
+  animation: damage-float 0.8s ease-out forwards;
+}
+
+@keyframes damage-float {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, -20px); }
 }
 
 .defeat-overlay {

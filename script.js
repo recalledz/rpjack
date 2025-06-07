@@ -66,7 +66,6 @@ let pDeck = generateDeck()
 let deck = [...pDeck]
 
 const btn = document.getElementById("clickalipse")
-const attackBtn = document.getElementById("attackBtn")
 const redrawBtn = document.getElementById("redrawBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
@@ -106,8 +105,10 @@ function restartFromDefeat() {
 
 const unlockedJokers = [];
 
-// Track auto attack interval
-let autoAttackId = null;
+// attack progress bars
+let playerAttackFill = null;
+let enemyAttackFill = null;
+let playerAttackTimer = 0;
 
 
 //=========tabs==========
@@ -245,7 +246,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDealerCard();
   initVignetteToggles();
   renderJokers();
-  if (restartOverlayBtn) restartOverlayBtn.addEventListener("click", restartFromDefeat);
+
+  if (restartOverlayBtn) restartOverlayBtn.addEventListener("click", restartFromDefeat); at 
+  renderPlayerAttackBar();
   requestAnimationFrame(gameLoop)
 });
 
@@ -262,6 +265,27 @@ function renderDealerLifeBar() {
   dealerContainerLife.appendChild(dealerBarFill);
   dealerLifeDisplay.insertAdjacentElement("afterend", dealerContainerLife);
   dealerLifeDisplay.textContent = `Life: ${currentEnemy.maxHp}`;
+}
+
+function renderEnemyAttackBar() {
+  const existing = document.querySelector('.enemyAttackBar');
+  if (existing) existing.remove();
+  const bar = document.createElement('div');
+  const fill = document.createElement('div');
+  bar.classList.add('enemyAttackBar');
+  fill.classList.add('enemyAttackFill');
+  bar.appendChild(fill);
+  enemyAttackFill = fill;
+  const lifeContainer = document.querySelector('.dealerLifeContainer');
+  if (lifeContainer) lifeContainer.insertAdjacentElement('afterend', bar);
+}
+
+function renderPlayerAttackBar() {
+  const container = document.querySelector('.buttonsContainer');
+  if (!container) return;
+  const bar = document.getElementById('playerAttackBar');
+  if (!bar) return;
+  playerAttackFill = bar.querySelector('.playerAttackFill');
 }
 
 function renderDealerLifeBarFill() {
@@ -394,8 +418,27 @@ function renderDealerCard() {
 function animateCardHit(card) {
   const w = card.wrapperElement;
   if (!w) return;
-  w.classList.add("hit-animate");
-  w.addEventListener("animationend", () => w.classList.remove("hit-animate"), { once: true });
+
+  const target = card.cardElement || w;
+  target.classList.remove("hit-animate");
+  void target.offsetWidth;
+  target.classList.add("hit-animate");
+  target.addEventListener(
+    "animationend",
+    () => target.classList.remove("hit-animate"),
+
+    { once: true }
+  );
+}
+
+function showDamageFloat(card, amount) {
+  const w = card.wrapperElement;
+  if (!w) return;
+  const dmg = document.createElement("div");
+  dmg.classList.add("damage-float");
+  dmg.textContent = `-${amount}`;
+  w.appendChild(dmg);
+  dmg.addEventListener("animationend", () => dmg.remove(), { once: true });
 }
 
 
@@ -445,7 +488,14 @@ function spawnDealer() {
     }
   });
 
+  // Ensure the dealer gets an initial hit off immediately
+  if (typeof currentEnemy.onAttack === "function") {
+    currentEnemy.onAttack(currentEnemy);
+    currentEnemy.attackTimer = 0;
+  }
+
   updateDealerLifeDisplay();
+  renderEnemyAttackBar();
   dealerDeathAnimation();
 }
 
@@ -460,6 +510,8 @@ function updateDealerLifeBar(enemy) {
 function removeDealerLifeBar() {
   const bar = document.querySelector(".dealerLifeContainer");
   if (bar) bar.remove();
+  const atk = document.querySelector('.enemyAttackBar');
+  if (atk) atk.remove();
   dealerLifeDisplay.textContent = '';
 }
 
@@ -524,9 +576,16 @@ function spawnBoss() {
     }
   });
 
+  // Ensure the boss gets an initial hit off immediately
+  if (typeof currentEnemy.onAttack === "function") {
+    currentEnemy.onAttack(currentEnemy);
+    currentEnemy.attackTimer = 0;
+  }
+
   updateDealerLifeDisplay();
+  renderEnemyAttackBar();
   dealerDeathAnimation()
-} 
+}
 
 function updateDealerLifeDisplay() {
   dealerLifeDisplay.textContent =
@@ -584,6 +643,7 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   updateDeckDisplay()
   if (card.wrapperElement) {
     animateCardHit(card)
+    showDamageFloat(card, dDamage)
   }
   // if it’s dead, remove it
   if (card.currentHp === 0) {
@@ -727,6 +787,7 @@ function renderCard(card) {
 
   // 5) Save references for later updates
   card.wrapperElement = wrapper;
+  card.cardElement = cardPane;
   card.hpDisplay = cardPane.querySelector(".card-hp");
   card.xpBar = xpBar;
   card.xpBarFill = xpBarFill;
@@ -785,15 +846,17 @@ function animateCardDeath(card, callback) {
     callback?.();
     return;
   }
+  const onEnd = () => {
+    w.classList.remove("card-death");
+    w.removeEventListener("animationend", onEnd);
+    callback?.();
+  };
+
+  w.addEventListener("animationend", onEnd, { once: true });
   w.classList.add("card-death");
-  w.addEventListener(
-    "animationend",
-    () => {
-      w.classList.remove("card-death");
-      callback?.();
-    },
-    { once: true }
-  );
+
+  // Fallback: ensure removal even if animation events don't fire
+  setTimeout(onEnd, 600);
 }
 
 function healCardsOnKill() {
@@ -807,14 +870,24 @@ function healCardsOnKill() {
 
 function renderJokers() {
   if (!jokerContainers.length) return;
+
   jokerContainers.forEach(container => {
     container.innerHTML = "";
     unlockedJokers.forEach(joker => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("card-wrapper", "joker-wrapper");
+
+      const card = document.createElement("div");
+      card.classList.add("card");
+
       const img = document.createElement("img");
-      img.classList.add("joker-card");
+      img.classList.add("joker-image");
       img.src = joker.image;
       img.alt = joker.name;
-      container.appendChild(img);
+
+      card.appendChild(img);
+      wrapper.appendChild(card);
+      container.appendChild(wrapper);
     });
   });
 }
@@ -883,17 +956,6 @@ function attack() {
   }
 }
 
-function toggleAutoAttack() {
-  if (autoAttackId) {
-    clearInterval(autoAttackId);
-    autoAttackId = null;
-    attackBtn.classList.remove("active");
-  } else {
-    attack(); // immediate attack when toggled on
-    autoAttackId = setInterval(attack, stats.attackSpeed);
-    attackBtn.classList.add("active");
-  }
-}
 /*if (currentEnemy instanceof Boss) {
   // Handle boss damage
   currentEnemy.takeDamage(stats.pDamage);
@@ -964,14 +1026,15 @@ function updatePlayerStats() {
 
 //=========game start===========
 
+// Spawn the player's cards before the enemy so the initial
+// first strike doesn't trigger a full respawn
+spawnPlayer();
 spawnDealer();
 renderStageInfo();
-spawnPlayer();
 nextStageChecker();
 
 
 btn.addEventListener("click", drawCard)
-attackBtn.addEventListener("click", toggleAutoAttack)
 redrawBtn.addEventListener("click", redrawHand)
 nextStageBtn.addEventListener("click", nextStage)
 
@@ -1018,6 +1081,11 @@ function gameLoop(currentTime) {
     currentEnemy.tick(deltaTime);
     updateDealerLifeBar(currentEnemy);
 
+    if (enemyAttackFill) {
+      const eratio = Math.min(1, currentEnemy.attackTimer / currentEnemy.attackInterval);
+      enemyAttackFill.style.width = `${eratio * 100}%`;
+    }
+
     // Update cooldown overlays
     const overlays = document.querySelectorAll(".cooldown-overlay");
     overlays.forEach((overlay, i) => {
@@ -1033,6 +1101,16 @@ function gameLoop(currentTime) {
 
   updateDrawButton();
   updatePlayerStats(stats);
+  playerAttackTimer += deltaTime;
+  if (playerAttackFill) {
+    const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
+    playerAttackFill.style.width = `${pratio * 100}%`;
+  }
+  if (playerAttackTimer >= stats.attackSpeed) {
+    attack();
+    playerAttackTimer = 0;
+    if (playerAttackFill) playerAttackFill.style.width = '0%';
+  }
   requestAnimationFrame(gameLoop);
 }
 
