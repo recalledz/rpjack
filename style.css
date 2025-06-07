@@ -357,7 +357,9 @@ body {
   grid-area: buttons;
   padding: 5px;
   display: flex;
+  flex-wrap: wrap;              /* allow the attack bar to sit above the buttons */
   justify-content: center;
+  align-items: center;
   gap: 10px;
 }
 
@@ -389,8 +391,9 @@ body {
   border: 1px solid grey;
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin: 0 auto 4px;            /* center above the buttons */
   position: relative;
+  flex-basis: 100%;              /* occupy its own row within the flex wrapper */
 }
 
 .playerAttackFill {
