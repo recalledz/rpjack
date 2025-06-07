@@ -66,7 +66,6 @@ let pDeck = generateDeck()
 let deck = [...pDeck]
 
 const btn = document.getElementById("clickalipse")
-const attackBtn = document.getElementById("attackBtn")
 const redrawBtn = document.getElementById("redrawBtn")
 const nextStageBtn = document.getElementById("nextStageBtn")
 const pointsDisplay = document.getElementById("pointsDisplay")
@@ -82,8 +81,10 @@ const jokerContainers = document.querySelectorAll(".jokerContainer")
 
 const unlockedJokers = [];
 
-// Track auto attack interval
-let autoAttackId = null;
+// attack progress bars
+let playerAttackFill = null;
+let enemyAttackFill = null;
+let playerAttackTimer = 0;
 
 
 //=========tabs==========
@@ -221,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDealerCard();
   initVignetteToggles();
   renderJokers();
+  renderPlayerAttackBar();
   requestAnimationFrame(gameLoop)
 });
 
@@ -237,6 +239,27 @@ function renderDealerLifeBar() {
   dealerContainerLife.appendChild(dealerBarFill);
   dealerLifeDisplay.insertAdjacentElement("afterend", dealerContainerLife);
   dealerLifeDisplay.textContent = `Life: ${currentEnemy.maxHp}`;
+}
+
+function renderEnemyAttackBar() {
+  const existing = document.querySelector('.enemyAttackBar');
+  if (existing) existing.remove();
+  const bar = document.createElement('div');
+  const fill = document.createElement('div');
+  bar.classList.add('enemyAttackBar');
+  fill.classList.add('enemyAttackFill');
+  bar.appendChild(fill);
+  enemyAttackFill = fill;
+  const lifeContainer = document.querySelector('.dealerLifeContainer');
+  if (lifeContainer) lifeContainer.insertAdjacentElement('afterend', bar);
+}
+
+function renderPlayerAttackBar() {
+  const container = document.querySelector('.buttonsContainer');
+  if (!container) return;
+  const bar = document.getElementById('playerAttackBar');
+  if (!bar) return;
+  playerAttackFill = bar.querySelector('.playerAttackFill');
 }
 
 function renderDealerLifeBarFill() {
@@ -440,6 +463,7 @@ function spawnDealer() {
   });
 
   updateDealerLifeDisplay();
+  renderEnemyAttackBar();
   dealerDeathAnimation();
 }
 
@@ -454,6 +478,8 @@ function updateDealerLifeBar(enemy) {
 function removeDealerLifeBar() {
   const bar = document.querySelector(".dealerLifeContainer");
   if (bar) bar.remove();
+  const atk = document.querySelector('.enemyAttackBar');
+  if (atk) atk.remove();
   dealerLifeDisplay.textContent = '';
 }
 
@@ -519,6 +545,7 @@ function spawnBoss() {
   });
 
   updateDealerLifeDisplay();
+  renderEnemyAttackBar();
   dealerDeathAnimation()
 } 
 
@@ -887,17 +914,6 @@ function attack() {
   }
 }
 
-function toggleAutoAttack() {
-  if (autoAttackId) {
-    clearInterval(autoAttackId);
-    autoAttackId = null;
-    attackBtn.classList.remove("active");
-  } else {
-    attack(); // immediate attack when toggled on
-    autoAttackId = setInterval(attack, stats.attackSpeed);
-    attackBtn.classList.add("active");
-  }
-}
 /*if (currentEnemy instanceof Boss) {
   // Handle boss damage
   currentEnemy.takeDamage(stats.pDamage);
@@ -975,7 +991,6 @@ nextStageChecker();
 
 
 btn.addEventListener("click", drawCard)
-attackBtn.addEventListener("click", toggleAutoAttack)
 redrawBtn.addEventListener("click", redrawHand)
 nextStageBtn.addEventListener("click", nextStage)
 
@@ -1022,6 +1037,11 @@ function gameLoop(currentTime) {
     currentEnemy.tick(deltaTime);
     updateDealerLifeBar(currentEnemy);
 
+    if (enemyAttackFill) {
+      const eratio = Math.min(1, currentEnemy.attackTimer / currentEnemy.attackInterval);
+      enemyAttackFill.style.width = `${eratio * 100}%`;
+    }
+
     // Update cooldown overlays
     const overlays = document.querySelectorAll(".cooldown-overlay");
     overlays.forEach((overlay, i) => {
@@ -1037,6 +1057,16 @@ function gameLoop(currentTime) {
 
   updateDrawButton();
   updatePlayerStats(stats);
+  playerAttackTimer += deltaTime;
+  if (playerAttackFill) {
+    const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
+    playerAttackFill.style.width = `${pratio * 100}%`;
+  }
+  if (playerAttackTimer >= stats.attackSpeed) {
+    attack();
+    playerAttackTimer = 0;
+    if (playerAttackFill) playerAttackFill.style.width = '0%';
+  }
   requestAnimationFrame(gameLoop);
 }
 

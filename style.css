@@ -381,6 +381,47 @@ body {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+/* auto attack progress bars */
+.playerAttackBar {
+  width: 80%;
+  height: 6px;
+  background: #090b09;
+  border: 1px solid grey;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.playerAttackFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: grey;
+}
+
+.enemyAttackBar {
+  width: 50%;
+  height: 4px;
+  background: #090b09;
+  border: 1px solid grey;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px auto 0;
+  position: relative;
+}
+
+.enemyAttackFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: grey;
+}
+
 .buttonsContainer > button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
