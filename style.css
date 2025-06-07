@@ -118,9 +118,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.mainTabPanel.casino-section {
   font-size: 0.5rem;
 }
 
@@ -152,7 +149,6 @@ body {
   border-radius: 8px;
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 0.5rem;
   max-height: 150px;
   overflow-y: auto;
 }
@@ -695,7 +691,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.5rem;
 }
 
 .upgrade-item {
@@ -706,7 +701,6 @@ body {
 
 .upgrade-item button {
   padding: 1px 4px;
-  font-size: 0.5rem;
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
   border: 1px solid #4CAF50;
   border-radius: 4px;
