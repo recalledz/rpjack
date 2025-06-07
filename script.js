@@ -530,12 +530,12 @@ function animateCardHit(card) {
 }
 
 function showDamageFloat(card, amount) {
-  const w = card.wrapperElement;
-  if (!w) return;
+  const hp = card.hpDisplay;
+  if (!hp) return;
   const dmg = document.createElement("div");
   dmg.classList.add("damage-float");
   dmg.textContent = `-${amount}`;
-  w.appendChild(dmg);
+  hp.appendChild(dmg);
   dmg.addEventListener("animationend", () => dmg.remove(), { once: true });
 }
 
