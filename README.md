@@ -34,7 +34,7 @@ Resource Management:
 
 Cash: Earned based on active card values and current stage/world.
 
-Mana: Unlock and manage mana for casting abilities and activating jokers.
+Card HP per Kill: Each enemy defeated heals your cards.
 
 
 Attributes and Stats:
@@ -50,7 +50,7 @@ Chaos: Amplifies critical damage and ability power.
 Holy: Reduces cooldowns.
 
 
-Jokers: Active abilities requiring mana, with limited slots and customizable effects.
+Jokers: Active abilities with cooldowns and limited slots.
 
 Traits: Late-game mechanics where enemies possess special traits (e.g., double damage, shields) that can be inherited by player cards.
 
@@ -98,13 +98,11 @@ A structured approach to manage and balance game elements.
 
 Upgrade Name	Base Value	Max Value	Cost Formula	Notes
 
-Card Slots	3	?	100 * level^2	Increase the number of active cards
+Card Slots      3       ?       1000 * level^3	Increase the number of active cards
 Global Damage Multiplier	1.0	?	200 * level^2	Amplify all damage dealt
 Auto-Attack Speed	10000 ms	2000 ms	300 * level^2.2	Reduce time between automated attacks
-Mana Regeneration	0	?	150 * level^2	Increase mana recovery rate
-Maximum Mana	0	?	200 * level^2.3	Increase total mana capacity
 Base Card HP	value	?	100 * level^2	Enhance base HP for all cards
-Card HP per Kill	1	?	100 * level	HP recovered by cards after each kill
+Card HP per Kill        1       ?       150 * level^2	HP recovered by cards after each kill
 
 
 🃏 Card Progression
@@ -155,7 +153,7 @@ Priest	Holy	Healing and support abilities
 
 🃏 Jokers
 
-Active abilities that require mana to use.
+Active abilities that operate on cooldowns.
 
 Feature	Base Value	Cost Formula	Notes
 
@@ -174,7 +172,7 @@ Complete main layout polish with casino theme variations per world
 
 Introduce joker system with active abilities
 
-Develop comprehensive upgrade and mana systems
+Develop comprehensive card progression systems
 
 Implement jobs, traits, and reincarnation mechanics
 
