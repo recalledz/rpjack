@@ -996,9 +996,11 @@ function updatePlayerStats() {
 
 //=========game start===========
 
+// Spawn the player's cards before the enemy so the initial
+// first strike doesn't trigger a full respawn
+spawnPlayer();
 spawnDealer();
 renderStageInfo();
-spawnPlayer();
 nextStageChecker();
 
 
