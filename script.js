@@ -462,6 +462,12 @@ function spawnDealer() {
     }
   });
 
+  // Ensure the dealer gets an initial hit off immediately
+  if (typeof currentEnemy.onAttack === "function") {
+    currentEnemy.onAttack(currentEnemy);
+    currentEnemy.attackTimer = 0;
+  }
+
   updateDealerLifeDisplay();
   renderEnemyAttackBar();
   dealerDeathAnimation();
@@ -544,10 +550,16 @@ function spawnBoss() {
     }
   });
 
+  // Ensure the boss gets an initial hit off immediately
+  if (typeof currentEnemy.onAttack === "function") {
+    currentEnemy.onAttack(currentEnemy);
+    currentEnemy.attackTimer = 0;
+  }
+
   updateDealerLifeDisplay();
   renderEnemyAttackBar();
   dealerDeathAnimation()
-} 
+}
 
 function updateDealerLifeDisplay() {
   dealerLifeDisplay.textContent =
