@@ -536,7 +536,9 @@ function showDamageFloat(card, amount) {
   dmg.classList.add("damage-float");
   dmg.textContent = `-${amount}`;
   hp.appendChild(dmg);
+  // ensure the element is removed even if the animationend event doesn't fire
   dmg.addEventListener("animationend", () => dmg.remove(), { once: true });
+  setTimeout(() => dmg.remove(), 1000);
 }
 
 
