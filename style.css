@@ -682,7 +682,7 @@ body {
   font-weight: bold;
   pointer-events: none;
   text-shadow: 0 0 2px #000;
-  animation: damage-float 0.6s ease-out forwards;
+  animation: damage-float 1s ease-out forwards;
 }
 
 @keyframes damage-float {
