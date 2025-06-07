@@ -193,6 +193,7 @@ function renderUpgrades() {
   Object.entries(upgrades).forEach(([key, up]) => {
     const row = document.createElement('div');
     row.classList.add('upgrade-item');
+    row.dataset.key = key;
 
     const label = document.createElement('span');
     label.textContent = `${up.name} (Lv. ${up.level})`;
@@ -205,6 +206,18 @@ function renderUpgrades() {
 
     row.append(label, btn);
     container.appendChild(row);
+  });
+}
+
+function updateUpgradeButtons() {
+  document.querySelectorAll('.upgrade-item').forEach(row => {
+    const key = row.dataset.key;
+    const btn = row.querySelector('button');
+    if (!key || !btn) return;
+    const up = upgrades[key];
+    const cost = up.costFormula(up.level + 1);
+    btn.disabled = cash < cost;
+    btn.textContent = `Buy $${cost}`;
   });
 }
 
@@ -1075,6 +1088,7 @@ function attack() {
 function cashOut() {
   cash = Math.floor(cash + stats.points * (1 + Math.pow(stageData.stage, 0.5)) * stats.cashMulti);
   cashDisplay.textContent = `Cash: $${cash}`
+  updateUpgradeButtons();
   return cash
 }
 
@@ -1237,6 +1251,8 @@ window.devTools = {
   giveCash: () => {
     const amount = parseInt(document.getElementById("debugCash").value) || 0;
     cash += amount;
+    cashDisplay.textContent = `Cash: $${cash}`;
+    updateUpgradeButtons();
   },
 
   setStageWorld: () => {

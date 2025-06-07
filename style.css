@@ -694,7 +694,8 @@ body {
 .upgrade-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  font-size: 0.5rem;
 }
 
 .upgrade-item {
@@ -704,7 +705,8 @@ body {
 }
 
 .upgrade-item button {
-  padding: 2px 6px;
+  padding: 1px 4px;
+  font-size: 0.5rem;
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
   border: 1px solid #4CAF50;
   border-radius: 4px;
