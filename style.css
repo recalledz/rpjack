@@ -354,7 +354,9 @@ body {
   grid-area: buttons;
   padding: 5px;
   display: flex;
+  flex-wrap: wrap;              /* allow the attack bar to sit above the buttons */
   justify-content: center;
+  align-items: center;
   gap: 10px;
 }
 
@@ -386,8 +388,9 @@ body {
   border: 1px solid grey;
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin: 0 auto 4px;            /* center above the buttons */
   position: relative;
+  flex-basis: 100%;              /* occupy its own row within the flex wrapper */
 }
 
 .playerAttackFill {
@@ -680,7 +683,7 @@ body {
   font-weight: bold;
   pointer-events: none;
   text-shadow: 0 0 2px #000;
-  animation: damage-float 0.6s ease-out forwards;
+  animation: damage-float 1s ease-out forwards;
 }
 
 @keyframes damage-float {
@@ -706,6 +709,7 @@ body {
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
+ m8v6a1-codex/fix-button-size-in-upgrade-side-panel
   /* explicitly match side panel size to avoid browser defaults */
   font-size: 0.5rem;
 }

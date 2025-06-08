@@ -37,9 +37,7 @@ const stats = {
   upgradeDamageMultiplier: 1,
   cardSlots: 3, //at start max
   attackSpeed: 5000, //ms between automatic attacks
-  maxMana: 0,
-  currentMana: 0,
-  manaRegen: 0,
+  hpPerKill: 1,
 }
 
 
@@ -60,7 +58,7 @@ const upgrades = {
     name: "Card Slots",
     level: 0,
     baseValue: 3,
-    costFormula: level => 100 * (level ** 2),
+    costFormula: level => 1000 * (level ** 3),
     effect: player => {
       player.cardSlots = upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
     }
@@ -87,26 +85,14 @@ const upgrades = {
       );
     }
   },
-  manaRegen: {
-    name: "Mana Regeneration",
+  cardHpPerKill: {
+    name: "Card HP per Kill",
     level: 0,
-    baseValue: 0,
+    baseValue: 1,
     costFormula: level => 150 * (level ** 2),
     effect: player => {
-      player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
-    }
-  },
-  maxMana: {
-    name: "Maximum Mana",
-    level: 0,
-    baseValue: 0,
-    costFormula: level => Math.floor(200 * (level ** 2.3)),
-    effect: player => {
-      player.maxMana =
-        upgrades.maxMana.baseValue + 5 * upgrades.maxMana.level;
-      if (player.currentMana > player.maxMana) {
-        player.currentMana = player.maxMana;
-      }
+      player.hpPerKill = upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
+      pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
     }
   }
 };
@@ -394,19 +380,15 @@ function renderPlayerStats(stats) {
   const damageDisplay = document.getElementById("damageDisplay");
   const cashMultiDisplay = document.getElementById("cashMultiDisplay");
   const regenDisplay = document.getElementById("regenDisplay");
-  const manaDisplay = document.getElementById("manaDisplay");
-  const manaRegenDisplay = document.getElementById("manaRegenDisplay");
+  const hpPerKillDisplay = document.getElementById("hpPerKillDisplay");
 
   damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
   cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
   cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
-  if (manaDisplay) {
-    manaDisplay.textContent = `Mana: ${Math.floor(stats.currentMana)}/${stats.maxMana}`;
-  }
-  if (manaRegenDisplay) {
-    manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen}`;
+  if (hpPerKillDisplay) {
+    hpPerKillDisplay.textContent = `HP per Kill: ${stats.hpPerKill}`;
   }
 
 }
@@ -536,7 +518,9 @@ function showDamageFloat(card, amount) {
   dmg.classList.add("damage-float");
   dmg.textContent = `-${amount}`;
   hp.appendChild(dmg);
+  // ensure the element is removed even if the animationend event doesn't fire
   dmg.addEventListener("animationend", () => dmg.remove(), { once: true });
+  setTimeout(() => dmg.remove(), 1000);
 }
 
 
