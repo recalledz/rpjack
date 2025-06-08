@@ -718,7 +718,6 @@ body {
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
- m8v6a1-codex/fix-button-size-in-upgrade-side-panel
   /* explicitly match side panel size to avoid browser defaults */
   font-size: 0.5rem;
 }
