@@ -66,7 +66,7 @@ body {
     "dealer sidePanel"
     "buttons sidePanel"
     "hand sidePanel"
-    "jokers sidePanel";
+    "jokers discard";
   padding: 5px;
   height: 100vh;
 }
@@ -98,13 +98,13 @@ body {
   background: rgba(133, 163, 139, 0.5);
   color: white;
   text-shadow: 0 0 5px black;
-  font-size: 1.2rem;
+  font-size: 0.5rem;
 }
 
 .mainTabPanel > div {
   border: 1px solid #d4af37;
   border-radius: 4px;
-  padding: 2px 4px;
+  padding: 1px 1px;
   margin-bottom: 4px;
   background: rgba(0, 0, 0, 0.2);
 }
@@ -448,6 +448,7 @@ body {
 }
 
 .discardContainer {
+  grid-area: discard;
   display: flex;
   width: 75px;
   height: 100px;
@@ -713,12 +714,19 @@ body {
 }
 
 .upgrade-item button {
-  padding: 1px 4px;
+  width: 30px;
+  height: 16px;
+  font-size: 0.5rem;
+  line-height: 1;
+  padding: 0;
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
-  /* explicitly match side panel size to avoid browser defaults */
-  font-size: 0.5rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: red !important
 }
 

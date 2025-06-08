@@ -38,34 +38,59 @@
   <div class="mainTab">
 
     <div class="dealerContainer casino-section">
-      <div id="stage">Stage 1</div>
+      <div id="stage">
+        Stage 1
+      </div>
       <span id="kills">kills: 0</span>
-      <div class="dealerLifeDisplay">Life:10</div>   
+      <div class="dealerLifeDisplay">
+        Life:10
+      </div>
       <div class="dCardContainer"></div>
     </div>
-    
+
     <div class="sidePanel">
       <div class="vignette stats open">
         <button class="vignette-toggle">Stats</button>
         <div class="vignette-content">
           <div class="mainTabPanel casino-section">
-            <div id="pointsDisplay"> Attack: 0</div>
-            <div id="cashDisplay"> Cash: 0</div>
-            <div id="damageDisplay"> Damage: 0</div>
-            <div id="regenDisplay"> Regen: 0</div>
-            <div id="cashMultiDisplay"> Cash Multi: 0</div>
-            <div id="lifeMultiDisplay"> Life Multi: 0</div>
-            <div id="cardPointsDisplay"> Card Points: 0</div>
-            <div id="hpPerKillDisplay"> HP per Kill: 1</div>
+            <div id="pointsDisplay">
+              Attack: 0
+            </div>
+            <div id="cashDisplay">
+              Cash: 0
+            </div>
+            <div id="damageDisplay">
+              Damage: 0
+            </div>
+            <div id="regenDisplay">
+              Regen: 0
+            </div>
+            <div id="cashMultiDisplay">
+              Cash Multi: 0
+            </div>
+            <div id="lifeMultiDisplay">
+              Life Multi: 0
+            </div>
+            <div id="cardPointsDisplay">
+              Card Points: 0
+            </div>
+            <div id="hpPerKillDisplay">
+              HP per Kill: 1
             </div>
           </div>
         </div>
-        <div class="vignette upgrades">
-          <button class="vignette-toggle">Upgrades</button>
+      </div>
+      <div class="vignette upgrades">
+        <button class="vignette-toggle">Upgrades</button>
         <div class="casino-section vignette-content">
-          <div class="upgrade-list"></div>
+          <div class="upgrade-list">
+            <div class="upgrade-item">
+              <span>Test Upgrade</span>
+              <button>Buy</button>
+            </div>
+          </div>
         </div>
-        </div>
+      </div>
       <div class="vignette log">
         <button class="vignette-toggle">Log</button>
         <div class="casino-section vignette-content" id="log-panel">
@@ -74,9 +99,11 @@
       </div>
       <div class="discardContainer casino-section"></div>
     </div>
-    
+
     <div class="buttonsContainer casino-section">
-      <div id="playerAttackBar" class="playerAttackBar"><div class="playerAttackFill"></div></div>
+      <div id="playerAttackBar" class="playerAttackBar">
+        <div class="playerAttackFill"></div>
+      </div>
       <button id="clickalipse" title="Draw">🃏</button>
       <button id="redrawBtn" title="Re-draw">🔄</button>
       <button id="nextStageBtn" disabled title="Next Stage">🚀</button>
@@ -85,8 +112,9 @@
     <div class="handContainer casino-section">
     </div>
     <div class="jokerContainer casino-section"></div>
-  </div> <!-- close mainTab -->
-<!--------------deck tab----------------->
+  </div>
+  <!-- close mainTab -->
+  <!--------------deck tab----------------->
   <div class="deckTab">
     <div class="vignette open">
       <button class="vignette-toggle">Basic Deck</button>
@@ -103,7 +131,7 @@
       </div>
     </div>
   </div>
-<div id="tooltip"></div>
+  <div id="tooltip"></div>
 </body>
 <script type="module" src="script.js"></script>
 </html>
