@@ -127,6 +127,11 @@ const jokerContainers = document.querySelectorAll(".jokerContainer")
 
 const unlockedJokers = [];
 
+// Load saved state if available
+loadGame();
+window.addEventListener('beforeunload', saveGame);
+setInterval(saveGame, 30000);
+
 // attack progress bars
 let playerAttackFill = null;
 let enemyAttackFill = null;
@@ -1102,6 +1107,111 @@ function updatePlayerStats() {
   renderPlayerStats(stats);
 }
 
+//=========save/load functions===========
+function saveGame() {
+  if (typeof localStorage === "undefined") return;
+
+  const deckData = pDeck.map(card => ({
+    suit: card.suit,
+    value: card.value,
+    backType: card.backType,
+    currentLevel: card.currentLevel,
+    XpCurrent: card.XpCurrent,
+    XpReq: card.XpReq,
+    baseDamage: card.baseDamage,
+    damage: card.damage,
+    maxHp: card.maxHp,
+    currentHp: card.currentHp,
+    hpPerKill: card.hpPerKill,
+    job: card.job,
+    traits: card.traits,
+  }));
+
+  const upgradeLevels = Object.fromEntries(
+    Object.entries(upgrades).map(([k, u]) => [k, u.level])
+  );
+
+  const state = {
+    stats,
+    stageData,
+    cash,
+    cardPoints,
+    deck: deckData,
+    upgrades: upgradeLevels,
+    unlockedJokers: unlockedJokers.map(j => j.id),
+  };
+
+  try {
+    localStorage.setItem("gameSave", JSON.stringify(state));
+    addLog("Game saved!", "info");
+  } catch (e) {
+    console.error("Save failed", e);
+  }
+}
+
+function loadGame() {
+  if (typeof localStorage === "undefined") return;
+  const json = localStorage.getItem("gameSave");
+  if (!json) return;
+
+  try {
+    const state = JSON.parse(json);
+    cash = state.cash || 0;
+    cardPoints = state.cardPoints || 0;
+    Object.assign(stats, state.stats || {});
+    Object.assign(stageData, state.stageData || {});
+
+    if (state.upgrades) {
+      Object.entries(state.upgrades).forEach(([k, lvl]) => {
+        if (upgrades[k]) upgrades[k].level = lvl;
+      });
+    }
+
+    if (Array.isArray(state.deck)) {
+      pDeck = state.deck.map(data => {
+        const c = new Card(data.suit, data.value, data.backType);
+        Object.assign(c, {
+          currentLevel: data.currentLevel,
+          XpCurrent: data.XpCurrent,
+          XpReq: data.XpReq,
+          baseDamage: data.baseDamage,
+          damage: data.damage,
+          maxHp: data.maxHp,
+          currentHp: data.currentHp,
+          hpPerKill: data.hpPerKill,
+          job: data.job,
+          traits: data.traits,
+        });
+        return c;
+      });
+      deck = [...pDeck];
+    }
+
+    unlockedJokers.length = 0;
+    if (Array.isArray(state.unlockedJokers)) {
+      state.unlockedJokers.forEach(id => {
+        const j = AllJokerTemplates.find(t => t.id === id);
+        if (j) unlockedJokers.push(j);
+      });
+    }
+
+    Object.values(upgrades).forEach(u => u.effect(stats));
+
+    cashDisplay.textContent = `Cash: $${cash}`;
+    cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
+
+    renderUpgrades();
+    renderJokers();
+    updateUpgradeButtons();
+    renderPlayerStats(stats);
+    renderStageInfo();
+
+    addLog("Game loaded!", "info");
+  } catch (e) {
+    console.error("Load failed", e);
+  }
+}
+
 
 //=========game start===========
 
@@ -1255,4 +1365,6 @@ window.devTools = {
       renderPlayerStats(stats);
     }
   },
+  save: saveGame,
+  load: loadGame,
 };
