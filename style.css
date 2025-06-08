@@ -709,6 +709,8 @@ body {
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
-  font-size: inherit; /* keep size consistent with side panel */
+ m8v6a1-codex/fix-button-size-in-upgrade-side-panel
+  /* explicitly match side panel size to avoid browser defaults */
+  font-size: 0.5rem;
 }
 
