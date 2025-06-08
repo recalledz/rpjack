@@ -5,14 +5,6 @@ import { Boss, BossTemplates } from "./boss.js";
 import { AbilityRegistry } from "./dealerabilities.js";
 import { AllJokerTemplates } from "./jokerTemplates.js";
 
-// If running in Node (no `document` global), bootstrap a minimal DOM.
-if (typeof document === "undefined") {
-    const { JSDOM } = await import("jsdom");
-    const dom = new JSDOM("<!DOCTYPE html><body></body></html>");
-    global.window = dom.window;
-    global.document = dom.window.document;
-    global.performance = dom.window.performance;
-}
 
 let drawnCards = [];
 let discardPile = [];
@@ -381,14 +373,16 @@ function renderStageInfo() {
 function renderPlayerStats(stats) {
     const damageDisplay = document.getElementById("damageDisplay");
     const cashMultiDisplay = document.getElementById("cashMultiDisplay");
-    const regenDisplay = document.getElementById("regenDisplay");
     const hpPerKillDisplay = document.getElementById("hpPerKillDisplay");
+    const attackSpeedDisplay = document.getElementById("attackSpeedDisplay");
 
     damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
     cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
-    regenDisplay.textContent = `Regen: ${stats.pRegen}`;
     pointsDisplay.textContent = `Points: ${stats.points}`;
     cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
+    attackSpeedDisplay.textContent = `Attack Speed: ${Math.floor(stats.attackSpeed / 1000)}s`;
+
+    // Update HP per kill display
     if (hpPerKillDisplay) {
         hpPerKillDisplay.textContent = `HP per Kill: ${stats.hpPerKill}`;
     }
