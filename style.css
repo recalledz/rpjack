@@ -130,6 +130,7 @@ body {
   color: #080707;
   box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
   cursor: pointer;
+  font-size: inherit; /* match side panel text size */
 }
 
 .vignette-toggle:hover {
@@ -705,5 +706,7 @@ body {
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
+  /* inherit panel text size for consistent appearance */
+  font-size: inherit;
 }
 
