@@ -37,9 +37,7 @@ const stats = {
   upgradeDamageMultiplier: 1,
   cardSlots: 3, //at start max
   attackSpeed: 5000, //ms between automatic attacks
-  maxMana: 0,
-  currentMana: 0,
-  manaRegen: 0,
+  hpPerKill: 1,
 }
 
 
@@ -60,7 +58,7 @@ const upgrades = {
     name: "Card Slots",
     level: 0,
     baseValue: 3,
-    costFormula: level => 100 * (level ** 2),
+    costFormula: level => 1000 * (level ** 3),
     effect: player => {
       player.cardSlots = upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
     }
@@ -87,26 +85,14 @@ const upgrades = {
       );
     }
   },
-  manaRegen: {
-    name: "Mana Regeneration",
+  cardHpPerKill: {
+    name: "Card HP per Kill",
     level: 0,
-    baseValue: 0,
+    baseValue: 1,
     costFormula: level => 150 * (level ** 2),
     effect: player => {
-      player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
-    }
-  },
-  maxMana: {
-    name: "Maximum Mana",
-    level: 0,
-    baseValue: 0,
-    costFormula: level => Math.floor(200 * (level ** 2.3)),
-    effect: player => {
-      player.maxMana =
-        upgrades.maxMana.baseValue + 5 * upgrades.maxMana.level;
-      if (player.currentMana > player.maxMana) {
-        player.currentMana = player.maxMana;
-      }
+      player.hpPerKill = upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
+      pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
     }
   }
 };
@@ -140,6 +126,11 @@ const dCardContainer = document.getElementsByClassName("dCardContainer")[0]
 const jokerContainers = document.querySelectorAll(".jokerContainer")
 
 const unlockedJokers = [];
+
+// Load saved state if available
+loadGame();
+window.addEventListener('beforeunload', saveGame);
+setInterval(saveGame, 30000);
 
 // attack progress bars
 let playerAttackFill = null;
@@ -394,19 +385,15 @@ function renderPlayerStats(stats) {
   const damageDisplay = document.getElementById("damageDisplay");
   const cashMultiDisplay = document.getElementById("cashMultiDisplay");
   const regenDisplay = document.getElementById("regenDisplay");
-  const manaDisplay = document.getElementById("manaDisplay");
-  const manaRegenDisplay = document.getElementById("manaRegenDisplay");
+  const hpPerKillDisplay = document.getElementById("hpPerKillDisplay");
 
   damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
   cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
   regenDisplay.textContent = `Regen: ${stats.pRegen}`;
   pointsDisplay.textContent = `Points: ${stats.points}`;
   cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
-  if (manaDisplay) {
-    manaDisplay.textContent = `Mana: ${Math.floor(stats.currentMana)}/${stats.maxMana}`;
-  }
-  if (manaRegenDisplay) {
-    manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen}`;
+  if (hpPerKillDisplay) {
+    hpPerKillDisplay.textContent = `HP per Kill: ${stats.hpPerKill}`;
   }
 
 }
@@ -536,7 +523,9 @@ function showDamageFloat(card, amount) {
   dmg.classList.add("damage-float");
   dmg.textContent = `-${amount}`;
   hp.appendChild(dmg);
+  // ensure the element is removed even if the animationend event doesn't fire
   dmg.addEventListener("animationend", () => dmg.remove(), { once: true });
+  setTimeout(() => dmg.remove(), 1000);
 }
 
 
@@ -1118,6 +1107,111 @@ function updatePlayerStats() {
   renderPlayerStats(stats);
 }
 
+//=========save/load functions===========
+function saveGame() {
+  if (typeof localStorage === "undefined") return;
+
+  const deckData = pDeck.map(card => ({
+    suit: card.suit,
+    value: card.value,
+    backType: card.backType,
+    currentLevel: card.currentLevel,
+    XpCurrent: card.XpCurrent,
+    XpReq: card.XpReq,
+    baseDamage: card.baseDamage,
+    damage: card.damage,
+    maxHp: card.maxHp,
+    currentHp: card.currentHp,
+    hpPerKill: card.hpPerKill,
+    job: card.job,
+    traits: card.traits,
+  }));
+
+  const upgradeLevels = Object.fromEntries(
+    Object.entries(upgrades).map(([k, u]) => [k, u.level])
+  );
+
+  const state = {
+    stats,
+    stageData,
+    cash,
+    cardPoints,
+    deck: deckData,
+    upgrades: upgradeLevels,
+    unlockedJokers: unlockedJokers.map(j => j.id),
+  };
+
+  try {
+    localStorage.setItem("gameSave", JSON.stringify(state));
+    addLog("Game saved!", "info");
+  } catch (e) {
+    console.error("Save failed", e);
+  }
+}
+
+function loadGame() {
+  if (typeof localStorage === "undefined") return;
+  const json = localStorage.getItem("gameSave");
+  if (!json) return;
+
+  try {
+    const state = JSON.parse(json);
+    cash = state.cash || 0;
+    cardPoints = state.cardPoints || 0;
+    Object.assign(stats, state.stats || {});
+    Object.assign(stageData, state.stageData || {});
+
+    if (state.upgrades) {
+      Object.entries(state.upgrades).forEach(([k, lvl]) => {
+        if (upgrades[k]) upgrades[k].level = lvl;
+      });
+    }
+
+    if (Array.isArray(state.deck)) {
+      pDeck = state.deck.map(data => {
+        const c = new Card(data.suit, data.value, data.backType);
+        Object.assign(c, {
+          currentLevel: data.currentLevel,
+          XpCurrent: data.XpCurrent,
+          XpReq: data.XpReq,
+          baseDamage: data.baseDamage,
+          damage: data.damage,
+          maxHp: data.maxHp,
+          currentHp: data.currentHp,
+          hpPerKill: data.hpPerKill,
+          job: data.job,
+          traits: data.traits,
+        });
+        return c;
+      });
+      deck = [...pDeck];
+    }
+
+    unlockedJokers.length = 0;
+    if (Array.isArray(state.unlockedJokers)) {
+      state.unlockedJokers.forEach(id => {
+        const j = AllJokerTemplates.find(t => t.id === id);
+        if (j) unlockedJokers.push(j);
+      });
+    }
+
+    Object.values(upgrades).forEach(u => u.effect(stats));
+
+    cashDisplay.textContent = `Cash: $${cash}`;
+    cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
+
+    renderUpgrades();
+    renderJokers();
+    updateUpgradeButtons();
+    renderPlayerStats(stats);
+    renderStageInfo();
+
+    addLog("Game loaded!", "info");
+  } catch (e) {
+    console.error("Load failed", e);
+  }
+}
+
 
 //=========game start===========
 
@@ -1271,4 +1365,6 @@ window.devTools = {
       renderPlayerStats(stats);
     }
   },
+  save: saveGame,
+  load: loadGame,
 };

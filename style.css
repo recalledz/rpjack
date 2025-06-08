@@ -59,6 +59,7 @@ body {
 }
 .mainTab {
   display: grid;
+  /* keep dealer area row fixed */
   grid-template-rows: 1fr 0.4fr 0.75fr 0.75fr;
   grid-template-columns: 1fr 15%;
   grid-template-areas:
@@ -157,7 +158,11 @@ body {
 /* dealer container */
 .dealerContainer {
   grid-area: dealer;
-  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
 }
 
 .dealerContainer > .dealerLifeDisplay {
@@ -212,7 +217,10 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-} 
+  flex-grow: 1;
+  align-items: center;
+  width: 100%;
+}
 
 /* Dealer card base */
 .dCardWrapper {
@@ -234,8 +242,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 140px;
-  width: 110px;
+  height: 100%;
+  width: auto;
+  max-height: 100%;
   border-radius: 12px;
   padding: 6px;
   background: linear-gradient(to bottom right, #fff, #eee);
@@ -354,7 +363,9 @@ body {
   grid-area: buttons;
   padding: 5px;
   display: flex;
+  flex-wrap: wrap;              /* allow the attack bar to sit above the buttons */
   justify-content: center;
+  align-items: center;
   gap: 10px;
 }
 
@@ -386,8 +397,9 @@ body {
   border: 1px solid grey;
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 4px;
+  margin: 0 auto 4px;            /* center above the buttons */
   position: relative;
+  flex-basis: 100%;              /* occupy its own row within the flex wrapper */
 }
 
 .playerAttackFill {
@@ -680,7 +692,7 @@ body {
   font-weight: bold;
   pointer-events: none;
   text-shadow: 0 0 2px #000;
-  animation: damage-float 0.6s ease-out forwards;
+  animation: damage-float 1s ease-out forwards;
 }
 
 @keyframes damage-float {
@@ -706,7 +718,7 @@ body {
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
-  /* inherit panel text size for consistent appearance */
-  font-size: inherit;
+  /* explicitly match side panel size to avoid browser defaults */
+  font-size: 0.5rem;
 }
 
