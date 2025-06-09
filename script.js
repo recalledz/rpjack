@@ -46,7 +46,7 @@ const upgrades = {
         name: "Card Slots",
         level: 0,
         baseValue: 3,
-        costFormula: level => 1000 * level ** 3,
+        costFormula: level => 100000 * level ** 3,
         effect: player => {
             player.cardSlots =
                 upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
@@ -156,7 +156,7 @@ deckTabButton.addEventListener("click", () => {
     showTab(deckTab);
 });
 
-showTab(mainTab);
+showTab(mainTab); // Start with main tab visible
 
 function initVignetteToggles() {
     document.querySelectorAll(".vignette-toggle").forEach(btn => {
