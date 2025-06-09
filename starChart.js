@@ -7,6 +7,7 @@ let app = null;
 export async function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
   // Guard against running in a non-browser environment or without PIXI loaded
+
   if (
     typeof window === "undefined" ||
     typeof document === "undefined" ||
@@ -17,7 +18,6 @@ export async function initStarChart(containerId = "star-chart-container") {
     console.warn("Pixi.js unavailable; skipping star chart initialization.");
     return;
   }
-
   const container =
     typeof containerId === "string"
       ? document.getElementById(containerId)

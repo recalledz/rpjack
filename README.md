@@ -63,6 +63,8 @@ Icons: Lucide Icons
 
 Development Tools: Replit, GitHub integration, Codex-enabled development
 
+Debug Panel: Toggleable tools for spawning enemies, adjusting stats, and now a fast mode to speed up time ticks during testing
+
 
 🗂️ Project Structure
 
@@ -73,6 +75,10 @@ Development Tools: Replit, GitHub integration, Codex-enabled development
 /card.js            ← Card class & deck generation
 /script.js          ← Game logic
 /.codex/tasks.md    ← Codex task manager
+
+🌠 Star Chart Setup
+
+Include `pixi.min.js` and `pixi-filters.min.js` in your page. The chart initializes via `initStarChart()` when the Star Chart tab is opened.
 
 🔧 Codex Integration
 
