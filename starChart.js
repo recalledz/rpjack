@@ -4,10 +4,10 @@ let initialized = false;
 let app = null;
 
 
-
 export async function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
-    // Guard against running in a non-browser environment or without PIXI loaded
+  // Guard against running in a non-browser environment or without PIXI loaded
+
   if (
     typeof window === "undefined" ||
     typeof document === "undefined" ||

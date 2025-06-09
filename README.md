@@ -187,15 +187,15 @@ Implement jobs, traits, and reincarnation mechanics
 
 Built in collaboration with ChatGPT & Codex.
 
-🧪 Node-based Testing
+🧪 Testing
 
-For automated testing in Node.js environments without a browser document object, script.js detects this scenario and creates a minimal DOM using JSDOM. Install the dependency and import the script in your tests:
+Automated tests run in a headless Chrome browser using Karma with Mocha and Chai.
+Install dependencies and execute the test suite with:
 
-npm install --save-dev jsdom
+```bash
+npm install
+npm test
+```
 
-import "./script.js";
-
-This setup bootstraps window, document, and performance globals, allowing modules dependent on them to run under Node.js.
-
-
+Tests are located in the `test/` directory and executed via `karma.conf.js`.
 ---
