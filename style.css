@@ -749,7 +749,7 @@ body {
 .upgrade-item button {
   width: 60px;
   height: 24px;
-  font-size: 0.8rem;
+  font-size: 0.5rem; /* Match side panel text size */
   line-height: 1;
   padding: 2px 4px;
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
