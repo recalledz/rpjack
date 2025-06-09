@@ -1,31 +1,12 @@
+
+
+
 let initialized = false;
 let app = null;
 
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = url;
-    script.onload = () => resolve(true);
-    script.onerror = err => reject(err);
-    document.head.appendChild(script);
-  });
-}
-
-async function ensurePixi() {
-  if (typeof PIXI !== 'undefined') return true;
-  try {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.8/browser/pixi.min.js');
-    await loadScript('https://cdn.jsdelivr.net/npm/pixi-filters@4.2.2/dist/pixi-filters.min.js');
-    return typeof PIXI !== 'undefined';
-  } catch (err) {
-    console.error('PixiJS failed to load:', err);
-    return false;
-  }
-}
-
 export async function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
-  if (!(await ensurePixi())) return;
+  // PIXI is now assumed to be loaded globally
   const container =
     typeof containerId === "string"
       ? document.getElementById(containerId)
