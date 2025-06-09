@@ -763,3 +763,28 @@ body {
   color: #080707;
 }
 
+.restart-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 5000;
+}
+
+.restart-overlay .restart-message {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.restart-overlay button {
+  padding: 6px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+

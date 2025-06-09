@@ -720,9 +720,9 @@ function calculateEnemyBasicDamage(stage, world) {
 }
 
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
-    // if there’s no card, nothing to do
-    if (drawnCards.length === 0 || drawnCards.length === 0) {
-        respawnPlayer();
+    // If no card is available to take the hit, trigger game over
+    if (drawnCards.length === 0) {
+        showRestartScreen();
         return;
     }
 
@@ -764,6 +764,9 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
             updatePlayerStats(stats);
             updateDrawButton();
             updateDeckDisplay();
+            if (drawnCards.length === 0 && deck.length === 0) {
+                showRestartScreen();
+            }
         });
     }
     // Optional ability logic (e.g., healing, fireball
@@ -1042,6 +1045,45 @@ function respawnPlayer() {
     pointsDisplay.textContent = stats.points;
     spawnPlayer();
     stageData.stage = 1;
+}
+
+let restartOverlay = null;
+let restartTimer = null;
+
+function showRestartScreen() {
+    if (restartOverlay) return;
+    restartOverlay = document.createElement("div");
+    restartOverlay.classList.add("restart-overlay");
+
+    const message = document.createElement("div");
+    message.classList.add("restart-message");
+    message.textContent = "Game Over";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Restart";
+    btn.addEventListener("click", () => {
+        respawnPlayer();
+        hideRestartScreen();
+    });
+
+    restartOverlay.append(message, btn);
+    document.body.appendChild(restartOverlay);
+
+    restartTimer = setTimeout(() => {
+        respawnPlayer();
+        hideRestartScreen();
+    }, 5000);
+}
+
+function hideRestartScreen() {
+    if (restartOverlay) {
+        restartOverlay.remove();
+        restartOverlay = null;
+    }
+    if (restartTimer) {
+        clearTimeout(restartTimer);
+        restartTimer = null;
+    }
 }
 
 function redrawHand() {
