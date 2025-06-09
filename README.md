@@ -74,6 +74,10 @@ Development Tools: Replit, GitHub integration, Codex-enabled development
 /script.js          ← Game logic
 /.codex/tasks.md    ← Codex task manager
 
+🌠 Star Chart Setup
+
+Include `pixi.min.js` and `pixi-filters.min.js` in your page. The chart initializes via `initStarChart()` when the Star Chart tab is opened.
+
 🔧 Codex Integration
 
 This repository utilizes Codex for smart task automation. Tasks are listed in .codex/tasks.md.
