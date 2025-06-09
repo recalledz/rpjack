@@ -682,6 +682,14 @@ body {
   border: 2px solid grey;
 }
 
+/* Star chart tab */
+.starChartTab {
+  width: 100%;
+  height: 100vh;
+  background: black;
+  overflow: hidden;
+}
+
 /* Joker container and tiles */
 .joker-wrapper {
   max-width: 90px;
