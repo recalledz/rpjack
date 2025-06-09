@@ -25,8 +25,7 @@ export function initStarChart(containerId = "star-chart-container") {
     antialias: true
   });
   container.appendChild(app.view);
-  const linesContainer = new PIXI.Container();
-  app.stage.addChild(linesContainer);
+  
 
    
   // 3) Helper to create & cache a glowing-star texture
@@ -75,16 +74,20 @@ export function initStarChart(containerId = "star-chart-container") {
   bg.width  = app.screen.width;
   bg.height = app.screen.height;
   app.stage.addChild(bg);
+  const linesContainer = new PIXI.Container();
+  app.stage.addChild(linesContainer);
 
   // 5) Nodes & Edges
   const nodes = [
-    { id: 1, x: 0.5, y: 0.9 },
-    { id: 2, x: 0.3, y: 0.75 },
-    { id: 3, x: 0.5, y: 0.75 },
-    { id: 4, x: 0.7, y: 0.75 },
-    { id: 5, x: 0.2, y: 0.55 },
-    { id: 6, x: 0.1, y: 0.35 },
-    { id: 7, x: 0.4, y: 0.55 },
+    {id: 1, x: 0.7422685476758676, y: 0.8782565051086226},
+    {id: 2, x: 0.6596379487798889, y: 0.9145844890087207},
+    // dex tree
+    {id: 3, x: 0.6587589217732279, y: 0.8606429640332317},
+    {id: 7, x: 0.5840398234709289, y: 0.8265166223747356},
+    {id: 4, x: 0.7194132660517878, y: 0.7758776413901646},
+    //basic tree
+    {id: 5, x: 0.5857978774842508, y: 0.8881641370813766},
+    {id: 6, x: 0.5049254613684596, y: 0.9134836678879198},
     { id: 8, x: 0.6, y: 0.55 },
     { id: 9, x: 0.8, y: 0.55 },
     { id:10, x: 0.9, y: 0.35 }
@@ -143,42 +146,34 @@ export function initStarChart(containerId = "star-chart-container") {
     console.log(`Node ${node.id} moved to`, node);
   }
 
-  // 7) Draw connections behind
-  edges.forEach(([a,b]) => {
-    const n1 = nodes[a-1], n2 = nodes[b-1];
-    const line = new PIXI.Graphics()
-      .lineStyle(2, 0x448aff, 0.4)
-      .moveTo(n1.x * app.screen.width, n1.y * app.screen.height)
-      .lineTo(n2.x * app.screen.width, n2.y * app.screen.height);
-    app.stage.addChild(line);
-  });
+  const nodesLayer = new PIXI.Container();
+  app.stage.addChild(nodesLayer);
 
   // 8) Draw stars & labels
    nodes.forEach(n => {
-    const sprite = new PIXI.Sprite(starTexture);
-    sprite.anchor.set(0.5);
-    sprite.position.set(n.x * app.screen.width, n.y * app.screen.height);
-    sprite.nodeId      = n.id;
-    sprite.interactive = true;
-    sprite.buttonMode  = true;
-    sprite
-      .on('pointerdown',       onDragStart)
-      .on('pointermove',       onDragMove)
-      .on('pointerup',         onDragEnd)
-      .on('pointerupoutside',  onDragEnd);
-    app.stage.addChild(sprite);
+  const sprite = new PIXI.Sprite(starTexture);
+  sprite.anchor.set(0.5);
+  sprite.position.set(n.x * app.screen.width, n.y * app.screen.height);
+  sprite.nodeId      = n.id;
+  sprite.interactive = true;
+  sprite.buttonMode  = true;
+  sprite
+    .on("pointerdown",      onDragStart)
+    .on("pointermove",      onDragMove)
+    .on("pointerup",        onDragEnd)
+    .on("pointerupoutside", onDragEnd);
+  nodesLayer.addChild(sprite);
 
-    // label
-    const label = new PIXI.Text(n.id.toString(), {
-      fontFamily: 'Arial',
-      fontSize: 14,
-      fill: 0xffcc00
-    });
-    label.anchor.set(0.5);
-    label.position.set(
-      n.x * app.screen.width,
-      n.y * app.screen.height - 25
-    );
-    app.stage.addChild(label);
+  const label = new PIXI.Text(n.id.toString(), {
+    fontFamily: "Arial",
+    fontSize: 14,
+    fill: 0xffcc00
+  });
+  label.anchor.set(0.5);
+  label.position.set(
+    n.x * app.screen.width,
+    n.y * app.screen.height - 25
+  );
+  nodesLayer.addChild(label);
   });
 }
