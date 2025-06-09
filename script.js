@@ -4,6 +4,7 @@ import Enemy from "./enemy.js";
 import { Boss, BossTemplates } from "./boss.js";
 import { AbilityRegistry } from "./dealerabilities.js";
 import { AllJokerTemplates } from "./jokerTemplates.js";
+import { initStarChart } from "./starChart.js";
 
 
 let drawnCards = [];
@@ -133,13 +134,16 @@ let playerAttackTimer = 0;
 
 const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
 const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
+const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
 const mainTab = document.querySelector(".mainTab");
 const deckTab = document.querySelector(".deckTab");
+const starChartTab = document.querySelector(".starChartTab");
 const tooltip = document.getElementById("tooltip");
 
 function hideTab() {
     mainTab.style.display = "none";
     deckTab.style.display = "none";
+    if (starChartTab) starChartTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -155,6 +159,13 @@ mainTabButton.addEventListener("click", () => {
 deckTabButton.addEventListener("click", () => {
     showTab(deckTab);
 });
+
+if (starChartTabButton) {
+    starChartTabButton.addEventListener("click", () => {
+        initStarChart();
+        showTab(starChartTab);
+    });
+}
 
 showTab(mainTab); // Start with main tab visible
 
