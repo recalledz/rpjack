@@ -1,12 +1,22 @@
 let initialized = false;
 let app = null;
 
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = () => resolve(true);
+    script.onerror = err => reject(err);
+    document.head.appendChild(script);
+  });
+}
+
 async function ensurePixi() {
   if (typeof PIXI !== 'undefined') return true;
   try {
-    const pixi = await import('pixi.js');
-    globalThis.PIXI = pixi;
-    return true;
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.8/browser/pixi.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/pixi-filters@4.2.2/dist/pixi-filters.min.js');
+    return typeof PIXI !== 'undefined';
   } catch (err) {
     console.error('PixiJS failed to load:', err);
     return false;
