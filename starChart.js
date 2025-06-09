@@ -1,8 +1,21 @@
 let initialized = false;
 let app = null;
 
-export function initStarChart(containerId = "star-chart-container") {
+async function ensurePixi() {
+  if (typeof PIXI !== 'undefined') return true;
+  try {
+    const pixi = await import('pixi.js');
+    globalThis.PIXI = pixi;
+    return true;
+  } catch (err) {
+    console.error('PixiJS failed to load:', err);
+    return false;
+  }
+}
+
+export async function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
+  if (!(await ensurePixi())) return;
   const container =
     typeof containerId === "string"
       ? document.getElementById(containerId)
