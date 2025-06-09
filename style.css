@@ -37,6 +37,27 @@ body {
   cursor: pointer;
 }
 
+/* tabs container */
+.tabsContainer {
+  grid-area: tabs;
+  gap: 10px;
+  padding: 5px;
+}
+
+.tabsContainer > button {
+  height: 100%;
+  width: 100px;
+  border: 2px solid grey;
+  padding: 5px;
+  border-radius: 8px;
+  background: #000000;
+  box-shadow: 0 0 10px #4CAF50;
+  color: white;
+  text-shadow: 0 0 5px black;
+  font-size: 10px;
+  cursor: pointer;
+}
+
 .casino-section {
   border: 3px solid #d4af37;
   border-radius: 8px;
@@ -60,60 +81,40 @@ body {
 .mainTab {
   display: grid;
   /* keep dealer area row fixed */
-  grid-template-rows: 1fr 0.4fr 0.75fr 0.75fr;
-  grid-template-columns: 1fr 15%;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-columns: 1fr 20%;
   grid-template-areas:
     "dealer sidePanel"
     "buttons sidePanel"
     "hand sidePanel"
     "jokers discard";
-  padding: 5px;
+  padding: 8px;
   height: 100vh;
-}
-
-
-/* tabs container */
-.tabsContainer {
-  grid-area: tabs;
   gap: 10px;
-  padding: 5px;
 }
 
-.tabsContainer > button {
-  height: 100%;
-  width: 100px;
-  border: 2px solid grey;
-  padding: 5px;
-  border-radius: 8px;
-  background: #000000;
-  box-shadow: 0 0 10px #4CAF50;
-  color: white;
-  text-shadow: 0 0 5px black;
-  font-size: 10px;
-  cursor: pointer;
+.dealerContainer   { grid-area: dealer;   }
+.buttonsContainer  { grid-area: buttons;  }
+.handContainer     { grid-area: hand;     }
+.joker-wrapper     { grid-area: jokers;   } /* or add a .jokerContainer alias */
+.discardContainer  { grid-area: discard;  }
+.sidePanel         { grid-area: sidePanel;
+                     overflow-y: auto;   /* only sidebar scrolls */
+                   }
+
+.mainTab > * {
+  /*overflow: hidden;*/
 }
 
-/*============ main tab panel============== */
-.mainTabPanel {
-  background: rgba(133, 163, 139, 0.5);
-  color: white;
-  text-shadow: 0 0 5px black;
-  font-size: 0.5rem;
+#gameColumn { 
+  /* wrap dealer, buttons, hand, jokers */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  gap: 10px;
 }
+/*============ main tab side panel============== */
 
-.mainTabPanel > div {
-  border: 1px solid #d4af37;
-  border-radius: 4px;
-  padding: 1px 1px;
-  margin-bottom: 4px;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.mainTabPanel > div:last-child {
-  margin-bottom: 0;
-}
-
-/*========= side panel & vignettes =========*/
 .sidePanel {
   grid-area: sidePanel;
   display: flex;
@@ -145,6 +146,24 @@ body {
 .vignette.open .vignette-content {
   display: block;
 }
+.statsSidePanel {
+  background: rgba(133, 163, 139, 0.5);
+  color: white;
+  text-shadow: 0 0 5px black;
+}
+
+.statsSidePanel > div {
+  border: 1px solid #d4af37;
+  border-radius: 4px;
+  padding: 1px 1px;
+  margin-bottom: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.statsSidePanel > div:last-child {
+  margin-bottom: 0;
+}
+
 
 #log-panel {
   border: 2px solid grey;
@@ -362,11 +381,12 @@ body {
 .buttonsContainer {
   grid-area: buttons;
   padding: 5px;
+  gap: 5px;
   display: flex;
   flex-wrap: wrap;              /* allow the attack bar to sit above the buttons */
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  padding: 0 8px;
 }
 
 .buttonsContainer > button {
@@ -391,7 +411,7 @@ body {
 
 /* auto attack progress bars */
 .playerAttackBar {
-  width: 80%;
+  width: 50%;
   height: 6px;
   background: #090b09;
   border: 1px solid grey;
@@ -444,11 +464,12 @@ body {
   grid-area: hand;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   justify-items: center;
-  gap: 10px;
+  gap: 12px;
+  padding: 2px 8px;
 }
 
 .discardContainer {
-  grid-area: discard;
+  border: 2px solid rgb(91, 91, 87);
   display: flex;
   width: 75px;
   height: 100px;
@@ -467,23 +488,28 @@ body {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  height: max-content;
+  /*height: max-content;*/
   width: 100%;
-  max-width: 160px;
-
+  max-width: 90px;
+  max-height: 120px;
+}
 
 
 .card {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;   /* space out value, suit, and HP */
+  align-items: center;
   width: 100%;
-  aspect-ratio: 3 / 4;         /* keep card shape */
+  aspect-ratio: 3 / 4;
   border-radius: 8px;
   padding: 4px;
   background: white;
-  border: 2px solid grey ;
-  margin-bottom: 4px;         /* a little gap before the bar */
-  font-size: 2vmin;            /* scale content with screen */
+  border: 2px solid grey;
+  margin-bottom: 4px;
+  font-size: 2vmin;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .card-back {
@@ -498,22 +524,26 @@ body {
 
 .card-value {
   font-size: 2em;
-  align-self: flex-start;  /* push to left */
-} 
+  align-self: flex-start;
+  margin-left: 4px;
+  margin-top: 2px;
+}
 
 .card-suit {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 5em;            /* scale with card font */
-  line-height: 1;            /* so it doesn’t add extra space */
+  font-size: 3em;   /* adjust as needed */
+  line-height: 1;
 }
 
 .card-hp {
-  position: relative;
+  align-self: flex-end;
+  margin-right: 4px;
+  margin-bottom: 2px;
   color: #000;
-  font-size: 2em;
+  font-size: 1.2em;
 }
 
 .card-wrapper {
@@ -596,9 +626,6 @@ body {
   }
 }
 
-.card-death {
-  animation: card-death 0.5s ease-out forwards;
-}
 
 .death-animate {
   animation: card-death 0.5s ease-out forwards;
@@ -657,7 +684,7 @@ body {
 
 /* Joker container and tiles */
 .joker-wrapper {
-  max-width: 160px;
+  max-width: 90px;
   width: 100%;
   display: inline-flex;
   flex-direction: column;
@@ -669,8 +696,6 @@ body {
   aspect-ratio: 3 / 4;
   border-radius: 8px;
   padding: 4px;
-  background: white;
-  border: 2px solid grey;
   margin-bottom: 4px;
   display: flex;
   justify-content: center;
@@ -680,7 +705,7 @@ body {
 .joker-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* or try 'cover' for tighter framing */
+  object-fit: cover; /* or try 'cover' for tighter framing */
   border-radius: 6px;  /* optional: mimic the inner edge */
 }
 
@@ -727,6 +752,5 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: red !important
 }
 

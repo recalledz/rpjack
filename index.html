@@ -52,7 +52,7 @@
       <div class="vignette stats open">
         <button class="vignette-toggle">Stats</button>
         <div class="vignette-content">
-          <div class="mainTabPanel casino-section">
+          <div class="statsSidePanel casino-section">
             <div id="pointsDisplay">
               Attack: 0
             </div>
@@ -96,19 +96,21 @@
       </div>
       <div class="discardContainer casino-section"></div>
     </div>
-
-    <div class="buttonsContainer casino-section">
-      <div id="playerAttackBar" class="playerAttackBar">
-        <div class="playerAttackFill"></div>
+    <div class="gameColumn">
+      <div class="buttonsContainer casino-section">
+        <div id="playerAttackBar" class="playerAttackBar">
+          <div class="playerAttackFill"></div>
+        </div>
+        <button id="clickalipse" title="Draw">🃏</button>
+        <button id="redrawBtn" title="Re-draw">🔄</button>
+        <button id="nextStageBtn" disabled title="Next Stage">🚀</button>
       </div>
-      <button id="clickalipse" title="Draw">🃏</button>
-      <button id="redrawBtn" title="Re-draw">🔄</button>
-      <button id="nextStageBtn" disabled title="Next Stage">🚀</button>
-    </div>
 
-    <div class="handContainer casino-section">
+      <div class="handContainer casino-section">
+      </div>
+      <div class="jokerContainer casino-section">
+      </div>
     </div>
-    <div class="jokerContainer casino-section"></div>
   </div>
   <!-- close mainTab -->
   <!--------------deck tab----------------->
