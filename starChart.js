@@ -1,61 +1,184 @@
+// starChart.js
+
 let initialized = false;
+let app = null;
 
 export function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
+  initialized = true;
 
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  // 1) Find the container
+  const container =
+    typeof containerId === "string"
+      ? document.getElementById(containerId)
+      : containerId;
+  if (!container) {
+    console.error("Star chart container not found:", containerId);
+    return;
+  }
 
-  // Create Pixi app
-  const app = new PIXI.Application({
-    width:  container.clientWidth,
-    height: container.clientHeight,
+  // 2) Create the PIXI Application
+  app = new PIXI.Application({
+    width:  container.clientWidth  || window.innerWidth,
+    height: container.clientHeight || window.innerHeight,
     backgroundColor: 0x000000,
     antialias: true
   });
   container.appendChild(app.view);
+  const linesContainer = new PIXI.Container();
+  app.stage.addChild(linesContainer);
 
-  // Background sprite (your generated image)
-  const bg = PIXI.Sprite.from("./space-bg.png");
+   
+  // 3) Helper to create & cache a glowing-star texture
+  function makeStarTexture() {
+    const g = new PIXI.Graphics();
+    const spikes      = 5;
+    const outerRadius = 12;
+    const innerRadius = 6;
+    let rot = Math.PI / 2 * 3;
+    const step = Math.PI / spikes;
+
+    g.beginFill(0xffffff);
+    g.moveTo(0, -outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      g.lineTo(
+        Math.cos(rot) * outerRadius,
+        Math.sin(rot) * outerRadius
+      );
+      rot += step;
+      g.lineTo(
+        Math.cos(rot) * innerRadius,
+        Math.sin(rot) * innerRadius
+      );
+      rot += step;
+    }
+    g.closePath();
+    g.endFill();
+
+    // glow filter
+    g.filters = [
+      new PIXI.filters.GlowFilter({
+        distance:      10,
+        outerStrength: 4,
+        color:         0xffffff
+      })
+    ];
+
+    const tex = app.renderer.generateTexture(g);
+    g.destroy();
+    return tex;
+  }
+  const starTexture = makeStarTexture();
+
+  // 4) Background
+  const bg = PIXI.Sprite.from("img/space-bg.png");
   bg.width  = app.screen.width;
   bg.height = app.screen.height;
   app.stage.addChild(bg);
 
-  // Star nodes and connections
+  // 5) Nodes & Edges
   const nodes = [
-    { id:1, x:0.5, y:0.9 },
-    /* …others… */
-    { id:10,x:0.9, y:0.35 }
+    { id: 1, x: 0.5, y: 0.9 },
+    { id: 2, x: 0.3, y: 0.75 },
+    { id: 3, x: 0.5, y: 0.75 },
+    { id: 4, x: 0.7, y: 0.75 },
+    { id: 5, x: 0.2, y: 0.55 },
+    { id: 6, x: 0.1, y: 0.35 },
+    { id: 7, x: 0.4, y: 0.55 },
+    { id: 8, x: 0.6, y: 0.55 },
+    { id: 9, x: 0.8, y: 0.55 },
+    { id:10, x: 0.9, y: 0.35 }
   ];
-  const edges = [[1,2],[1,3],[1,4],[2,5],[5,6],[3,7],[4,8],[4,9],[9,10]];
+  const edges = [
+    [1,2], [1,3], [1,4],
+    [2,5], [5,6],
+    [3,7],
+    [4,8], [4,9], [9,10]
+  ];
 
-  // Load the glow-star sprite
-  PIXI.Loader.shared
-    .add("star", "glow-star.png")
-    .load((loader, resources) => {
-      // Draw connections
-      for (const [a,b] of edges) {
-        const s = new PIXI.Graphics();
-        s.lineStyle(2, 0x448aff, 0.4)
-         .moveTo(nodes[a-1].x * app.screen.width, nodes[a-1].y * app.screen.height)
-         .lineTo(nodes[b-1].x * app.screen.width, nodes[b-1].y * app.screen.height);
-        app.stage.addChild(s);
-      }
-
-      // Draw star sprites
-      for (const n of nodes) {
-        const sprite = new PIXI.Sprite(resources.star.texture);
-        sprite.anchor.set(0.5);
-        sprite.position.set(n.x * app.screen.width, n.y * app.screen.height);
-        sprite.scale.set(0.4);
-        sprite.filters = [ new PIXI.filters.GlowFilter({
-          distance:      10,
-          outerStrength: 4,
-          color:         0xffffff
-        })];
-        app.stage.addChild(sprite);
-      }
+  function drawConnections() {
+    linesContainer.removeChildren();           // clear old lines
+    edges.forEach(([a,b]) => {
+      const n1 = nodes[a-1], n2 = nodes[b-1];
+      const g = new PIXI.Graphics()
+        .lineStyle(2, 0x448aff, 0.4)
+        .moveTo(n1.x * app.screen.width, n1.y * app.screen.height)
+        .lineTo(n2.x * app.screen.width, n2.y * app.screen.height);
+      linesContainer.addChild(g);
     });
+  }
 
-  initialized = true;
+  drawConnections();
+
+  // 6) Drag‐and‐drop handlers
+
+  function onDragStart(event) {
+    this.data = event.data;
+    this.dragging = true;
+  }
+
+  function onDragMove() {
+    if (!this.dragging) return;
+    const newPos = this.data.getLocalPosition(this.parent);
+    this.position.set(newPos.x, newPos.y);
+
+    // update normalized coords immediately
+    const node = nodes.find(n => n.id === this.nodeId);
+    node.x = this.x / app.screen.width;
+    node.y = this.y / app.screen.height;
+
+    drawConnections();            // redraw lines in real time
+    console.log(`Node ${node.id} at`, node);
+  }
+  function onDragEnd() {
+    if (!this.dragging) return;
+    this.dragging = false;
+    this.data = null;
+
+    const node = nodes.find(n => n.id === this.nodeId);
+    node.x = this.x / app.screen.width;
+    node.y = this.y / app.screen.height;
+
+    drawConnections();            // ensure final lines
+    console.log(`Node ${node.id} moved to`, node);
+  }
+
+  // 7) Draw connections behind
+  edges.forEach(([a,b]) => {
+    const n1 = nodes[a-1], n2 = nodes[b-1];
+    const line = new PIXI.Graphics()
+      .lineStyle(2, 0x448aff, 0.4)
+      .moveTo(n1.x * app.screen.width, n1.y * app.screen.height)
+      .lineTo(n2.x * app.screen.width, n2.y * app.screen.height);
+    app.stage.addChild(line);
+  });
+
+  // 8) Draw stars & labels
+   nodes.forEach(n => {
+    const sprite = new PIXI.Sprite(starTexture);
+    sprite.anchor.set(0.5);
+    sprite.position.set(n.x * app.screen.width, n.y * app.screen.height);
+    sprite.nodeId      = n.id;
+    sprite.interactive = true;
+    sprite.buttonMode  = true;
+    sprite
+      .on('pointerdown',       onDragStart)
+      .on('pointermove',       onDragMove)
+      .on('pointerup',         onDragEnd)
+      .on('pointerupoutside',  onDragEnd);
+    app.stage.addChild(sprite);
+
+    // label
+    const label = new PIXI.Text(n.id.toString(), {
+      fontFamily: 'Arial',
+      fontSize: 14,
+      fill: 0xffcc00
+    });
+    label.anchor.set(0.5);
+    label.position.set(
+      n.x * app.screen.width,
+      n.y * app.screen.height - 25
+    );
+    app.stage.addChild(label);
+  });
 }
