@@ -739,11 +739,11 @@ body {
 }
 
 .upgrade-item button {
-  width: 30px;
-  height: 16px;
-  font-size: 0.5rem;
+  width: 60px;
+  height: 24px;
+  font-size: 0.8rem;
   line-height: 1;
-  padding: 0;
+  padding: 2px 4px;
   background: linear-gradient(135deg, #f0f0f0, #fafafa);
   border: 1px solid #4CAF50;
   border-radius: 4px;
@@ -752,5 +752,6 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  color: #080707;
 }
 
