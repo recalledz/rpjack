@@ -1,8 +1,15 @@
 
 
-
 let initialized = false;
 let app = null;
+
+if (typeof PIXI === "undefined") {
+  throw new Error("PIXI is not loaded. Make sure pixi.min.js is included before this script.");
+}
+if (!PIXI.filters || !PIXI.filters.GlowFilter) {
+  throw new Error("PIXI.filters.GlowFilter is not loaded. Make sure pixi-filters.min.js is included.");
+}
+
 
 export async function initStarChart(containerId = "star-chart-container") {
   if (initialized) return;
