@@ -41,6 +41,10 @@ let stageData = {
     attackspeed: 10000 //10 sec at start
 };
 
+// Debug time scaling
+const FAST_MODE_SCALE = 10;
+let timeScale = 1;
+
 const upgrades = {
     cardSlots: {
         name: "Card Slots",
@@ -1289,8 +1293,9 @@ setInterval(() => {
 let lastFrameTime = performance.now();
 
 function gameLoop(currentTime) {
-    const deltaTime = currentTime - lastFrameTime;
+    const rawDelta = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
+    const deltaTime = rawDelta * timeScale;
 
     if (currentEnemy) {
         currentEnemy.tick(deltaTime);
@@ -1402,6 +1407,9 @@ window.devTools = {
             stats.damageMultiplier = mult;
             renderPlayerStats(stats);
         }
+    },
+    toggleFastMode: () => {
+        timeScale = timeScale === 1 ? FAST_MODE_SCALE : 1;
     },
     save: saveGame,
     load: loadGame

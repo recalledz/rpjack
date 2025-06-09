@@ -63,6 +63,8 @@ Icons: Lucide Icons
 
 Development Tools: Replit, GitHub integration, Codex-enabled development
 
+Debug Panel: Toggleable tools for spawning enemies, adjusting stats, and now a fast mode to speed up time ticks during testing
+
 
 🗂️ Project Structure
 
