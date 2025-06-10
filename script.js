@@ -1,21 +1,28 @@
-import generateDeck, { shuffleArray, Card} from "./card.js";
-import addLog from "./log.js";
-import Enemy from "./enemy.js";
-import { Boss, BossTemplates } from "./boss.js";
-import { AbilityRegistry } from "./dealerabilities.js";
-import { AllJokerTemplates } from "./jokerTemplates.js";
-import { initStarChart } from "./starChart.js";
+// Core modules that power the card game
+import generateDeck, { shuffleArray, Card } from "./card.js"; // card utilities
+import addLog from "./log.js"; // helper for appending to the event log
+import Enemy from "./enemy.js"; // base enemy class
+import { Boss, BossTemplates } from "./boss.js"; // boss definitions
+import { AbilityRegistry } from "./dealerabilities.js"; // boss ability registry
+import { AllJokerTemplates } from "./jokerTemplates.js"; // collectible jokers
+import { initStarChart } from "./starChart.js"; // optional star chart tab
 
 
+// --- Game State ---
+// `drawnCards` holds the cards currently in the player's hand
 let drawnCards = [];
+// cards discarded from play land in `discardPile`
 let discardPile = [];
+// mapping of card back styles
 const cardBackImages = {
     "basic-red": "img/basic deck.png"
 };
+// resources and progress trackers
 let cash = 0;
 let cardPoints = 0;
 let currentEnemy = null;
 
+// Persistent player stats affecting combat and rewards
 const stats = {
     points: 0,
     pDamage: 0,
@@ -38,6 +45,7 @@ const systems = {
     manaUnlocked: false
 };
 
+// Data for the current stage and world progression
 let stageData = {
     world: 1,
     stage: 1,
@@ -61,6 +69,7 @@ const playerStats = {
 const FAST_MODE_SCALE = 10;
 let timeScale = 1;
 
+// Definitions for purchasable upgrades and their effects
 const upgrades = {
     // Unlocked from start
     globalDamage: {
@@ -189,6 +198,7 @@ const upgrades = {
     }
 };
 
+// Utility to colorize the enemy icon based on stage level
 function getDealerIconStyle(stage) {
     const capped = Math.max(1, Math.min(10, stage));
     const t = (capped - 1) / 9; // 0 → 1
@@ -277,6 +287,7 @@ if (playerStatsTabButton) {
 
 showTab(mainTab); // Start with main tab visible
 
+// Allow collapsing/expanding vignette UI panels
 function initVignetteToggles() {
     document.querySelectorAll(".vignette-toggle").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -286,6 +297,7 @@ function initVignetteToggles() {
     });
 }
 
+// Build the upgrade shop list in the Deck tab
 function renderUpgrades() {
     const container = document.querySelector(".upgrade-list");
     if (!container) return;
@@ -311,6 +323,7 @@ function renderUpgrades() {
     });
 }
 
+// Refresh button states (enabled/disabled) based on available cash
 function updateUpgradeButtons() {
     document.querySelectorAll(".upgrade-item").forEach(row => {
         const key = row.dataset.key;
@@ -322,6 +335,8 @@ function updateUpgradeButtons() {
         btn.textContent = `Buy $${cost}`;
     });
 }
+
+// Deduct cash and apply the effects of the chosen upgrade
 
 function checkUpgradeUnlocks() {
     let changed = false;
@@ -357,6 +372,7 @@ function purchaseUpgrade(key) {
 }
 //=========card tab==========
 
+// Render a single card inside the Deck tab listing
 function renderTabCard(card) {
     // 1) Wrapper
     const wrapper = document.createElement("div");
@@ -417,6 +433,7 @@ for (let i = 0; i < deck.length; i++) {
     renderTabCard(deck[i]);
 }
 
+// Synchronize XP bars and HP values for cards shown in the Deck tab
 function updateDeckDisplay() {
     // Update ALL cards in the original deck, including those that have been drawn
     pDeck.forEach(card => {
@@ -672,6 +689,7 @@ function animateCardHit(card) {
     );
 }
 
+// Floating text that shows damage taken by a card
 function showDamageFloat(card, amount) {
     const hp = card.hpDisplay;
     if (!hp) return;
@@ -686,7 +704,8 @@ function showDamageFloat(card, amount) {
 
 //=========stage functions===========
 
-// stage and world
+// ===== Stage and world management =====
+// Advance to the next stage after defeating enough enemies
 function nextStage() {
     playerStats.stageKills[stageData.stage] = stageData.kills;
     stageData.stage += 1;
@@ -699,6 +718,7 @@ function nextStage() {
     respawnDealerStage();
 }
 
+// Called when a boss is defeated to move to the next world
 function nextWorld() {
     playerStats.stageKills[stageData.stage] = stageData.kills;
     stageData.world += 1;
@@ -711,6 +731,7 @@ function nextWorld() {
     checkUpgradeUnlocks();
 }
 
+// Enable the next stage button when kill requirements met
 function nextStageChecker() {
     nextStageBtn.disabled = stageData.kills < 1;
     nextStageBtn.style.background = stageData.kills < 1 ? "grey" : "green";
@@ -718,6 +739,7 @@ function nextStageChecker() {
 
 //dealer
 
+// Spawn a regular enemy for the current stage
 function spawnDealer() {
     const stage = stageData.stage;
     const world = stageData.world;
@@ -751,6 +773,7 @@ function spawnDealer() {
     dealerDeathAnimation();
 }
 
+// Adjust the width of the dealer's HP bar
 function updateDealerLifeBar(enemy) {
     const barFill = document.getElementById("dealerBarFill");
     if (!barFill || !enemy) return;
@@ -759,6 +782,7 @@ function updateDealerLifeBar(enemy) {
     barFill.style.width = `${Math.max(0, Math.min(1, hpRatio)) * 100}%`;
 } // for healing bosses
 
+// Clean up HP/attack bars when an enemy dies
 function removeDealerLifeBar() {
     const bar = document.querySelector(".dealerLifeContainer");
     if (bar) bar.remove();
@@ -767,6 +791,7 @@ function removeDealerLifeBar() {
     dealerLifeDisplay.textContent = "";
 }
 
+// After a kill, decide whether to spawn a dealer or a boss
 function respawnDealerStage() {
     removeDealerLifeBar();
     if (stageData.stage % 10 === 0) {
@@ -776,6 +801,7 @@ function respawnDealerStage() {
     }
 }
 
+// What happens after defeating a regular dealer
 function onDealerDefeat() {
     cardXp(stageData.stage ** 1.2 * stageData.world);
     cashOut();
@@ -791,6 +817,7 @@ function onDealerDefeat() {
     });
 } // need to define xp formula
 
+// Called when the player defeats a boss enemy
 function onBossDefeat(boss) {
     cardXp(boss.xp);
     awardJokerCard();
@@ -805,6 +832,7 @@ function onBossDefeat(boss) {
     respawnDealerStage();
 }
 
+// Spawn the boss that appears every 10 stages
 function spawnBoss() {
     const stage = stageData.stage;
     const world = stageData.world;
@@ -847,17 +875,20 @@ function spawnBoss() {
     dealerDeathAnimation();
 }
 
+// Update text and bar UI for the current enemy's health
 function updateDealerLifeDisplay() {
     dealerLifeDisplay.textContent = `Life: ${currentEnemy.currentHp}/${currentEnemy.maxHp}`;
     renderDealerLifeBar();
     renderDealerLifeBarFill();
 }
 
+// Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
     const baseHp = 10 + stage + (world - 1) * 100;
     return Math.floor(baseHp * (isBoss ? 10 : Math.pow(stage, 0.5)));
 }
 
+// Base damage output scaled by stage and world
 function calculateEnemyBasicDamage(stage, world) {
     let baseDamage;
 
@@ -876,6 +907,7 @@ function calculateEnemyBasicDamage(stage, world) {
     return { minDamage, maxDamage };
 }
 
+// Apply damage from the enemy to the first card in the player's hand
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
     // If no card is available to take the hit, trigger game over
     if (drawnCards.length === 0) {
@@ -990,6 +1022,7 @@ function cardXp(xpAmount) {
  * Renders it with `renderFn` and then calls `updateFn`.
  * Returns the drawn card, or null if the deck was empty.
  */
+// Draw the next card from the deck into the player's hand
 function drawCard() {
     // 1) Nothing to draw?
     if (deck.length === 0) return null;
@@ -1011,6 +1044,7 @@ function drawCard() {
     return card;
 }
 
+// Enable or disable the draw button depending on hand size
 function updateDrawButton() {
     if (stats.cardSlots === drawnCards.length) {
         btn.disabled = true;
@@ -1021,6 +1055,7 @@ function updateDrawButton() {
     }
 }
 
+// Refresh the cards currently shown in the player's hand
 function updateHandDisplay() {
     drawnCards.forEach(card => {
         if (!card || !card.hpDisplay) return; // Skip if card or elements are missing
@@ -1030,6 +1065,7 @@ function updateHandDisplay() {
     });
 }
 
+// Create DOM elements for a card in the player's hand
 function renderCard(card) {
     // 1) Wrapper
     const wrapper = document.createElement("div");
@@ -1067,6 +1103,7 @@ function renderCard(card) {
     card.xpLabel = xpLabel;
 }
 
+// Display the top of the discard pile
 function renderDiscardCard(card) {
     discardContainer.innerHTML = "";
     const img = document.createElement("img");
@@ -1077,11 +1114,13 @@ function renderDiscardCard(card) {
     card.discardElement = img;
 }
 
+// Move a card to the discard pile and update the UI
 function discardCard(card) {
     discardPile.push(card);
     renderDiscardCard(card);
 }
 
+// Passive healing based on Hearts in your hand
 function heartHeal() {
     if (drawnCards.length === 0) return;
 
@@ -1100,6 +1139,7 @@ function heartHeal() {
     target.hpDisplay.textContent = `HP: ${target.currentHp}/${target.maxHp}`;
 }
 
+// Visual pulse when a card gains health
 function animateCardHeal(card) {
     const w = card.wrapperElement;
     w.classList.add("heal-animate");
@@ -1110,6 +1150,7 @@ function animateCardHeal(card) {
     );
 }
 
+// Brief animation shown when a card levels up
 function animateCardLevelUp(card) {
     const w = card.wrapperElement;
     w.classList.add("levelup-animate");
@@ -1120,6 +1161,7 @@ function animateCardLevelUp(card) {
     );
 }
 
+// Fade out and remove the card when its HP reaches zero
 function animateCardDeath(card, callback) {
     const w = card.wrapperElement;
     if (!w) {
@@ -1289,6 +1331,7 @@ function hideRestartScreen() {
     }
 }
 
+// Shuffle all current cards back into the deck and draw a new hand
 function redrawHand() {
     deck.push(...drawnCards);
     drawnCards = [];
@@ -1302,6 +1345,7 @@ function redrawHand() {
     updatePlayerStats(stats);
 }
 
+// Player auto-attack; deals combined damage to the current enemy
 function attack() {
     if (!currentEnemy) return;
 
@@ -1354,6 +1398,7 @@ function attack() {
   }
 }*/
 
+// Convert points earned this stage into spendable cash
 function cashOut() {
     cash = Math.floor(
         cash +
@@ -1366,6 +1411,7 @@ function cashOut() {
     return cash;
 }
 
+// Recalculate combat stats based on cards currently drawn
 function updatePlayerStats() {
     // Reset base stats
     stats.pDamage = 0;
@@ -1393,6 +1439,7 @@ function updatePlayerStats() {
 }
 
 //=========save/load functions===========
+// Serialize the current game state to localStorage
 function saveGame() {
     if (typeof localStorage === "undefined") return;
 
@@ -1438,6 +1485,7 @@ function saveGame() {
     }
 }
 
+// Restore game state from localStorage if available
 function loadGame() {
     if (typeof localStorage === "undefined") return;
     const json = localStorage.getItem("gameSave");
@@ -1559,6 +1607,7 @@ setInterval(() => {
 
 let lastFrameTime = performance.now();
 
+// Main animation loop; handles ticking the enemy and player actions
 function gameLoop(currentTime) {
     const rawDelta = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
@@ -1629,6 +1678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btn) btn.addEventListener("click", toggleDebug);
 });
 
+// Developer helpers exposed on the console for testing
 window.devTools = {
     spawnBoss,
     spawnDealer,
