@@ -1,4 +1,5 @@
 process.env.CHROME_BIN = require('puppeteer').executablePath();
+
 module.exports = function(config) {
   config.set({
     frameworks: ['mocha', 'chai', 'esm'],
@@ -9,8 +10,16 @@ module.exports = function(config) {
     esm: {
       nodeResolve: true
     },
-    browsers: ['ChromeHeadless'],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu']
+      }
+    },
+    browsers: ['ChromeHeadlessNoSandbox'],
     singleRun: true,
+    browserNoActivityTimeout: 30000,
+    captureTimeout: 30000,
     plugins: [
       require('karma-mocha'),
       require('karma-chai'),
