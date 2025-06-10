@@ -27,7 +27,17 @@ const stats = {
     upgradeDamageMultiplier: 1,
     cardSlots: 3, //at start max
     attackSpeed: 5000, //ms between automatic attacks
-    hpPerKill: 1
+    hpPerKill: 1,
+    baseCardHpBoost: 0,
+    maxMana: 0,
+    manaRegen: 0,
+    abilityCooldownReduction: 0,
+    jokerCooldownReduction: 0,
+    redrawCooldownReduction: 0
+};
+
+const systems = {
+    manaUnlocked: false
 };
 
 let stageData = {
@@ -47,20 +57,12 @@ const FAST_MODE_SCALE = 10;
 let timeScale = 1;
 
 const upgrades = {
-    cardSlots: {
-        name: "Card Slots",
-        level: 0,
-        baseValue: 3,
-        costFormula: level => 100000 * level ** 3,
-        effect: player => {
-            player.cardSlots =
-                upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
-        }
-    },
+    // Unlocked from start
     globalDamage: {
         name: "Global Damage Multiplier",
         level: 0,
         baseValue: 1.0,
+        unlocked: true,
         costFormula: level => 200 * level ** 2,
         effect: player => {
             player.upgradeDamageMultiplier =
@@ -68,10 +70,54 @@ const upgrades = {
                 0.1 * upgrades.globalDamage.level;
         }
     },
+    cardHpPerKill: {
+        name: "Card HP per Kill",
+        level: 0,
+        baseValue: 1,
+        unlocked: true,
+        costFormula: level => 150 * level ** 2,
+        effect: player => {
+            player.hpPerKill =
+                upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
+            pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
+        }
+    },
+    baseCardHp: {
+        name: "Base Card HP Boost",
+        level: 0,
+        baseValue: 0,
+        unlocked: true,
+        costFormula: level => 100 * level ** 2,
+        effect: player => {
+            const prev = player.baseCardHpBoost || 0;
+            const diff = upgrades.baseCardHp.level - prev;
+            player.baseCardHpBoost = upgrades.baseCardHp.level;
+            pDeck.forEach(card => {
+                card.maxHp += diff;
+                card.currentHp += diff;
+            });
+        }
+    },
+
+    // Locked at start
+    cardSlots: {
+        name: "Card Slots",
+        level: 0,
+        baseValue: 3,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 5,
+        costFormula: level => 100000 * level ** 3,
+        effect: player => {
+            player.cardSlots =
+                upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
+        }
+    },
     autoAttackSpeed: {
         name: "Auto-Attack Speed",
         level: 0,
         baseValue: 10000,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 3,
         costFormula: level => Math.floor(300 * level ** 2.2),
         effect: player => {
             player.attackSpeed = Math.max(
@@ -81,15 +127,59 @@ const upgrades = {
             );
         }
     },
-    cardHpPerKill: {
-        name: "Card HP per Kill",
+    maxMana: {
+        name: "Maximum Mana",
         level: 0,
-        baseValue: 1,
-        costFormula: level => 150 * level ** 2,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 15,
+        costFormula: level => 200 * level ** 2,
         effect: player => {
-            player.hpPerKill =
-                upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
-            pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
+            player.maxMana = upgrades.maxMana.baseValue + 10 * upgrades.maxMana.level;
+        }
+    },
+    manaRegen: {
+        name: "Mana Regeneration",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => systems.manaUnlocked,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
+        }
+    },
+    abilityCooldownReduction: {
+        name: "Ability Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 10,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.abilityCooldownReduction = upgrades.abilityCooldownReduction.level * 0.05;
+        }
+    },
+    jokerCooldownReduction: {
+        name: "Joker Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 12,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
+        }
+    },
+    redrawCooldownReduction: {
+        name: "Redraw Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 8,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.redrawCooldownReduction = upgrades.redrawCooldownReduction.level * 0.1;
         }
     }
 };
@@ -188,6 +278,7 @@ function renderUpgrades() {
     container.innerHTML = "";
 
     Object.entries(upgrades).forEach(([key, up]) => {
+        if (!up.unlocked) return;
         const row = document.createElement("div");
         row.classList.add("upgrade-item");
         row.dataset.key = key;
@@ -216,6 +307,21 @@ function updateUpgradeButtons() {
         btn.disabled = cash < cost;
         btn.textContent = `Buy $${cost}`;
     });
+}
+
+function checkUpgradeUnlocks() {
+    let changed = false;
+    Object.entries(upgrades).forEach(([key, up]) => {
+        if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition()) {
+            up.unlocked = true;
+            changed = true;
+            addLog(`${up.name} unlocked!`, "info");
+        }
+    });
+    if (changed) {
+        renderUpgrades();
+        updateUpgradeButtons();
+    }
 }
 
 function purchaseUpgrade(key) {
@@ -547,6 +653,7 @@ function nextStage() {
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
     nextStageChecker();
     renderStageInfo();
+    checkUpgradeUnlocks();
     respawnDealerStage();
 }
 
@@ -557,6 +664,7 @@ function nextWorld() {
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
     nextStageChecker();
     renderStageInfo();
+    checkUpgradeUnlocks();
 }
 
 function nextStageChecker() {
@@ -1215,6 +1323,9 @@ function saveGame() {
     const upgradeLevels = Object.fromEntries(
         Object.entries(upgrades).map(([k, u]) => [k, u.level])
     );
+    const upgradeUnlocked = Object.fromEntries(
+        Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
+    );
 
     const state = {
         stats,
@@ -1223,6 +1334,7 @@ function saveGame() {
         cardPoints,
         deck: deckData,
         upgrades: upgradeLevels,
+        upgradesUnlocked: upgradeUnlocked,
         unlockedJokers: unlockedJokers.map(j => j.id)
     };
 
@@ -1249,6 +1361,11 @@ function loadGame() {
         if (state.upgrades) {
             Object.entries(state.upgrades).forEach(([k, lvl]) => {
                 if (upgrades[k]) upgrades[k].level = lvl;
+            });
+        }
+        if (state.upgradesUnlocked) {
+            Object.entries(state.upgradesUnlocked).forEach(([k, unlocked]) => {
+                if (upgrades[k]) upgrades[k].unlocked = unlocked;
             });
         }
 
@@ -1291,6 +1408,8 @@ function loadGame() {
         renderPlayerStats(stats);
         renderStageInfo();
 
+        checkUpgradeUnlocks();
+
         addLog("Game loaded!", "info");
     } catch (e) {
         console.error("Load failed", e);
@@ -1305,6 +1424,7 @@ spawnPlayer();
 spawnDealer();
 renderStageInfo();
 nextStageChecker();
+checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
 redrawBtn.addEventListener("click", redrawHand);
