@@ -753,15 +753,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease, opacity 0.2s ease;
 }
 
 .upgrade-item button {
-  width: 60px;
+  width: 70px;
   height: 24px;
   font-size: 0.5rem; /* Match side panel text size */
   line-height: 1;
   padding: 2px 4px;
-  background: linear-gradient(135deg, #f0f0f0, #fafafa);
+  background: linear-gradient(135deg, #e8ffe8, #c8facc);
   border: 1px solid #4CAF50;
   border-radius: 4px;
   cursor: pointer;
@@ -770,6 +773,21 @@ body {
   justify-content: center;
   align-items: center;
   color: #080707;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upgrade-item button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.upgrade-item.affordable {
+  background: rgba(76, 175, 80, 0.2);
+  opacity: 1;
+}
+
+.upgrade-item.unaffordable {
+  opacity: 0.5;
 }
 
 .restart-overlay {
