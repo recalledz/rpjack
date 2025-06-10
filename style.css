@@ -105,12 +105,12 @@ body {
   display: grid;
   /* keep dealer area row fixed */
   grid-template-rows: auto auto 1fr auto;
-  grid-template-columns: 1fr 20%;
+  grid-template-columns: 30px 1fr 20%;
   grid-template-areas:
-    "dealer sidePanel"
-    "buttons sidePanel"
-    "hand sidePanel"
-    "jokers discard";
+    ". dealer sidePanel"
+    ". buttons sidePanel"
+    "mana hand sidePanel"
+    "mana jokers discard";
   padding: 8px;
   height: 100vh;
   gap: 10px;
@@ -121,6 +121,7 @@ body {
 .handContainer     { grid-area: hand;     }
 .joker-wrapper     { grid-area: jokers;   } /* or add a .jokerContainer alias */
 .discardContainer  { grid-area: discard;  }
+.manaBar           { grid-area: mana;     }
 .sidePanel         { grid-area: sidePanel;
                      overflow-y: auto;   /* only sidebar scrolls */
                    }
@@ -129,12 +130,45 @@ body {
   /*overflow: hidden;*/
 }
 
-#gameColumn { 
+#gameColumn {
   /* wrap dealer, buttons, hand, jokers */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   gap: 10px;
+}
+
+.manaBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.manaBarInner {
+  position: relative;
+  width: 20px;
+  height: 100%;
+  background: black;
+  border: 1px solid #333;
+}
+
+.manaFill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: #222;
+}
+
+.manaText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  color: #fff;
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 /*============ main tab side panel============== */
 
