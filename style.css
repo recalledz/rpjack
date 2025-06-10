@@ -218,6 +218,13 @@ body {
   margin-bottom: 5px
 }
 
+#statsSummary {
+  font-size: 16px;
+  color: #2c252b;
+  text-shadow: 0 0 5px black;
+  margin-bottom: 5px;
+}
+
 #dealerBarFill {
   height: 30px;
   width: 100%;
