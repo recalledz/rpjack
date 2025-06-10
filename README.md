@@ -189,7 +189,7 @@ Built in collaboration with ChatGPT & Codex.
 
 🧪 Testing
 
-Automated tests run in a headless Chrome browser using Karma with Mocha and Chai.
+Automated tests run in a headless Chrome browser using Karma with Mocha and Chai. The test configuration launches a Chromium instance via Puppeteer.
 Install dependencies and execute the test suite with:
 
 ```bash
