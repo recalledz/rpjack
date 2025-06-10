@@ -21,8 +21,6 @@ const stats = {
     pDamage: 0,
     pRegen: 0,
     cashMulti: 1,
-    pLifeMax: 10,
-    pLifeCurrent: 10,
     damageMultiplier: 1,
     upgradeDamageMultiplier: 1,
     cardSlots: 3, //at start max
@@ -1037,14 +1035,58 @@ function spawnPlayer() {
 }
 
 function respawnPlayer() {
-    deck = pDeck.filter(c => c.currentHp > 0);
+    // Reset stage progression
+    stageData.stage = 0;
+    stageData.kills = 0;
+
+    // Reset upgrades to level 0 and reapply effects
+    Object.values(upgrades).forEach(up => {
+        up.level = 0;
+        up.effect(stats);
+    });
+
+    // Rebuild the deck from scratch
+    pDeck = generateDeck();
+    deck = [...pDeck];
+    drawnCards = [];
+    discardPile = [];
+
+    // Clear card related UI containers
     handContainer.innerHTML = "";
     discardContainer.innerHTML = "";
-    discardPile = [];
-    stats.points = 0;
+    deckTabContainer.innerHTML = "";
+
+    // Re-render the deck tab
+    deck.forEach(card => renderTabCard(card));
+
+    // Reset core player values
+    cash = 0;
+    cardPoints = 0;
+    Object.assign(stats, {
+        points: 0,
+        pDamage: 0,
+        pRegen: 0,
+        cashMulti: 1,
+        damageMultiplier: 1,
+        upgradeDamageMultiplier: 1,
+        cardSlots: upgrades.cardSlots.baseValue,
+        attackSpeed: 5000,
+        hpPerKill: 1
+    });
+
+    // Refresh UI elements
+    cashDisplay.textContent = `Cash: $${cash}`;
+    cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
     pointsDisplay.textContent = stats.points;
+    renderUpgrades();
+    updateUpgradeButtons();
+    renderStageInfo();
+
+    // Spawn the player hand and enemy for the new run
     spawnPlayer();
-    stageData.stage = 1;
+    respawnDealerStage();
+
+    addLog("Player respawned. Stage and upgrades reset.", "info");
 }
 
 let restartOverlay = null;
@@ -1169,7 +1211,6 @@ function updatePlayerStats() {
     stats.damageMultiplier = stats.upgradeDamageMultiplier;
     stats.pRegen = 0;
     stats.cashMulti = 1;
-    stats.pLifeMax = 100;
     stats.points = 0;
 
     for (const card of drawnCards) {
@@ -1180,8 +1221,6 @@ function updatePlayerStats() {
         if (card.suit === "Hearts") stats.pRegen += card.currentLevel;
         if (card.suit === "Diamonds")
             stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
-        if (card.suit === "Clubs")
-            stats.pLifeMax = stats.pLifeMax * 1.1 + card.currentLevel / 100;
 
         card.damage = card.baseDamage * card.currentLevel;
         stats.pDamage += card.damage;
