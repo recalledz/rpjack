@@ -35,6 +35,7 @@ const stats = {
     hpPerKill: 1,
     baseCardHpBoost: 0,
     maxMana: 0,
+    mana: 0,
     manaRegen: 0,
     abilityCooldownReduction: 0,
     jokerCooldownReduction: 0,
@@ -227,6 +228,10 @@ const killsDisplay = document.getElementById("kills");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
+const manaBar = document.getElementById("manaBar");
+const manaFill = document.getElementById("manaFill");
+const manaText = document.getElementById("manaText");
+const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 
 const unlockedJokers = [];
 
@@ -524,6 +529,27 @@ function renderDealerLifeBarFill() {
     }%`;
 } //red fill gauge render
 
+function updateManaBar() {
+    if (!manaBar) return;
+    if (!systems.manaUnlocked) {
+        manaBar.style.display = "none";
+        return;
+    }
+    manaBar.style.display = "flex";
+    const ratio = stats.maxMana > 0 ? stats.mana / stats.maxMana : 0;
+    if (manaFill) manaFill.style.height = `${Math.min(1, ratio) * 100}%`;
+    if (manaText) manaText.textContent = `${Math.floor(stats.mana)}/${Math.floor(stats.maxMana)}`;
+}
+
+function unlockManaSystem() {
+    systems.manaUnlocked = true;
+    stats.maxMana = 50;
+    stats.mana = stats.maxMana;
+    stats.manaRegen = 0.01;
+    updateManaBar();
+    checkUpgradeUnlocks();
+}
+
 //stage
 
 function renderStageInfo() {
@@ -548,6 +574,9 @@ function renderPlayerStats(stats) {
     pointsDisplay.textContent = `Points: ${stats.points}`;
     cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
     attackSpeedDisplay.textContent = `Attack Speed: ${Math.floor(stats.attackSpeed / 1000)}s`;
+    if (manaRegenDisplay) {
+        manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen.toFixed(2)}/s`;
+    }
 
     // Update HP per kill display
     if (hpPerKillDisplay) {
@@ -1246,6 +1275,9 @@ function awardJokerCard() {
     if (unlockedJokers.find(j => j.id === template.id)) return;
     unlockedJokers.push(template);
     addLog(`${template.name} unlocked!`, "info");
+    if (template.id === "joker_heal" && !systems.manaUnlocked) {
+        unlockManaSystem();
+    }
     renderJokers();
 }
 
@@ -1295,8 +1327,14 @@ function respawnPlayer() {
         upgradeDamageMultiplier: 1,
         cardSlots: upgrades.cardSlots.baseValue,
         attackSpeed: 5000,
-        hpPerKill: 1
+        hpPerKill: 1,
+        maxMana: 0,
+        mana: 0,
+        manaRegen: 0
     });
+
+    systems.manaUnlocked = false;
+    updateManaBar();
 
     // Refresh UI elements
     cashDisplay.textContent = `Cash: $${cash}`;
@@ -1519,6 +1557,7 @@ function loadGame() {
         cash = state.cash || 0;
         cardPoints = state.cardPoints || 0;
         Object.assign(stats, state.stats || {});
+        systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
         Object.assign(stageData, state.stageData || {});
         Object.assign(playerStats, state.playerStats || {});
 
@@ -1572,6 +1611,8 @@ function loadGame() {
         renderPlayerStats(stats);
         renderStageInfo();
         renderGlobalStats();
+
+        updateManaBar();
 
         checkUpgradeUnlocks();
 
@@ -1679,6 +1720,14 @@ function gameLoop(currentTime) {
         attack();
         playerAttackTimer = 0;
         if (playerAttackFill) playerAttackFill.style.width = "0%";
+    }
+
+    if (systems.manaUnlocked) {
+        stats.mana = Math.min(
+            stats.maxMana,
+            stats.mana + (stats.manaRegen * deltaTime) / 1000
+        );
+        updateManaBar();
     }
     requestAnimationFrame(gameLoop);
 }
