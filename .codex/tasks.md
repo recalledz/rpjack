@@ -71,6 +71,102 @@
 - Resource jobs prevent card use in combat
 - Cards level in jobs to gain traits and unlock skill trees
 
+### skilll trees
+
+**Skill Tree - Star Chart Notes**
+
+---
+
+### Notables
+
+#### Mind - Combat
+
+* % Increase to ability power
+* % Increase joker ability power
+* Joker ability cooldown reduction
+* % Global ailment accumulation and chance
+* +X Max Mana
+* +Base Mana Regen
+* % Increase Mana Regen
+* % Status effect duration *(New)*
+
+> *Suggestion: Consider clustering "joker-specific" stats under a sub-branch like “Jester’s Cunning” if more joker mechanics are introduced.*
+
+#### Mind - Life Skills
+
+* % Divining Speed
+* +Astral Slots *(suggest adding tooltip in-game to clarify long-term function)*
+* % Conjuring Speed
+* +1 Parallel Conjuring Slot *(New)*
+
+#### Strength - Combat
+
+* +X Max HP
+* +X HP per kill
+* % Increase player damage *(Consider rewording for clarity: “base player damage” or “non-ability damage”)*
+* +X Shield
+* % Crit Damage
+* % Stun Bar Accumulation
+* % Bonus damage against stunned enemies *(New)*
+
+#### Strength - Life Skills
+
+* % Mining Efficiency
+* % Digging Efficiency
+
+#### Dexterity - Combat
+
+* % Attack Speed Increase
+* +X Evasion
+* % Increase Evasion
+* % Crit Chance
+* +Accuracy
+* % Chance to draw an extra card on kill *(New)*
+
+#### Dexterity - Life Skills
+
+* % Foraging Speed
+* % Farming Efficiency
+
+#### Holy - Combat
+
+* % Increase in Healing Abilities
+* % Card Casting Speed
+* % Resist Ailments
+
+> *Keystone idea: “Divine Sacrifice” — every 5th ability heals allies and purges one negative effect but costs 2x mana.*
+
+#### General
+
+* +X Card Slots
+* Reduce Card Mana Casting Cost
+* Reduce Mana Reserved
+* % Increase XP Gain
+* % Chance not to consume mana *(New)*
+* +1 Random card drawn at start of each fight *(New)*
+* First time a card dies, it revives with 20% HP (once per round) *(New)*
+
+---
+
+### Keystones
+
+* **Jester's Domain**: 5 joker slots. Cannot auto attack.
+* **Sacrificial Pawns**: 30% more ability power. Each time a card is drawn, 1 is also discarded.
+* **Bountiful**: Enemies provide 5x-10x cash, but have 20x more health.
+* **Ravenous Hunger**: Heal cards for 5% of damage dealt, consume same amount in mana.
+* **Prodigious Hand**: First 30% towards mana reserved do not count as reserved.
+* **Blood Sacrifice**: Cards consume health instead of mana when casting.
+* **Sacrilegious Mending**: Card healing also damages enemies.
+* **Eat the Rich**: High suit cards provide 2x bonus points but do not contribute to combat.
+* **Strategic Truce**: Clubs cannot be drawn. 2x effect for other suit bonuses.
+* **Rise of the Mass**: 1-4 suit cards level 2x faster, disables XP gain for others.
+* **Deafening Screech**: Increased stun buildup. Attack bar is reset when hit.
+* **Ghost Step** *(New)*: While above 80% evasion, dodge incoming abilities entirely.
+* **Divine Sacrifice** *(New)*: Every 5th ability heals allies and purges one debuff but costs 2x mana.
+
+> *Suggestion: Aim for some keystones that synergize across trees (e.g., Mind + Dex) to reward hybrid builds.*
+
+
 ---
 
 ## 🔄 Migration Status
