@@ -9,6 +9,9 @@
     "build": "echo 'No build step yet — just copying files manually.'",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "karma start --single-run"
+    "simulate": "node simulate.js",
+    "simulate:aggressive": "node simulate.js aggressive",
+    "simulate:defensive": "node simulate.js defensive"
   },
   "dependencies": {
     "lodash": "^4.17.21",
