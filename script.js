@@ -564,6 +564,15 @@ function renderGlobalStats() {
             list.appendChild(row);
         });
     container.appendChild(list);
+
+    // Add a restart button to allow starting a new run from the stats screen
+    const restartBtn = document.createElement("button");
+    restartBtn.textContent = "Start New Run";
+    restartBtn.addEventListener("click", () => {
+        respawnPlayer();
+        showTab(mainTab);
+    });
+    container.appendChild(restartBtn);
 }
 
 function renderDealerCard() {
