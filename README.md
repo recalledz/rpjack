@@ -23,6 +23,7 @@ Healing Mechanics: Cards recover 1 HP after each enemy defeat.
 
 Game Over Screen: A restart overlay appears when your deck is wiped out.
 Click the Restart button or wait five seconds to respawn automatically.
+Stats Screen: View lifetime progress and start a new run from the stats tab.
 
 Progression Systems:
 
