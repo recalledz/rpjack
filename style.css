@@ -690,6 +690,15 @@ body {
   overflow: hidden;
 }
 
+/* Player stats tab */
+.playerStatsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #556b7a;
+  padding: 5px;
+}
+
 /* Joker container and tiles */
 .joker-wrapper {
   max-width: 90px;
