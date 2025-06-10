@@ -37,7 +37,6 @@ export const AbilityRegistry = {
           timer += deltaTime;
           if (timer >= cooldown) {
             enemy.isShielded = true;
-            addLog(`${enemy.name} is now shielded`, "info");
             timer = 0;
           }
         }

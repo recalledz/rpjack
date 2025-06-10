@@ -276,7 +276,7 @@ if (starChartTabButton) {
     starChartTabButton.addEventListener("click", () => {
         initStarChart();
         showTab(starChartTab);
-    });
+});
 }
 if (playerStatsTabButton) {
     playerStatsTabButton.addEventListener("click", () => {
