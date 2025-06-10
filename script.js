@@ -1255,6 +1255,7 @@ function spawnPlayer() {
 function respawnPlayer() {
     // Reset stage progression
     stageData.stage = 0;
+    stageData.world = 1;
     stageData.kills = 0;
 
     // Reset upgrades to level 0 and reapply effects
