@@ -287,7 +287,12 @@ function renderUpgrades() {
         const cost = up.costFormula(up.level + 1);
         const btn = document.createElement("button");
         btn.textContent = `Buy $${cost}`;
-        if (cash < cost) btn.disabled = true;
+        if (cash < cost) {
+            btn.disabled = true;
+            row.classList.add("unaffordable");
+        } else {
+            row.classList.add("affordable");
+        }
         btn.addEventListener("click", () => purchaseUpgrade(key));
 
         row.append(label, btn);
@@ -302,8 +307,11 @@ function updateUpgradeButtons() {
         if (!key || !btn) return;
         const up = upgrades[key];
         const cost = up.costFormula(up.level + 1);
-        btn.disabled = cash < cost;
+        const affordable = cash >= cost;
+        btn.disabled = !affordable;
         btn.textContent = `Buy $${cost}`;
+        row.classList.toggle("affordable", affordable);
+        row.classList.toggle("unaffordable", !affordable);
     });
 }
 
