@@ -21,6 +21,9 @@ Real-Time Combat Mechanics: Engage in battles with cooldown logic, ability overl
 
 Healing Mechanics: Cards recover 1 HP after each enemy defeat.
 
+Game Over Screen: A restart overlay appears when your deck is wiped out.
+Click the Restart button or wait five seconds to respawn automatically.
+
 Progression Systems:
 
 Stages and Worlds: Advance through stages, encountering bosses at milestones (e.g., stage 10) and progressing to new worlds with increased difficulty.
@@ -53,6 +56,8 @@ Holy: Reduces cooldowns.
 Jokers: Active abilities with cooldowns and limited slots.
 
 Traits: Late-game mechanics where enemies possess special traits (e.g., double damage, shields) that can be inherited by player cards.
+
+Interactive Star Chart: Drag star nodes to rearrange upgrade paths in real time.
 
 
 🧠 Tech Stack
@@ -189,7 +194,7 @@ Built in collaboration with ChatGPT & Codex.
 
 🧪 Testing
 
-Automated tests run in a headless Chrome browser using Karma with Mocha and Chai.
+Automated tests run in a headless Chrome browser using Karma with Mocha and Chai. The test configuration launches a Chromium instance via Puppeteer.
 Install dependencies and execute the test suite with:
 
 ```bash

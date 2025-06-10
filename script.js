@@ -28,13 +28,21 @@ const stats = {
     pDamage: 0,
     pRegen: 0,
     cashMulti: 1,
-    pLifeMax: 10,
-    pLifeCurrent: 10,
     damageMultiplier: 1,
     upgradeDamageMultiplier: 1,
     cardSlots: 3, //at start max
     attackSpeed: 5000, //ms between automatic attacks
-    hpPerKill: 1
+    hpPerKill: 1,
+    baseCardHpBoost: 0,
+    maxMana: 0,
+    manaRegen: 0,
+    abilityCooldownReduction: 0,
+    jokerCooldownReduction: 0,
+    redrawCooldownReduction: 0
+};
+
+const systems = {
+    manaUnlocked: false
 };
 
 // Data for the current stage and world progression
@@ -50,26 +58,25 @@ let stageData = {
     attackspeed: 10000 //10 sec at start
 };
 
+const playerStats = {
+    timesPrestiged: 0,
+    decksUnlocked: 1,
+    totalBossKills: 0,
+    stageKills: {}
+};
+
 // Debug time scaling
 const FAST_MODE_SCALE = 10;
 let timeScale = 1;
 
 // Definitions for purchasable upgrades and their effects
 const upgrades = {
-    cardSlots: {
-        name: "Card Slots",
-        level: 0,
-        baseValue: 3,
-        costFormula: level => 100000 * level ** 3,
-        effect: player => {
-            player.cardSlots =
-                upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
-        }
-    },
+    // Unlocked from start
     globalDamage: {
         name: "Global Damage Multiplier",
         level: 0,
         baseValue: 1.0,
+        unlocked: true,
         costFormula: level => 200 * level ** 2,
         effect: player => {
             player.upgradeDamageMultiplier =
@@ -77,10 +84,54 @@ const upgrades = {
                 0.1 * upgrades.globalDamage.level;
         }
     },
+    cardHpPerKill: {
+        name: "Card HP per Kill",
+        level: 0,
+        baseValue: 1,
+        unlocked: true,
+        costFormula: level => 150 * level ** 2,
+        effect: player => {
+            player.hpPerKill =
+                upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
+            pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
+        }
+    },
+    baseCardHp: {
+        name: "Base Card HP Boost",
+        level: 0,
+        baseValue: 0,
+        unlocked: true,
+        costFormula: level => 100 * level ** 2,
+        effect: player => {
+            const prev = player.baseCardHpBoost || 0;
+            const diff = upgrades.baseCardHp.level - prev;
+            player.baseCardHpBoost = upgrades.baseCardHp.level;
+            pDeck.forEach(card => {
+                card.maxHp += diff;
+                card.currentHp += diff;
+            });
+        }
+    },
+
+    // Locked at start
+    cardSlots: {
+        name: "Card Slots",
+        level: 0,
+        baseValue: 3,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 5,
+        costFormula: level => 100000 * level ** 3,
+        effect: player => {
+            player.cardSlots =
+                upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
+        }
+    },
     autoAttackSpeed: {
         name: "Auto-Attack Speed",
         level: 0,
         baseValue: 10000,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 3,
         costFormula: level => Math.floor(300 * level ** 2.2),
         effect: player => {
             player.attackSpeed = Math.max(
@@ -90,15 +141,59 @@ const upgrades = {
             );
         }
     },
-    cardHpPerKill: {
-        name: "Card HP per Kill",
+    maxMana: {
+        name: "Maximum Mana",
         level: 0,
-        baseValue: 1,
-        costFormula: level => 150 * level ** 2,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 15,
+        costFormula: level => 200 * level ** 2,
         effect: player => {
-            player.hpPerKill =
-                upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
-            pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
+            player.maxMana = upgrades.maxMana.baseValue + 10 * upgrades.maxMana.level;
+        }
+    },
+    manaRegen: {
+        name: "Mana Regeneration",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => systems.manaUnlocked,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
+        }
+    },
+    abilityCooldownReduction: {
+        name: "Ability Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 10,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.abilityCooldownReduction = upgrades.abilityCooldownReduction.level * 0.05;
+        }
+    },
+    jokerCooldownReduction: {
+        name: "Joker Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 12,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
+        }
+    },
+    redrawCooldownReduction: {
+        name: "Redraw Cooldown Reduction",
+        level: 0,
+        baseValue: 0,
+        unlocked: false,
+        unlockCondition: () => stageData.stage >= 8,
+        costFormula: level => 200 * level ** 2,
+        effect: player => {
+            player.redrawCooldownReduction = upgrades.redrawCooldownReduction.level * 0.1;
         }
     }
 };
@@ -149,15 +244,18 @@ let playerAttackTimer = 0;
 const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
 const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
 const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
+const playerStatsTabButton = document.getElementsByClassName("playerStatsTabButton")[0];
 const mainTab = document.querySelector(".mainTab");
 const deckTab = document.querySelector(".deckTab");
 const starChartTab = document.querySelector(".starChartTab");
+const playerStatsTab = document.querySelector(".playerStatsTab");
 const tooltip = document.getElementById("tooltip");
 
 function hideTab() {
     mainTab.style.display = "none";
     deckTab.style.display = "none";
     if (starChartTab) starChartTab.style.display = "none";
+    if (playerStatsTab) playerStatsTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -180,6 +278,12 @@ if (starChartTabButton) {
         showTab(starChartTab);
     });
 }
+if (playerStatsTabButton) {
+    playerStatsTabButton.addEventListener("click", () => {
+        renderGlobalStats();
+        showTab(playerStatsTab);
+    });
+}
 
 showTab(mainTab); // Start with main tab visible
 
@@ -200,6 +304,7 @@ function renderUpgrades() {
     container.innerHTML = "";
 
     Object.entries(upgrades).forEach(([key, up]) => {
+        if (!up.unlocked) return;
         const row = document.createElement("div");
         row.classList.add("upgrade-item");
         row.dataset.key = key;
@@ -232,6 +337,22 @@ function updateUpgradeButtons() {
 }
 
 // Deduct cash and apply the effects of the chosen upgrade
+
+function checkUpgradeUnlocks() {
+    let changed = false;
+    Object.entries(upgrades).forEach(([key, up]) => {
+        if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition()) {
+            up.unlocked = true;
+            changed = true;
+            addLog(`${up.name} unlocked!`, "info");
+        }
+    });
+    if (changed) {
+        renderUpgrades();
+        updateUpgradeButtons();
+    }
+}
+
 function purchaseUpgrade(key) {
     const up = upgrades[key];
     const cost = up.costFormula(up.level + 1);
@@ -398,7 +519,9 @@ function renderDealerLifeBarFill() {
 
 function renderStageInfo() {
     const stageDisplay = document.getElementById("stage");
+    stageData.kills = playerStats.stageKills[stageData.stage] || stageData.kills || 0;
     stageDisplay.textContent = `Stage ${stageData.stage} World ${stageData.world}`;
+    killsDisplay.textContent = `Kills: ${stageData.kills}`;
 }
 
 function renderPlayerStats(stats) {
@@ -417,6 +540,30 @@ function renderPlayerStats(stats) {
     if (hpPerKillDisplay) {
         hpPerKillDisplay.textContent = `HP per Kill: ${stats.hpPerKill}`;
     }
+}
+
+function renderGlobalStats() {
+    const container = document.getElementById("playerStatsContainer");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const basics = document.createElement("div");
+    basics.innerHTML = `
+        <div>Times Prestiged: ${playerStats.timesPrestiged}</div>
+        <div>Decks Unlocked: ${playerStats.decksUnlocked}</div>
+        <div>Total Boss Kills: ${playerStats.totalBossKills}</div>
+    `;
+    container.appendChild(basics);
+
+    const list = document.createElement("div");
+    Object.entries(playerStats.stageKills)
+        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+        .forEach(([stage, kills]) => {
+            const row = document.createElement("div");
+            row.textContent = `Stage ${stage} Kills: ${kills}`;
+            list.appendChild(row);
+        });
+    container.appendChild(list);
 }
 
 function renderDealerCard() {
@@ -560,22 +707,28 @@ function showDamageFloat(card, amount) {
 // ===== Stage and world management =====
 // Advance to the next stage after defeating enough enemies
 function nextStage() {
+    playerStats.stageKills[stageData.stage] = stageData.kills;
     stageData.stage += 1;
-    stageData.kills = 0;
+    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
+    renderGlobalStats();
     nextStageChecker();
     renderStageInfo();
+    checkUpgradeUnlocks();
     respawnDealerStage();
 }
 
 // Called when a boss is defeated to move to the next world
 function nextWorld() {
+    playerStats.stageKills[stageData.stage] = stageData.kills;
     stageData.world += 1;
     stageData.stage = 1;
-    stageData.kills = 0;
+    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
+    renderGlobalStats();
     nextStageChecker();
     renderStageInfo();
+    checkUpgradeUnlocks();
 }
 
 // Enable the next stage button when kill requirements met
@@ -654,7 +807,9 @@ function onDealerDefeat() {
     cashOut();
     healCardsOnKill();
     stageData.kills += 1;
+    playerStats.stageKills[stageData.stage] = stageData.kills;
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
+    renderGlobalStats();
     dealerDeathAnimation();
     dealerBarDeathAnimation(() => {
         nextStageChecker();
@@ -668,6 +823,9 @@ function onBossDefeat(boss) {
     awardJokerCard();
     addLog(`${boss.name} was defeated!`);
     currentEnemy = null;
+
+    playerStats.totalBossKills += 1;
+    renderGlobalStats();
 
     healCardsOnKill();
     nextWorld();
@@ -1078,14 +1236,60 @@ function spawnPlayer() {
 }
 
 function respawnPlayer() {
-    deck = pDeck.filter(c => c.currentHp > 0);
+    // Reset stage progression
+    stageData.stage = 0;
+    stageData.kills = 0;
+
+    // Reset upgrades to level 0 and reapply effects
+    Object.values(upgrades).forEach(up => {
+        up.level = 0;
+        up.effect(stats);
+    });
+
+    // Rebuild the deck from scratch
+    pDeck = generateDeck();
+    deck = [...pDeck];
+    drawnCards = [];
+    discardPile = [];
+
+    // Clear card related UI containers
     handContainer.innerHTML = "";
     discardContainer.innerHTML = "";
-    discardPile = [];
-    stats.points = 0;
+    deckTabContainer.innerHTML = "";
+
+    // Re-render the deck tab
+    deck.forEach(card => renderTabCard(card));
+
+    // Reset core player values
+    cash = 0;
+    cardPoints = 0;
+    Object.assign(stats, {
+        points: 0,
+        pDamage: 0,
+        pRegen: 0,
+        cashMulti: 1,
+        damageMultiplier: 1,
+        upgradeDamageMultiplier: 1,
+        cardSlots: upgrades.cardSlots.baseValue,
+        attackSpeed: 5000,
+        hpPerKill: 1
+    });
+
+    // Refresh UI elements
+    cashDisplay.textContent = `Cash: $${cash}`;
+    cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
     pointsDisplay.textContent = stats.points;
+    renderUpgrades();
+    updateUpgradeButtons();
+    renderStageInfo();
+
+    // Spawn the player hand and enemy for the new run
     spawnPlayer();
+
     stageData.stage = 1;
+    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+    killsDisplay.textContent = `Kills: ${stageData.kills}`;
+    renderGlobalStats();
 }
 
 let restartOverlay = null;
@@ -1214,7 +1418,6 @@ function updatePlayerStats() {
     stats.damageMultiplier = stats.upgradeDamageMultiplier;
     stats.pRegen = 0;
     stats.cashMulti = 1;
-    stats.pLifeMax = 100;
     stats.points = 0;
 
     for (const card of drawnCards) {
@@ -1225,8 +1428,6 @@ function updatePlayerStats() {
         if (card.suit === "Hearts") stats.pRegen += card.currentLevel;
         if (card.suit === "Diamonds")
             stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
-        if (card.suit === "Clubs")
-            stats.pLifeMax = stats.pLifeMax * 1.1 + card.currentLevel / 100;
 
         card.damage = card.baseDamage * card.currentLevel;
         stats.pDamage += card.damage;
@@ -1261,6 +1462,9 @@ function saveGame() {
     const upgradeLevels = Object.fromEntries(
         Object.entries(upgrades).map(([k, u]) => [k, u.level])
     );
+    const upgradeUnlocked = Object.fromEntries(
+        Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
+    );
 
     const state = {
         stats,
@@ -1269,7 +1473,8 @@ function saveGame() {
         cardPoints,
         deck: deckData,
         upgrades: upgradeLevels,
-        unlockedJokers: unlockedJokers.map(j => j.id)
+        unlockedJokers: unlockedJokers.map(j => j.id),
+        playerStats
     };
 
     try {
@@ -1292,10 +1497,16 @@ function loadGame() {
         cardPoints = state.cardPoints || 0;
         Object.assign(stats, state.stats || {});
         Object.assign(stageData, state.stageData || {});
+        Object.assign(playerStats, state.playerStats || {});
 
         if (state.upgrades) {
             Object.entries(state.upgrades).forEach(([k, lvl]) => {
                 if (upgrades[k]) upgrades[k].level = lvl;
+            });
+        }
+        if (state.upgradesUnlocked) {
+            Object.entries(state.upgradesUnlocked).forEach(([k, unlocked]) => {
+                if (upgrades[k]) upgrades[k].unlocked = unlocked;
             });
         }
 
@@ -1337,6 +1548,9 @@ function loadGame() {
         updateUpgradeButtons();
         renderPlayerStats(stats);
         renderStageInfo();
+        renderGlobalStats();
+
+        checkUpgradeUnlocks();
 
         addLog("Game loaded!", "info");
     } catch (e) {
@@ -1352,6 +1566,7 @@ spawnPlayer();
 spawnDealer();
 renderStageInfo();
 nextStageChecker();
+checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
 redrawBtn.addEventListener("click", redrawHand);
