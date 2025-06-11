@@ -195,7 +195,7 @@ Built in collaboration with ChatGPT & Codex.
 
 🧪 Testing
 
-Automated tests run in a headless Chrome browser using Karma with Mocha and Chai. The test configuration launches a Chromium instance via Puppeteer.
+Automated tests run with **Mocha** and **Chai** directly in Node.js. A GitHub Actions workflow triggers `npm test` on each push.
 Install dependencies and execute the test suite with:
 
 ```bash
@@ -203,5 +203,5 @@ npm install
 npm test
 ```
 
-Tests are located in the `test/` directory and executed via `karma.conf.js`.
+Tests are located in the `test/` directory.
 ---
