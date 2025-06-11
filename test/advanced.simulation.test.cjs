@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const { GameSimulator } = require('../simulator.cjs');
+const { saveCSV } = require('../utils/logger.cjs');
 
 // Helper simulator with HP tracking
 class HPSimulator extends GameSimulator {
@@ -69,14 +70,23 @@ describe('🧪 General Simulation Test Templates', () => {
     expect(res.damageLevel).to.be.greaterThan(0);
   });
 
+  it('Upgrade unlocks at correct stage', () => {
+    const sim = new GameSimulator('balanced');
+    const res = sim.run(5);
+    expect(res.unlockedUpgrades.cardSlots).to.be.true;
+  });
+
   it('Compare strategies side-by-side', () => {
     const strategies = ['aggressive', 'defensive', 'balanced'];
+    const results = [];
     strategies.forEach(strat => {
       const sim = strat === 'balanced' ? new BalancedBuySimulator(strat) : new GameSimulator(strat);
       const res = sim.run(150);
       expect(res.finalStage).to.be.a('number');
-      console.log(`${strat}: stage=${res.finalStage}, cash=${res.totalCash}, dmg=${res.damageLevel}`);
+      results.push({ strat, stage: res.finalStage, cash: res.totalCash, dmg: res.damageLevel });
     });
+    console.table(results);
+    saveCSV(results, 'strategy-results.csv');
   });
 
   it('Game over condition triggers', () => {
@@ -108,6 +118,9 @@ describe('🧪 General Simulation Test Templates', () => {
       expect(res.finalStage).to.not.equal(0);
       results.push({ strat, stage: res.finalStage, cash: res.totalCash });
     });
+    const maxGap = Math.max(...results.map(r => r.stage)) - Math.min(...results.map(r => r.stage));
+    expect(maxGap).to.be.below(50);
     console.table(results);
+    saveCSV(results, 'strategy-results.csv');
   });
 });
