@@ -1,63 +1,63 @@
 * {
-  overflow-x: hidden;
-  font-family: Trebuchet MS;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
+    overflow-x: hidden;
+    font-family: Trebuchet MS;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 body {
-  background: radial-gradient(circle, #0b5121 0%, #052a13 100%);
-  font-family: Trebuchet MS;
-  padding: 5px;
-  color: #fff;
+    background: radial-gradient(circle, #0b5121 0%, #052a13 100%);
+    font-family: Trebuchet MS;
+    padding: 5px;
+    color: #fff;
 }
 
 #debugPanel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px;
-  border-radius: 8px;
-  z-index: 1000;
-  color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 1000;
+    color: white;
 }
 
 #debugToggle {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1001;
-  background: #222;
-  color: #fff;
-  border: 1px solid #d4af37;
-  border-radius: 4px;
-  padding: 4px 6px;
-  cursor: pointer;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    background: #222;
+    color: #fff;
+    border: 1px solid #d4af37;
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
 }
 
 .tabsContainer {
-  display: flex;
-  gap: 12px;
-  padding: 10px;
-  background: rgba(10, 10, 30, 0.8);
-  box-shadow: 0 0 12px #222;
-  border-bottom: 2px solid #00ffee;
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(10, 10, 30, 0.8);
+    box-shadow: 0 0 12px #222;
+    border-bottom: 2px solid #00ffee;
 }
 
 .tabsContainer button {
-  background: #111;
-  color: #00ffee;
-  border: 1px solid #00ffee;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: all 0.2s;
+    background: #111;
+    color: #00ffee;
+    border: 1px solid #00ffee;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.2s;
 }
 .tabsContainer button:hover {
-  background: #00ffee;
-  color: #000;
+    background: #00ffee;
+    color: #000;
 }
 
 /* tabs container */
@@ -82,826 +82,855 @@ body {
 }*/
 
 .casino-section {
-  border: 3px solid #d4af37;
-  border-radius: 8px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 0 10px #d4af37;
+    border: 3px solid #d4af37;
+    border-radius: 8px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px #d4af37;
 }
 
 #tooltip {
-  position: absolute;
-  pointer-events: none;      /* mouse “ignores” it */
-  padding: 4px 8px;
-  background: rgba(0,0,0,0.75);
-  color: white;
-  border-radius: 4px;
-  font-size: 12px;
-  display: none;
-  z-index: 1000;
-  white-space: nowrap;
+    position: absolute;
+    pointer-events: none; /* mouse “ignores” it */
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none;
+    z-index: 1000;
+    white-space: nowrap;
 }
 .mainTab {
-  display: grid;
-  /* keep dealer area row fixed */
-  grid-template-rows: auto auto 1fr auto;
-  grid-template-columns: 30px 1fr 20%;
-  grid-template-areas:
-    ". dealer sidePanel"
-    ". buttons sidePanel"
-    "mana hand sidePanel"
-    "mana jokers discard";
-  padding: 8px;
-  height: 100vh;
-  gap: 10px;
+    display: grid;
+    /* keep dealer area row fixed */
+    grid-template-rows: 30% auto auto 1fr;
+    grid-template-columns: 1fr 20%;
+    grid-template-areas:
+        "dealer sidePanel"
+        "gameColumn sidePanel"
+        "gameColumn sidePanel"
+        "gameColumn discard";
+    padding: 8px;
+    height: 100vh;
+    gap: 10px;
 }
 
-.dealerContainer   { grid-area: dealer;   }
-.buttonsContainer  { grid-area: buttons;  }
-.handContainer     { grid-area: hand;     }
-.joker-wrapper     { grid-area: jokers;   } /* or add a .jokerContainer alias */
-.jokerContainer    { grid-area: jokers;   }
-.discardContainer  { grid-area: discard;  }
-.manaBar           { grid-area: mana;     }
-.sidePanel         { grid-area: sidePanel;
-                     overflow-y: auto;   /* only sidebar scrolls */
-                   }
-
-.mainTab > * {
-  /*overflow: hidden;*/
+.dealerContainer {
+    grid-area: dealer;
 }
 
 #gameColumn {
-  /* preserve DOM structure without affecting layout */
-  display: contents;
+    grid-area: gameColumn;
+}
+
+.sidePanel {
+    grid-area: sidePanel;
+    overflow-y: auto; /* only sidebar scrolls */
+}
+
+.mainTab > * {
+    /*overflow: hidden;*/
+}
+
+#gameColumn {
+    display: contents;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        ". buttons"
+        "mana hand"
+        "mana jokers";
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 10px;
+    position: relative;
+}
+
+.buttonsContainer {
+    grid-area: buttons;
+}
+.handContainer {
+    grid-area: hand;
+}
+.joker-wrapper {
+    grid-area: jokers;
+} /* or add a .jokerContainer alias */
+.jokerContainer {
+    grid-area: jokers;
 }
 
 .manaBar {
-  grid-area: mana;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.manaBarInner {
-  position: relative;
-  width: 20px;
-  height: 100%;
-  background: black;
-  border: 1px solid #333;
-}
-
-.manaFill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background: #222;
-}
-
-.manaText {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  color: #fff;
-  font-size: 0.7rem;
-  white-space: nowrap;
+    grid-area: mana;
 }
 
 .manaBar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .manaBarInner {
-  position: relative;
-  width: 20px;
-  height: 100%;
-  background: black;
-  border: 1px solid #333;
+    position: relative;
+    width: 20px;
+    height: 100%;
+    background: black;
+    border: 1px solid #333;
 }
 
 .manaFill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background: #222;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: #222;
 }
 
 .manaText {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  color: #fff;
-  font-size: 0.7rem;
-  white-space: nowrap;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    color: #fff;
+    font-size: 0.7rem;
+    white-space: nowrap;
 }
+
+.manaBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.manaBarInner {
+    position: relative;
+    width: 20px;
+    height: 100%;
+    background: black;
+    border: 1px solid #333;
+}
+
+
 /*============ main tab side panel============== */
 
 .sidePanel {
-  grid-area: sidePanel;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.5rem;
 }
 
 .vignette-toggle {
-  width: 100%;
-  padding: 4px 6px;
-  background: linear-gradient(135deg, #f0f0f0, #fafafa);
-  border: 2px solid #4CAF50;
-  border-radius: 6px;
-  color: #080707;
-  box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
-  cursor: pointer;
-  font-size: inherit; /* match side panel text size */
+    width: 100%;
+    padding: 4px 6px;
+    background: linear-gradient(135deg, #f0f0f0, #fafafa);
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    color: #080707;
+    box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
+    cursor: pointer;
+    font-size: inherit; /* match side panel text size */
 }
 
 .vignette-toggle:hover {
-  box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
 }
 
 .vignette-content {
-  display: none;
+    display: none;
 }
 
 .vignette.open .vignette-content {
-  display: block;
+    display: block;
 }
 .statsSidePanel {
-  background: rgba(133, 163, 139, 0.5);
-  color: white;
-  text-shadow: 0 0 5px black;
+    background: rgba(133, 163, 139, 0.5);
+    color: white;
+    text-shadow: 0 0 5px black;
 }
 
 .statsSidePanel > div {
-  border: 1px solid #d4af37;
-  border-radius: 4px;
-  padding: 1px 1px;
-  margin-bottom: 4px;
-  background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #d4af37;
+    border-radius: 4px;
+    padding: 1px 1px;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .statsSidePanel > div:last-child {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
-
 #log-panel {
-  border: 2px solid grey;
-  border-radius: 8px;
-  color: white;
-  text-shadow: 0 0 5px black;
-  max-height: 150px;
-  overflow-y: auto;
+    border: 2px solid grey;
+    border-radius: 8px;
+    color: white;
+    text-shadow: 0 0 5px black;
+    max-height: 150px;
+    overflow-y: auto;
 }
 
 /* dealer container */
 .dealerContainer {
-  grid-area: dealer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
 }
 
 .dealerContainer > .dealerLifeDisplay {
-  justify-self: center;
+    justify-self: center;
 }
 #stage {
-  justify-self: left;
-  font-size: 20px;
-  color: #2c252b;
-  text-shadow: 0 0 5px black;
-  margin-bottom: 5px
+    justify-self: left;
+    font-size: 20px;
+    color: #2c252b;
+    text-shadow: 0 0 5px black;
+    margin-bottom: 5px;
 }
-
 
 #dealerBarFill {
-  height: 30px;
-  width: 100%;
-  background: red;
-  border: 2px solid grey;
-  transition: width 0.3s;
+    height: 30px;
+    width: 100%;
+    background: red;
+    border: 2px solid grey;
+    transition: width 0.3s;
 }
 
-
 .dealerLifeContainer {
-  height: 30px;
-  width: 80%;
-  justify-self: center;
-  background: #090b09;
-  border-radius: 8px;
-  overflow: hidden;
+    height: 30px;
+    width: 80%;
+    justify-self: center;
+    background: #090b09;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .dealerLifeContainer.bar-dead {
-  animation: barDeath 0.5s ease-out forwards;
+    animation: barDeath 0.5s ease-out forwards;
 }
 
 @keyframes barDeath {
-  0% {
-    background: #090b09;
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  100% {
-    background: red;
-    opacity: 0;
-    transform: scaleY(0);
-  }
+    0% {
+        background: #090b09;
+        opacity: 1;
+        transform: scaleY(1);
+    }
+    100% {
+        background: red;
+        opacity: 0;
+        transform: scaleY(0);
+    }
 }
 
 /* Card container */
 .dCardContainer {
-  margin-top: 5px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-grow: 1;
-  align-items: center;
-  width: 100%;
+    margin-top: 5px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-grow: 1;
+    align-items: center;
+    width: 100%;
 }
 
 /* Dealer card base */
 .dCardWrapper {
-  display: flex;                  /* horizontal layout */
-  flex-direction: row;            /* card on the left, abilities on the right */
-  align-items: top;
-  justify-content: center;
-  margin: 0 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex; /* horizontal layout */
+    flex-direction: row; /* card on the left, abilities on the right */
+    align-items: top;
+    justify-content: center;
+    margin: 0 8px;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .dCardWrapper:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .dCardPane {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: auto;
-  max-height: 100%;
-  border-radius: 12px;
-  padding: 6px;
-  background: linear-gradient(to bottom right, #fff, #eee);
-  border: 2px solid #888;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: auto;
+    max-height: 100%;
+    border-radius: 12px;
+    padding: 6px;
+    background: linear-gradient(to bottom right, #fff, #eee);
+    border: 2px solid #888;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
 }
 
 .dCardPane.dealer {
-  background: linear-gradient(to bottom right, #fff, #eee);
-  border-color: #888;
+    background: linear-gradient(to bottom right, #fff, #eee);
+    border-color: #888;
 }
 
 .dCardPane.boss {
-  background: linear-gradient(to bottom right, #947f7f, #c20f0f);
-  border-color: #aa3333;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+    background: linear-gradient(to bottom right, #947f7f, #c20f0f);
+    border-color: #aa3333;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
 }
 
 .dCard__icon {
-  width: 3em;
-  height: 3em;
-  stroke: #a04444;
-  margin-bottom: 6px;
+    width: 3em;
+    height: 3em;
+    stroke: #a04444;
+    margin-bottom: 6px;
 }
-
 
 .dCard__text {
-  color: #2c1a1a;
-  font-size: 0.9em;
-  font-weight: bold;
-  text-align: center;
-  line-height: 1.2;
-  padding: 2px;
+    color: #2c1a1a;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.2;
+    padding: 2px;
 }
 
-
 .dCardPane.dealer-dead {
-  animation: cardDeathRed 0.5s ease-out forwards;
+    animation: cardDeathRed 0.5s ease-out forwards;
 }
 
 @keyframes cardDeathRed {
-  0% {
-    background-color: white;
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    background-color: red;
-  }
-  100% {
-    background-color: red;
-    opacity: 0;
-    transform: scale(0.5);
-  }
+    0% {
+        background-color: white;
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        background-color: red;
+    }
+    100% {
+        background-color: red;
+        opacity: 0;
+        transform: scale(0.5);
+    }
 }
 
-
 .dCardAbilityPane {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 8px;
-  padding-left: 6px;
-  padding-right: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
 }
 
 .dCard_abilities {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .dCard_ability {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f0f0f0;
-  border: 1px solid #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .dCard_ability.onCooldown {
-  opacity: 0.6;
+    opacity: 0.6;
 }
 
 .cooldown-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(rgba(0, 0, 0, 0.4) calc(var(--cooldown) * 100%), transparent 0%);
-  pointer-events: none;
-  border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        rgba(0, 0, 0, 0.4) calc(var(--cooldown) * 100%),
+        transparent 0%
+    );
+    pointer-events: none;
+    border-radius: 50%;
 }
 
 .dCard_ability.green {
-  background: #d0f0d0;
-  border-color: #5cb85c;
+    background: #d0f0d0;
+    border-color: #5cb85c;
 } /* green color for healing icon */
-
-
-
 
 /* buttons container */
 
-
 .buttonsContainer {
-  grid-area: buttons;
-  padding: 5px;
-  gap: 5px;
-  display: flex;
-  flex-wrap: wrap;              /* allow the attack bar to sit above the buttons */
-  justify-content: center;
-  align-items: center;
-  padding: 0 8px;
+    padding: 5px;
+    gap: 5px;
+    display: flex;
+    flex-wrap: wrap; /* allow the attack bar to sit above the buttons */
+    justify-content: center;
+    align-items: center;
+    padding: 0 8px;
 }
 
 .buttonsContainer > button {
-  display: flex;                /* turn the button into a flex container */
-  align-items: center;          /* vertically center icon */
-  justify-content: center;      /* horizontally center content */
+    display: flex; /* turn the button into a flex container */
+    align-items: center; /* vertically center icon */
+    justify-content: center; /* horizontally center content */
 
-  width: 40px;
-  height: 40px;
-  padding: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
 
-  color: #080707;                  /* no quotes here */
-  background: linear-gradient(135deg, #f0f0f0, #fafafa);
-  border: 2px solid #4CAF50;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
+    color: #080707; /* no quotes here */
+    background: linear-gradient(135deg, #f0f0f0, #fafafa);
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 128, 0, 0.4);
 
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition:
+        transform 0.1s ease,
+        box-shadow 0.1s ease;
 }
 
 /* auto attack progress bars */
 .playerAttackBar {
-  width: 50%;
-  height: 6px;
-  background: #090b09;
-  border: 1px solid grey;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 0 auto 4px;            /* center above the buttons */
-  position: relative;
-  flex-basis: 100%;              /* occupy its own row within the flex wrapper */
+    width: 50%;
+    height: 6px;
+    background: #090b09;
+    border: 1px solid grey;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto 4px; /* center above the buttons */
+    position: relative;
+    flex-basis: 100%; /* occupy its own row within the flex wrapper */
 }
 
 .playerAttackFill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  background: grey;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: grey;
 }
 
 .enemyAttackBar {
-  width: 50%;
-  height: 4px;
-  background: #090b09;
-  border: 1px solid grey;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 4px auto 0;
-  position: relative;
+    width: 50%;
+    height: 4px;
+    background: #090b09;
+    border: 1px solid grey;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 4px auto 0;
+    position: relative;
 }
 
 .enemyAttackFill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  background: grey;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: grey;
 }
 
 .buttonsContainer > button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
-  background: linear-gradient(135deg, #fafafa, #f0f0f0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 128, 0, 0.6);
+    background: linear-gradient(135deg, #fafafa, #f0f0f0);
 }
 
 /* hand container */
 
 .handContainer {
-  display: grid;
-  grid-area: hand;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  justify-items: center;
-  gap: 12px;
-  padding: 2px 8px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+    gap: 12px;
+    padding: 2px 8px;
 }
 
 .discardContainer {
-  border: 2px solid rgb(91, 91, 87);
-  display: flex;
-  width: 75px;
-  height: 100px;
-  justify-content: center;
-  align-items: center;
-  border-bottom: 2px solid rgba(255, 255, 100, 0.3);
-  overflow: hidden;
-  position: relative;
-  margin-top: auto;
-  align-self: center;
+    border: 2px solid rgb(91, 91, 87);
+    display: flex;
+    width: 75px;
+    height: 100px;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 255, 100, 0.3);
+    overflow: hidden;
+    position: relative;
+    margin-top: auto;
+    align-self: center;
 }
-
 
 .card-wrapper {
-
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  /*height: max-content;*/
-  width: 100%;
-  max-width: 90px;
-  max-height: 120px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    /*height: max-content;*/
+    width: 100%;
+    max-width: 90px;
+    max-height: 120px;
 }
 
-
 .card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;   /* space out value, suit, and HP */
-  align-items: center;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 8px;
-  padding: 4px;
-  background: white;
-  border: 2px solid grey;
-  margin-bottom: 4px;
-  font-size: 2vmin;
-  box-sizing: border-box;
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* space out value, suit, and HP */
+    align-items: center;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    padding: 4px;
+    background: white;
+    border: 2px solid grey;
+    margin-bottom: 4px;
+    font-size: 2vmin;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .card-back {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 8px;
-  border: 2px solid grey;
-  margin: 0 auto;
-  object-fit: cover;
-  display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    border: 2px solid grey;
+    margin: 0 auto;
+    object-fit: cover;
+    display: block;
 }
 
 .card-value {
-  font-size: 2em;
-  align-self: flex-start;
-  margin-left: 4px;
-  margin-top: 2px;
+    font-size: 2em;
+    align-self: flex-start;
+    margin-left: 4px;
+    margin-top: 2px;
 }
 
 .card-suit {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 3em;   /* adjust as needed */
-  line-height: 1;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em; /* adjust as needed */
+    line-height: 1;
 }
 
 .card-hp {
-  align-self: flex-end;
-  margin-right: 4px;
-  margin-bottom: 2px;
-  color: #000;
-  font-size: 1.2em;
+    align-self: flex-end;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    color: #000;
+    font-size: 1.2em;
 }
 
 .card-wrapper {
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 .card-wrapper:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes card-hit {
-  0%   { transform: translateX(0) scale(1); }
-  20%  { transform: translateX(-4px) scale(0.98); }
-  40%  { transform: translateX(4px)  scale(0.98); }
-  60%  { transform: translateX(-2px) scale(1.02); }
-  80%  { transform: translateX(2px)  scale(1.02); }
-  100% { transform: translateX(0)     scale(1); }
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    20% {
+        transform: translateX(-4px) scale(0.98);
+    }
+    40% {
+        transform: translateX(4px) scale(0.98);
+    }
+    60% {
+        transform: translateX(-2px) scale(1.02);
+    }
+    80% {
+        transform: translateX(2px) scale(1.02);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
 }
 
 .hit-animate {
-  animation: card-hit 0.4s ease-out both;
+    animation: card-hit 0.4s ease-out both;
 }
 
 /* track (the “container” behind the fill) */
 .xpBar {
-  position: relative;
-  width: 80%;               /* whatever % of the hand you like */
-  height: 1em;
-  background: #090b09;      /* dark green track */
-  border: 1px solid grey;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 0.5em;
-  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    position: relative;
+    width: 80%; /* whatever % of the hand you like */
+    height: 1em;
+    background: #090b09; /* dark green track */
+    border: 1px solid grey;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.5em;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 /* fill (the colored portion) */
 .xpBarFill {
-  position: absolute;
-  top:    0;
-  left:   0;
-  height: 100%;
-  width:  0;                /* start empty */
-  background: #3d3f85;       /* your “fill” color */
-  border-radius: 8px 0 0 8px; /* round only the left corners */
-  transition: width 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0; /* start empty */
+    background: #3d3f85; /* your “fill” color */
+    border-radius: 8px 0 0 8px; /* round only the left corners */
+    transition: width 0.3s ease;
 }
 
 /* label (the text on top) */
 .xpBarLabel {
-  position: absolute;
-  top:    0;
-  left:   50%;
-  transform: translateX(-50%);
-  line-height: 1em;
-  font-size: 0.6em;
-  color: white;
-  pointer-events: none;     /* clicks pass through */
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    line-height: 1em;
+    font-size: 0.6em;
+    color: white;
+    pointer-events: none; /* clicks pass through */
 }
 
 @keyframes card-heal {
-  0%   { box-shadow: none; }
-  50%  { box-shadow: 0 0 8px 4px rgba(50,255,50,0.75); }
-  100% { box-shadow: none; }
+    0% {
+        box-shadow: none;
+    }
+    50% {
+        box-shadow: 0 0 8px 4px rgba(50, 255, 50, 0.75);
+    }
+    100% {
+        box-shadow: none;
+    }
 }
 
 .heal-animate {
-  animation: card-heal 0.6s ease-out both;
+    animation: card-heal 0.6s ease-out both;
 }
 
 @keyframes card-death {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
 }
 
-
 .death-animate {
-  animation: card-death 0.5s ease-out forwards;
+    animation: card-death 0.5s ease-out forwards;
 }
 
 @keyframes card-level-up {
-  0% {
-    transform: scale(1);
-    box-shadow: none;
-  }
-  50% {
-    transform: scale(1.2);
-    /* strong gold glow at the halfway point */
-    box-shadow: 0 0 12px 6px rgba(255, 215, 0, 0.8);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: none;
-  }
+    0% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+    50% {
+        transform: scale(1.2);
+        /* strong gold glow at the halfway point */
+        box-shadow: 0 0 12px 6px rgba(255, 215, 0, 0.8);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: none;
+    }
 }
 
 .levelup-animate {
-  animation: card-level-up 0.6s ease-out both;
+    animation: card-level-up 0.6s ease-out both;
 }
 
 @keyframes card-death {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
 }
 
 .card-death {
-  animation: card-death 0.5s ease-out forwards;
+    animation: card-death 0.5s ease-out forwards;
 }
-
 
 /*============= deck tab panel============== */
 .deckTab {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background-color: #67a16c;
-  padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #67a16c;
+    padding: 5px;
 }
 
 .deckTabContainer {
-  display: flex;
-  flex-wrap: wrap;
-  border: 2px solid grey;
+    display: flex;
+    flex-wrap: wrap;
+    border: 2px solid grey;
 }
 
 /* Star chart tab */
 .starChartTab {
-  width: 100%;
-  height: 100vh;
-  background: black;
-  overflow: hidden;
+    width: 100%;
+    height: 100vh;
+    background: black;
+    overflow: hidden;
 }
 
 /* Player stats tab */
 .playerStatsTab {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background-color: #556b7a;
-  padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #556b7a;
+    padding: 5px;
 }
 
 /* Joker container and tiles */
 .joker-wrapper {
-  max-width: 90px;
-  width: 100%;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+    max-width: 90px;
+    width: 100%;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .joker-wrapper .card {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: 8px;
-  padding: 4px;
-  margin-bottom: 4px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .joker-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* or try 'cover' for tighter framing */
-  border-radius: 6px;  /* optional: mimic the inner edge */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* or try 'cover' for tighter framing */
+    border-radius: 6px; /* optional: mimic the inner edge */
 }
 
 .damage-float {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, 0);
-  color: red;
-  font-weight: bold;
-  pointer-events: none;
-  text-shadow: 0 0 2px #000;
-  animation: damage-float 1s ease-out forwards;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    color: red;
+    font-weight: bold;
+    pointer-events: none;
+    text-shadow: 0 0 2px #000;
+    animation: damage-float 1s ease-out forwards;
 }
 
 @keyframes damage-float {
-  from { opacity: 1; transform: translate(-50%, 0); }
-  to { opacity: 0; transform: translate(-50%, -20px); }
+    from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
 }
 
 .upgrade-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .upgrade-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background 0.2s ease, opacity 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .upgrade-item button {
-  width: 70px;
-  height: 24px;
-  font-size: 0.5rem; /* Match side panel text size */
-  line-height: 1;
-  padding: 2px 4px;
-  background: linear-gradient(135deg, #e8ffe8, #c8facc);
-  border: 1px solid #4CAF50;
-  border-radius: 4px;
-  cursor: pointer;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #080707;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+    width: 70px;
+    height: 24px;
+    font-size: 0.5rem; /* Match side panel text size */
+    line-height: 1;
+    padding: 2px 4px;
+    background: linear-gradient(135deg, #e8ffe8, #c8facc);
+    border: 1px solid #4caf50;
+    border-radius: 4px;
+    cursor: pointer;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #080707;
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .upgrade-item button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .upgrade-item.affordable {
-  background: rgba(76, 175, 80, 0.2);
-  opacity: 1;
+    background: rgba(76, 175, 80, 0.2);
+    opacity: 1;
 }
 
 .upgrade-item.unaffordable {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .restart-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 5000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
 }
 
 .restart-overlay .restart-message {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+    font-size: 2rem;
+    margin-bottom: 1rem;
 }
 
 .restart-overlay button {
-  padding: 6px 12px;
-  font-size: 1rem;
-  cursor: pointer;
+    padding: 6px 12px;
+    font-size: 1rem;
+    cursor: pointer;
 }
-

@@ -4,160 +4,158 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <title>Page Title</title>
-<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.8/dist/browser/pixi.min.js"></script> <!-- :contentReference[oaicite:0]{index=0} -->
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.8/dist/browser/pixi.min.js"></script>
+  <!-- :contentReference[oaicite:0]{index=0} -->
 
-<!-- And the GlowFilter plugin: -->
-<script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/browser/pixi-filters.min.js"></script> <!-- :contentReference[oaicite:1]{index=1} --> 
-<body>
-  <button id="debugToggle" class="debug-toggle">Debug</button>
-  <div id="debugPanel" style="display:none;">
-    <label>Cash: <input id="debugCash" type="number" value="10000" style="width: 60px;"></label>
-    <button onclick="devTools.giveCash()">Give</button>
-    <br>
+  <!-- And the GlowFilter plugin: -->
+  <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/browser/pixi-filters.min.js"></script>
+  <!-- :contentReference[oaicite:1]{index=1} -->
+  <body>
+    <button id="debugToggle" class="debug-toggle">Debug</button>
+    <div id="debugPanel" style="display:none;">
+      <label>Cash: <input id="debugCash" type="number" value="10000" style="width: 60px;"></label>
+      <button onclick="devTools.giveCash()">Give</button>
+      <br>
 
-    <label>Damage Mult: <input id="debugDamageMult" type="number" value="1" step="0.1" style="width: 50px;"></label>
-    <button onclick="devTools.setDamageMult()">Set</button>
-    <button onclick="devTools.toggleFastMode()">Fast Mode</button>
-    <br><br>
+      <label>Damage Mult: <input id="debugDamageMult" type="number" value="1" step="0.1" style="width: 50px;"></label>
+      <button onclick="devTools.setDamageMult()">Set</button>
+      <button onclick="devTools.toggleFastMode()">Fast Mode</button>
+      <br><br>
 
-    <button onclick="devTools.spawnBoss()">Spawn Boss</button>
-    <button onclick="devTools.spawnDealer()">Spawn Dealer</button>
-    <button onclick="devTools.killEnemy()">Kill Enemy</button>
-    <button onclick="devTools.killBoss()">Kill Boss</button>
-    <button onclick="devTools.advanceStage()">Next Stage</button>
-    <br>
-    <button onclick="devTools.logEnemy()">Log Enemy</button>
-    <br>
-    <button onclick="devTools.save()">Save Game</button>
-    <button onclick="devTools.load()">Load Game</button>
-  </div>
-
-  <!---tabs container--->
-  <div class=tabsContainer>
-    <button class="mainTabButton">main</button>
-    <button class="deckTabButton">deck</button>
-    <button class="starChartTabButton">star chart</button>
-    <button class="playerStatsTabButton">stats</button>
-  </div>
-
-  <!--------------main tab panel----------------->
-  <div class="mainTab">
-
-    <div class="dealerContainer casino-section">
-      <div id="stage">
-        Stage 1
-      </div>
-      <span id="kills">kills: 0</span>
-      <div class="dealerLifeDisplay">
-        Life:10
-      </div>
-      <div class="dCardContainer"></div>
+      <button onclick="devTools.spawnBoss()">Spawn Boss</button>
+      <button onclick="devTools.spawnDealer()">Spawn Dealer</button>
+      <button onclick="devTools.killEnemy()">Kill Enemy</button>
+      <button onclick="devTools.killBoss()">Kill Boss</button>
+      <button onclick="devTools.advanceStage()">Next Stage</button>
+      <br>
+      <button onclick="devTools.logEnemy()">Log Enemy</button>
+      <br>
+      <button onclick="devTools.save()">Save Game</button>
+      <button onclick="devTools.load()">Load Game</button>
     </div>
 
-    <div class="sidePanel">
-      <div class="vignette stats open">
-        <button class="vignette-toggle">Stats</button>
+    <!---tabs container--->
+    <div class=tabsContainer>
+      <button class="mainTabButton">main</button>
+      <button class="deckTabButton">deck</button>
+      <button class="starChartTabButton">star chart</button>
+      <button class="playerStatsTabButton">stats</button>
+    </div>
+
+    <!--------------main tab panel----------------->
+    <div class="mainTab">
+
+      <div class="dealerContainer casino-section">
+        <div id="stage">
+          Stage 1
+        </div>
+        <span id="kills">kills: 0</span>
+        <div class="dealerLifeDisplay">
+          Life:10
+        </div>
+        <div class="dCardContainer"></div>
+      </div>
+
+      <div class="sidePanel">
+        <div class="vignette stats open">
+          <button class="vignette-toggle">Stats</button>
+          <div class="vignette-content">
+            <div class="statsSidePanel casino-section">
+              <div id="pointsDisplay">
+                Attack: 0
+              </div>
+              <div id="cashDisplay">
+                Cash: 0
+              </div>
+              <div id="damageDisplay">
+                Damage: 0
+              </div>
+              <div id="cashMultiDisplay">
+                Cash Multi: 0
+              </div>
+              <div id="cardPointsDisplay">
+                Card Points: 0
+              </div>
+              <div id="hpPerKillDisplay">
+                HP per Kill: 1
+              </div>
+              <div id="attackSpeedDisplay">
+                Attack Speed: 10
+              </div>
+              <div id="manaRegenDisplay">
+                Mana Regen: 0/s
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="vignette upgrades">
+          <button class="vignette-toggle">Upgrades</button>
+          <div class="casino-section vignette-content">
+            <div class="upgrade-list">
+              <div class="upgrade-item">
+                <span>Test Upgrade</span>
+                <button>Buy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="vignette log">
+          <button class="vignette-toggle">Log</button>
+          <div class="casino-section vignette-content" id="log-panel">
+            <div id="game-log"></div>
+          </div>
+        </div>
+        <div class="discardContainer casino-section"></div>
+      </div>
+      <div class="gameColumn">
+        <div class="buttonsContainer casino-section">
+          <div id="playerAttackBar" class="playerAttackBar">
+            <div class="playerAttackFill"></div>
+          </div>
+          <button id="clickalipse" title="Draw">🃏</button>
+          <button id="redrawBtn" title="Re-draw">🔄</button>
+          <button id="nextStageBtn" disabled title="Next Stage">🚀</button>
+        </div>
+
+        <div class="handContainer casino-section">
+        </div>
+        <div class="jokerContainer casino-section">
+        </div>
+        <div class="manaBar" id="manaBar" style="display:none;">
+          <div class="manaBarInner">
+            <div class="manaFill" id="manaFill"></div>
+            <div class="manaText" id="manaText">
+              0/0
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- close mainTab -->
+    <!--------------deck tab----------------->
+    <div class="deckTab">
+      <div class="vignette open">
+        <button class="vignette-toggle">Basic Deck</button>
         <div class="vignette-content">
-          <div class="statsSidePanel casino-section">
-            <div id="pointsDisplay">
-              Attack: 0
-            </div>
-            <div id="cashDisplay">
-              Cash: 0
-            </div>
-            <div id="damageDisplay">
-              Damage: 0
-            </div>
-            <div id="cashMultiDisplay">
-              Cash Multi: 0
-            </div>
-            <div id="cardPointsDisplay">
-              Card Points: 0
-            </div>
-            <div id="hpPerKillDisplay">
-              HP per Kill: 1
-            </div>
-            <div id="attackSpeedDisplay">
-              Attack Speed: 10
-            </div>
-            <div id="manaRegenDisplay">
-              Mana Regen: 0/s
-            </div>
+          <div class="deckTabContainer">
+            <!-- <div id="deckDisplay"> Deck: 0</div> -->
           </div>
         </div>
       </div>
-      <div class="vignette upgrades">
-        <button class="vignette-toggle">Upgrades</button>
-        <div class="casino-section vignette-content">
-          <div class="upgrade-list">
-            <div class="upgrade-item">
-              <span>Test Upgrade</span>
-              <button>Buy</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="vignette log">
-        <button class="vignette-toggle">Log</button>
-        <div class="casino-section vignette-content" id="log-panel">
-          <div id="game-log"></div>
-        </div>
-      </div>
-      <div class="discardContainer casino-section"></div>
-    </div>
-    <div class="gameColumn">
-      <div class="buttonsContainer casino-section">
-        <div id="playerAttackBar" class="playerAttackBar">
-          <div class="playerAttackFill"></div>
-        </div>
-        <button id="clickalipse" title="Draw">🃏</button>
-        <button id="redrawBtn" title="Re-draw">🔄</button>
-        <button id="nextStageBtn" disabled title="Next Stage">🚀</button>
-      </div>
-
-      <div class="handContainer casino-section">
-      </div>
-      <div class="jokerContainer casino-section">
-      </div>
-      <div class="manaBar" id="manaBar" style="display:none;">
-        <div class="manaBarInner">
-          <div class="manaFill" id="manaFill"></div>
-          <div class="manaText" id="manaText">0/0</div>
+      <div class="vignette">
+        <button class="vignette-toggle">Jokers</button>
+        <div class="vignette-content">
+          <div class="jokerContainer"></div>
         </div>
       </div>
     </div>
-    <div class="manaBar" id="manaBar" style="display:none;">
-      <div class="manaBarInner">
-        <div class="manaFill" id="manaFill"></div>
-        <div class="manaText" id="manaText">0/0</div>
-      </div>
+    <div class="starChartTab">
+      <div id="star-chart-container"></div>
     </div>
-  </div>
-  <!-- close mainTab -->
-  <!--------------deck tab----------------->
-  <div class="deckTab">
-    <div class="vignette open">
-      <button class="vignette-toggle">Basic Deck</button>
-      <div class="vignette-content">
-        <div class="deckTabContainer">
-          <!-- <div id="deckDisplay"> Deck: 0</div> -->
-        </div>
-      </div>
+    <div class="playerStatsTab">
+      <div id="playerStatsContainer" class="casino-section"></div>
     </div>
-    <div class="vignette">
-      <button class="vignette-toggle">Jokers</button>
-      <div class="vignette-content">
-        <div class="jokerContainer"></div>
-      </div>
-    </div>
-  </div>
-  <div class="starChartTab">
-    <div id="star-chart-container"></div>
-  </div>
-  <div class="playerStatsTab">
-    <div id="playerStatsContainer" class="casino-section"></div>
-  </div>
-  <div id="tooltip"></div>
-<script type="module" src="script.js"></script>
-</body>
+    <div id="tooltip"></div>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>
