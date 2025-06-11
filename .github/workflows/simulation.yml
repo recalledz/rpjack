@@ -20,6 +20,8 @@ jobs:
 
       - name: 📦 Install Dependencies
         run: npm install
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: '1'
 
       - name: 🧪 Run Simulation Tests
         run: npm test
