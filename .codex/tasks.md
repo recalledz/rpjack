@@ -15,6 +15,9 @@
   - Include references to job affinity and trait bonuses
 -Add appropriate icons to each dealer/boss card
 -Increase size/intensity of icons depending on stage
+-Add fast mode toggle to debug panel
+-Implement Node-based GameSimulator with simulation tests
+-Add restart option in stats screen to begin a new run
 
 ---
 
