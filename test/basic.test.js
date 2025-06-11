@@ -1,5 +1,6 @@
-describe("Sanity Check", () => {
-  it("should deliberately fail", () => {
-    chai.expect(2 + 2).to.equal(5);
+// test/basic.test.js
+describe("🔥 Force Fail Test", () => {
+  it("should fail if this is being run", () => {
+    chai.expect(true).to.equal(false);
   });
 });
