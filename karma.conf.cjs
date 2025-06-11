@@ -1,21 +1,25 @@
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+// Gracefully load Puppeteer path, fallback to system Chrome if needed
+let chromePath;
+try {
+  chromePath = require('puppeteer').executablePath();
+  process.env.CHROME_BIN = chromePath;
+} catch (err) {
+  console.warn("⚠️ Puppeteer not found, using system Chrome if available.");
+}
 
 module.exports = function (config) {
   config.set({
     basePath: '',
     hostname: '127.0.0.1',
 
-    frameworks: ['esm', 'mocha', 'chai'],
+    frameworks: ['mocha', 'chai', 'commonjs'],
 
     files: [
-      { pattern: 'test/**/*.test.js', type: 'module' },
-      { pattern: '*.js', included: false, type: 'module' }
+      'test/**/*.test.cjs'
     ],
 
-    esm: {
-      nodeResolve: true,
-      preserveSymlinks: true,
-      compatibility: 'none'
+    preprocessors: {
+      'test/**/*.test.js': ['commonjs']
     },
 
     customLaunchers: {
@@ -31,9 +35,9 @@ module.exports = function (config) {
     captureTimeout: 30000,
 
     plugins: [
-      require('karma-esm'),
       require('karma-mocha'),
       require('karma-chai'),
+      require('karma-commonjs'),
       require('karma-chrome-launcher')
     ]
   });
