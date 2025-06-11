@@ -3,6 +3,7 @@ import generateDeck from "./card.js";
 import { Enemy } from "./enemy.js"; // assume this works without DOM
 import { Boss } from "./boss.js";
 import { upgrades as allUpgrades } from "./script.js"; // if needed, or copy upgrade logic
+import { saveCSV } from "./utils/logger.cjs";
 
 export class GameSimulator {
   constructor(strategy = "balanced") {
@@ -15,11 +16,13 @@ export class GameSimulator {
       stage: 1,
       cash: 500,
       xp: 0,
+      hp: 100,
     };
     this.deck = generateDeck();
     this.strategy = strategy;
     this.upgrades = structuredClone(allUpgrades); // safe copy
     this.logs = [];
+    this.commitHash = process.env.GITHUB_SHA || "";
   }
 
   tick() {
@@ -51,14 +54,34 @@ export class GameSimulator {
     }
   }
 
-  run(maxTicks = 100) {
+  run(maxTicks = 100, options = {}) {
+    const { timestamp = false } = options;
     for (let i = 0; i < maxTicks; i++) {
       this.tick();
+      this.logs.push({
+        tick: i,
+        stage: this.stats.stage,
+        hp: this.stats.hp ?? 0,
+        cash: this.stats.cash,
+        damageLevel: this.upgrades.globalDamage?.level || 0,
+        strategy: this.strategy,
+        commitHash: this.commitHash
+      });
     }
 
-    this.logs.push(`Final stage: ${this.stats.stage}`);
-    this.logs.push(`XP: ${this.stats.xp}`);
-    this.logs.push(`Cash left: ${this.stats.cash}`);
+    const now = new Date().toISOString().replace(/[:.]/g, '-');
+    const detailed = timestamp ? `sim-${this.strategy}-${now}.csv` : 'detailed-sim.csv';
+    saveCSV(this.logs, detailed);
+    saveCSV([
+      {
+        strategy: this.strategy,
+        finalStage: this.stats.stage,
+        totalCash: this.stats.cash,
+        damageLevel: this.upgrades.globalDamage?.level || 0,
+        commitHash: this.commitHash
+      }
+    ], 'summary.csv');
+
     return this.logs;
   }
 }

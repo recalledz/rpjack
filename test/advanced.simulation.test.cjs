@@ -15,9 +15,29 @@ class HPSimulator extends GameSimulator {
       const loss = this.strategy === 'defensive' ? 0.05 : 0.1;
       this.hp = Math.max(0, this.hp - loss);
       if (this.hp === 0) break;
+      this.logs.push({
+        tick: i,
+        stage: this.stage,
+        hp: this.hp,
+        cash: this.cash,
+        damageLevel: this.globalDamageLevel,
+        strategy: this.strategy,
+        commitHash: this.commitHash
+      });
     }
     const avgHP = this.hp;
-    return { finalStage: this.stage, totalCash: this.cash, avgHP };
+    const result = { finalStage: this.stage, totalCash: this.cash, avgHP };
+    saveCSV(this.logs, 'detailed-sim.csv');
+    saveCSV([
+      {
+        strategy: this.strategy,
+        finalStage: this.stage,
+        totalCash: this.cash,
+        damageLevel: this.globalDamageLevel,
+        commitHash: this.commitHash
+      }
+    ], 'summary.csv');
+    return result;
   }
 }
 
@@ -31,8 +51,28 @@ class BalancedBuySimulator extends GameSimulator {
         this.cash -= this.upgradeCost();
         this.globalDamageLevel++;
       }
+      this.logs.push({
+        tick: i,
+        stage: this.stage,
+        hp: this.hp,
+        cash: this.cash,
+        damageLevel: this.globalDamageLevel,
+        strategy: this.strategy,
+        commitHash: this.commitHash
+      });
     }
-    return { finalStage: this.stage, totalCash: this.cash, damageLevel: this.globalDamageLevel };
+    const result = { finalStage: this.stage, totalCash: this.cash, damageLevel: this.globalDamageLevel };
+    saveCSV(this.logs, 'detailed-sim.csv');
+    saveCSV([
+      {
+        strategy: this.strategy,
+        finalStage: this.stage,
+        totalCash: this.cash,
+        damageLevel: this.globalDamageLevel,
+        commitHash: this.commitHash
+      }
+    ], 'summary.csv');
+    return result;
   }
 }
 
@@ -79,14 +119,16 @@ describe('🧪 General Simulation Test Templates', () => {
   it('Compare strategies side-by-side', () => {
     const strategies = ['aggressive', 'defensive', 'balanced'];
     const results = [];
+    const summary = [];
     strategies.forEach(strat => {
       const sim = strat === 'balanced' ? new BalancedBuySimulator(strat) : new GameSimulator(strat);
       const res = sim.run(150);
       expect(res.finalStage).to.be.a('number');
-      results.push({ strat, stage: res.finalStage, cash: res.totalCash, dmg: res.damageLevel });
+      summary.push({ strat, stage: res.finalStage, cash: res.totalCash, dmg: res.damageLevel });
+      results.push(...sim.logs);
     });
-    console.table(results);
-    saveCSV(results, 'strategy-results.csv');
+    console.table(summary);
+    saveCSV(results, 'strategy-comparison.csv');
   });
 
   it('Game over condition triggers', () => {
@@ -112,15 +154,17 @@ describe('🧪 General Simulation Test Templates', () => {
   it('Strategy behavior across ticks', () => {
     const strategies = ['aggressive', 'defensive', 'balanced'];
     const results = [];
+    const summary = [];
     strategies.forEach(strat => {
       const sim = strat === 'balanced' ? new BalancedBuySimulator(strat) : new GameSimulator(strat);
       const res = sim.run(100);
       expect(res.finalStage).to.not.equal(0);
-      results.push({ strat, stage: res.finalStage, cash: res.totalCash });
+      summary.push({ strat, stage: res.finalStage, cash: res.totalCash });
+      results.push(...sim.logs);
     });
-    const maxGap = Math.max(...results.map(r => r.stage)) - Math.min(...results.map(r => r.stage));
+    const maxGap = Math.max(...summary.map(r => r.stage)) - Math.min(...summary.map(r => r.stage));
     expect(maxGap).to.be.below(50);
-    console.table(results);
-    saveCSV(results, 'strategy-results.csv');
+    console.table(summary);
+    saveCSV(results, 'strategy-comparison.csv');
   });
 });
