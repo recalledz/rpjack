@@ -894,6 +894,7 @@ function spawnBoss() {
         name: template.name,
         icon: template.icon,
         iconColor: template.iconColor,
+        xp: Math.pow(stage, 1.5) * world,
         abilities,
         onAttack: boss => {
             const { minDamage, maxDamage } = calculateEnemyBasicDamage(
