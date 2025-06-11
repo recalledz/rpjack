@@ -132,23 +132,8 @@ body {
 }
 
 #gameColumn {
-
-  /* wrap dealer, buttons, hand, jokers with mana bar */
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    ". buttons"
-    "mana hand"
-    "mana jokers";
-
-  /* wrap dealer, buttons, hand, jokers */
-  display: flex;
-  flex-direction: column;
-
-  overflow-y: auto;
-  gap: 10px;
-  position: relative;
+  /* preserve DOM structure without affecting layout */
+  display: contents;
 }
 
 .manaBar {
