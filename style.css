@@ -120,7 +120,7 @@ body {
     grid-area: dealer;
 }
 
-#gameColumn {
+.gameColumn {
     grid-area: gameColumn;
 }
 
@@ -133,8 +133,7 @@ body {
     /*overflow: hidden;*/
 }
 
-#gameColumn {
-    display: contents;
+.gameColumn {
     display: grid;
     grid-template-columns: 20px 1fr;
     grid-template-rows: auto 1fr auto;
@@ -142,8 +141,6 @@ body {
         ". buttons"
         "mana hand"
         "mana jokers";
-    display: flex;
-    flex-direction: column;
     overflow-y: auto;
     gap: 10px;
     position: relative;
