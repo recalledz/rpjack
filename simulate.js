@@ -1,9 +1,11 @@
-import { GameSimulator } from "./simulator.js";
+import { GameSimulator } from "./simulation.js";
 import fs from "fs";
 
 const strategy = process.argv[2] || "balanced";
 const sim = new GameSimulator(strategy);
-const log = sim.run();
+const log = sim.run(100, { timestamp: true });
 
-fs.writeFileSync("sim-output.log", log.join("\n"));
-console.log(log.join("\n"));
+if (Array.isArray(log)) {
+  fs.writeFileSync("sim-output.log", log.map(l => JSON.stringify(l)).join("\n"));
+  console.log(log);
+}
