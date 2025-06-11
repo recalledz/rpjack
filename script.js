@@ -219,7 +219,6 @@ const nextStageBtn = document.getElementById("nextStageBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
 const cardPointsDisplay = document.getElementById("cardPointsDisplay");
-const statsSummaryDisplay = document.getElementById("statsSummary");
 const handContainer = document.getElementsByClassName("handContainer")[0];
 const discardContainer = document.getElementsByClassName("discardContainer")[0];
 const dealerLifeDisplay =
@@ -567,10 +566,6 @@ function renderPlayerStats(stats) {
 
     damageDisplay.textContent = `Damage: ${Math.floor(stats.pDamage)}`;
     cashMultiDisplay.textContent = `Cash Multi: ${Math.floor(stats.cashMulti)}`;
-    if (statsSummaryDisplay) {
-        statsSummaryDisplay.textContent =
-            `Damage: ${Math.floor(stats.pDamage)} | Cash Multi: ${Math.floor(stats.cashMulti)}`;
-    }
     pointsDisplay.textContent = `Points: ${stats.points}`;
     cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
     attackSpeedDisplay.textContent = `Attack Speed: ${Math.floor(stats.attackSpeed / 1000)}s`;
