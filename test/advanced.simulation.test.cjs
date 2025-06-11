@@ -187,4 +187,24 @@ describe('🧪 General Simulation Test Templates', () => {
     if (boss.isDefeated()) boss.onDefeat(boss);
     expect(card.XpCurrent).to.be.greaterThan(before);
   });
+
+  it('Boss defeat grants card XP', async () => {
+    const { Card } = await import('../card.js');
+    const { Boss } = await import('../boss.js');
+
+    const card = new Card('Hearts', 2);
+    const drawn = [card];
+    const cardXp = amt => drawn.forEach(c => c.gainXp(amt));
+
+    const boss = new Boss(5, 1, {
+      maxHp: 1,
+      xp: Math.pow(5, 1.5) * 1,
+      onDefeat: b => cardXp(b.xp)
+    });
+
+    const before = card.XpCurrent;
+    boss.takeDamage(1);
+    if (boss.isDefeated()) boss.onDefeat(boss);
+    expect(card.XpCurrent).to.be.greaterThan(before);
+  });
 });
