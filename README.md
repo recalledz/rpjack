@@ -71,6 +71,8 @@ Development Tools: Replit, GitHub integration, Codex-enabled development
 
 Debug Panel: Toggleable tools for spawning enemies, adjusting stats, and now a fast mode to speed up time ticks during testing
 
+Node Simulation: Run `node simulate.js [strategy]` to test upgrade progressions without a browser
+
 
 🗂️ Project Structure
 
@@ -81,6 +83,9 @@ Debug Panel: Toggleable tools for spawning enemies, adjusting stats, and now a f
 /card.js            ← Card class & deck generation
 /script.js          ← Game logic
 /.codex/tasks.md    ← Codex task manager
+/simulate.js        ← CLI to run the Node-based simulator
+/simulation.js      ← Simulator library used for tests
+/simulator.cjs      ← Minimal CommonJS version for CI tests
 
 🌠 Star Chart Setup
 
@@ -88,7 +93,7 @@ Include `pixi.min.js` and `pixi-filters.min.js` in your page. The chart initiali
 
 🔧 Codex Integration
 
-This repository utilizes Codex for smart task automation. Tasks are listed in .codex/tasks.md.
+This repository utilizes Codex for smart task automation. The active task list lives in `.codex/tasks.md` along with completed items.
 
 Getting Started:
 
