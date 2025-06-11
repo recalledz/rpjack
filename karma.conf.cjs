@@ -1,8 +1,7 @@
-process.env.CHROME_BIN = require('puppeteer').executablePath();
-
 module.exports = function(config) {
   config.set({
-    hostname: '127.0.0.1', // Force IPv4 instead of ::1
+    basePath: '',
+    hostname: '127.0.0.1',
     frameworks: ['mocha', 'chai', 'esm'],
     files: [
       { pattern: 'test/**/*.test.js', type: 'module' },
