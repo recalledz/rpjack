@@ -25,7 +25,7 @@ jobs:
         run: npm test
 
       - name: 📤 Upload Strategy CSV
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: strategy-results
           path: strategy-results.csv
