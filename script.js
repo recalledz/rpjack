@@ -130,16 +130,16 @@ const upgrades = {
     autoAttackSpeed: {
         name: "Auto-Attack Speed",
         level: 0,
-        baseValue: 10000,
+        baseValue: 5000,
         unlocked: false,
         unlockCondition: () => stageData.stage >= 3,
-        costFormula: level => Math.floor(300 * level ** 2.2),
+        costFormula: level => Math.floor(300 * level ** 2),
         effect: player => {
-            player.attackSpeed = Math.max(
-                2000,
-                upgrades.autoAttackSpeed.baseValue -
-                    100 * upgrades.autoAttackSpeed.level
-            );
+            const lvl = upgrades.autoAttackSpeed.level;
+            const base = upgrades.autoAttackSpeed.baseValue;
+            const fastReduction = 500 * Math.min(lvl, 4);
+            const diminishing = 250 * Math.max(lvl - 4, 0);
+            player.attackSpeed = Math.max(2000, base - fastReduction - diminishing);
         }
     },
     maxMana: {
