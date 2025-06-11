@@ -128,7 +128,7 @@ describe('🧪 General Simulation Test Templates', () => {
       results.push(...sim.logs);
     });
     console.table(summary);
-    saveCSV(results, 'strategy-comparison.csv');
+  saveCSV(results, 'strategy-results.csv');
   });
 
   it('Game over condition triggers', () => {
@@ -165,7 +165,7 @@ describe('🧪 General Simulation Test Templates', () => {
     const maxGap = Math.max(...summary.map(r => r.stage)) - Math.min(...summary.map(r => r.stage));
     expect(maxGap).to.be.below(50);
     console.table(summary);
-    saveCSV(results, 'strategy-comparison.csv');
+  saveCSV(results, 'strategy-results.csv');
   });
 
   it('Boss defeat grants card XP', async () => {
