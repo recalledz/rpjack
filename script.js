@@ -107,7 +107,7 @@ const upgrades = {
         effect: player => {
             const prev = player.baseCardHpBoost || 0;
             const diff = upgrades.baseCardHp.level - prev;
-            player.baseCardHpBoost = upgrades.baseCardHp.level;
+            player.baseCardHpBoost = 3 + upgrades.baseCardHp.level;
             pDeck.forEach(card => {
                 card.maxHp += diff;
                 card.currentHp += diff;
@@ -157,12 +157,12 @@ const upgrades = {
     manaRegen: {
         name: "Mana Regeneration",
         level: 0,
-        baseValue: 0,
+        baseValue: 0.1,
         unlocked: false,
         unlockCondition: () => systems.manaUnlocked,
         costFormula: level => 200 * level ** 2,
         effect: player => {
-            player.manaRegen = upgrades.manaRegen.baseValue + upgrades.manaRegen.level;
+            player.manaRegen = upgrades.manaRegen.baseValue + 0.1 *upgrades.manaRegen.level;
         }
     },
     abilityCooldownReduction: {
@@ -671,7 +671,7 @@ function renderDealerCard() {
         <i data-lucide="${currentEnemy.icon}" class="dCard__icon" style="color:${iconColor}"></i>
         <span class="dCard__text">
           ${currentEnemy.name}<br>
-          Damage: ${minDamage} - ${maxDamage}
+          Damage: ${Math.floor(minDamage)} - ${Math.floor(maxDamage)}
         </span>
       `;
 
@@ -684,19 +684,6 @@ function renderDealerCard() {
         dCardContainer.appendChild(dCardWrapper);
         lucide.createIcons();
     } else {
-        /*let dCardAdder = document.createElement("span");
-      let cardEffect = null;
-      dCardAdder.classList.add("dCard");
-  
-      dCardAdder.innerHTML = `
-        <i data-lucide="skull" class="dCard__icon"></i>
-        <span class="dCard__text">
-          Damage: ${minDamage} - ${maxDamage}
-        </span>`
-  
-      dCardContainer.appendChild(dCardAdder);
-      dCardAdder.textContent = `Damage: ${dDamage} D ${stageData.stage}`
-      lucide.createIcons();*/
         let abilitiesHTML = `<div class="dCard_abilities">`;
         for (const ability of currentEnemy.abilities) {
             const icon = ability.icon || "sparkles";
