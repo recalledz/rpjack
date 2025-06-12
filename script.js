@@ -782,7 +782,7 @@ function resetStageCashStats() {
     stageAverageTimer = 0;
     cashTimer = 0;
     if (cashPerSecDisplay) {
-        cashPerSecDisplay.textContent = "Avg Cash: 0";
+        cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
     }
 }
 
@@ -1803,7 +1803,7 @@ function gameLoop(currentTime) {
         if (stageAverageTimer >= 10000) {
             const avgCash = stageCashSamples ? stageCashSum / stageCashSamples : 0;
             if (cashPerSecDisplay) {
-                cashPerSecDisplay.textContent = `Avg Cash: ${avgCash.toFixed(2)}`;
+                cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
             }
             stageAverageTimer = 0;
         }
