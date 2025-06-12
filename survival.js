@@ -14,6 +14,7 @@ export function simulateDeckSurvival({
 } = {}) {
   const deck = generateDeck();
   deck.forEach(card => {
+    card.baseHpBoost = (card.baseHpBoost || 0) + baseCardHpLevel;
     card.maxHp += baseCardHpLevel;
     card.currentHp = card.maxHp;
   });

@@ -110,6 +110,7 @@ const upgrades = {
             const diff = newBoost - prev;
             player.baseCardHpBoost = newBoost;
             pDeck.forEach(card => {
+                card.baseHpBoost = (card.baseHpBoost || 0) + diff;
                 card.maxHp += diff;
                 card.currentHp += diff;
             });
@@ -1613,6 +1614,7 @@ function saveGame() {
         damage: card.damage,
         maxHp: card.maxHp,
         currentHp: card.currentHp,
+        baseHpBoost: card.baseHpBoost,
         hpPerKill: card.hpPerKill,
         job: card.job,
         traits: card.traits
@@ -1681,6 +1683,7 @@ function loadGame() {
                     damage: data.damage,
                     maxHp: data.maxHp,
                     currentHp: data.currentHp,
+                    baseHpBoost: data.baseHpBoost || 0,
                     hpPerKill: data.hpPerKill,
                     job: data.job,
                     traits: data.traits
