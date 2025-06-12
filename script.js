@@ -79,11 +79,11 @@ const upgrades = {
         level: 0,
         baseValue: 1.0,
         unlocked: true,
-        costFormula: level => 200 * level ** 2,
+        costFormula: level => 100 * level ** 1.2,
         effect: player => {
             player.upgradeDamageMultiplier =
                 upgrades.globalDamage.baseValue +
-                0.1 * upgrades.globalDamage.level;
+                0.15 * upgrades.globalDamage.level;
         }
     },
     cardHpPerKill: {
@@ -103,7 +103,7 @@ const upgrades = {
         level: 0,
         baseValue: 0,
         unlocked: true,
-        costFormula: level => 100 * level ** 2,
+        costFormula: level => 100 * level ** 1.2,
         effect: player => {
             const prev = player.baseCardHpBoost || 0;
             const newBoost = 3 * upgrades.baseCardHp.level;
@@ -134,7 +134,7 @@ const upgrades = {
         level: 0,
         baseValue: 5000,
         unlocked: false,
-        unlockCondition: () => stageData.stage >= 3,
+        unlockCondition: () => stageData.stage >= 10,
         costFormula: level => Math.floor(300 * level ** 2),
         effect: player => {
             const lvl = upgrades.autoAttackSpeed.level;
@@ -701,7 +701,7 @@ function renderDealerCard() {
            <i data-lucide="skull" class="dCard__icon" style="stroke:${color}; filter: drop-shadow(0 0 ${blur}px ${color});"></i>
            <span class="dCard__text">
              ${currentEnemy.name}<br>
-             Damage: ${minDamage} - ${maxDamage}
+             Damage: ${Math.floor(minDamage)} - ${Math.floor(maxDamage)}
            </span>
          `;
 
@@ -783,7 +783,7 @@ function resetStageCashStats() {
     stageAverageTimer = 0;
     cashTimer = 0;
     if (cashPerSecDisplay) {
-        cashPerSecDisplay.textContent = "Avg Cash: 0";
+        cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
     }
 }
 
@@ -1803,7 +1803,7 @@ function gameLoop(currentTime) {
         if (stageAverageTimer >= 10000) {
             const avgCash = stageCashSamples ? stageCashSum / stageCashSamples : 0;
             if (cashPerSecDisplay) {
-                cashPerSecDisplay.textContent = `Avg Cash: ${avgCash.toFixed(2)}`;
+                cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
             }
             stageAverageTimer = 0;
         }
