@@ -224,6 +224,7 @@ const discardContainer = document.getElementsByClassName("discardContainer")[0];
 const dealerLifeDisplay =
     document.getElementsByClassName("dealerLifeDisplay")[0];
 const killsDisplay = document.getElementById("kills");
+const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
@@ -231,6 +232,7 @@ const manaBar = document.getElementById("manaBar");
 const manaFill = document.getElementById("manaFill");
 const manaText = document.getElementById("manaText");
 const manaRegenDisplay = document.getElementById("manaRegenDisplay");
+const dpsDisplay = document.getElementById("dpsDisplay");
 
 const unlockedJokers = [];
 
@@ -243,6 +245,10 @@ const saveInterval = setInterval(saveGame, 30000);
 let playerAttackFill = null;
 let enemyAttackFill = null;
 let playerAttackTimer = 0;
+let lastCash = cash;
+let cashTimer = 0;
+let cashPerSec = 0;
+let cashDeltas = [];
 
 //=========tabs==========
 
@@ -571,6 +577,10 @@ function renderPlayerStats(stats) {
     attackSpeedDisplay.textContent = `Attack Speed: ${Math.floor(stats.attackSpeed / 1000)}s`;
     if (manaRegenDisplay) {
         manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen.toFixed(2)}/s`;
+    }
+    if (dpsDisplay) {
+        const dps = stats.pDamage / (stats.attackSpeed / 1000);
+        dpsDisplay.textContent = `DPS: ${dps.toFixed(2)}`;
     }
 
     // Update HP per kill display
@@ -1714,6 +1724,19 @@ function gameLoop(currentTime) {
 
     updateDrawButton();
     updatePlayerStats(stats);
+    cashTimer += deltaTime;
+    if (cashTimer >= 1000) {
+        const deltaCash = cash - lastCash;
+        lastCash = cash;
+        cashDeltas.push(deltaCash);
+        if (cashDeltas.length > 10) cashDeltas.shift();
+        const sum = cashDeltas.reduce((a, b) => a + b, 0);
+        cashPerSec = sum / Math.min(10, cashDeltas.length);
+        cashTimer = 0;
+        if (cashPerSecDisplay) {
+            cashPerSecDisplay.textContent = `Cash/s: ${cashPerSec.toFixed(2)}`;
+        }
+    }
     playerAttackTimer += deltaTime;
     if (playerAttackFill) {
         const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
