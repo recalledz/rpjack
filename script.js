@@ -246,10 +246,10 @@ const saveInterval = setInterval(saveGame, 30000);
 let playerAttackFill = null;
 let enemyAttackFill = null;
 let playerAttackTimer = 0;
-let lastCash = cash;
 let cashTimer = 0;
-let cashPerSec = 0;
-let cashDeltas = [];
+let stageCashSum = 0;
+let stageCashSamples = 0;
+let stageAverageTimer = 0;
 
 
 //=========tabs==========
@@ -765,6 +765,7 @@ function nextStage() {
     playerStats.stageKills[stageData.stage] = stageData.kills;
     stageData.stage += 1;
     stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+    resetStageCashStats();
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
     renderGlobalStats();
     nextStageChecker();
@@ -779,11 +780,23 @@ function nextWorld() {
     stageData.world += 1;
     stageData.stage = 1;
     stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+    resetStageCashStats();
     killsDisplay.textContent = `Kills: ${stageData.kills}`;
     renderGlobalStats();
     nextStageChecker();
     renderStageInfo();
     checkUpgradeUnlocks();
+}
+
+// Reset tracking for average cash when a new stage begins
+function resetStageCashStats() {
+    stageCashSum = 0;
+    stageCashSamples = 0;
+    stageAverageTimer = 0;
+    cashTimer = 0;
+    if (cashPerSecDisplay) {
+        cashPerSecDisplay.textContent = "Avg Cash: 0";
+    }
 }
 
 // Enable the next stage button when kill requirements met
@@ -1726,6 +1739,7 @@ function loadGame() {
 // first strike doesn't trigger a full respawn
 spawnPlayer();
 spawnDealer();
+resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
 checkUpgradeUnlocks();
@@ -1795,16 +1809,16 @@ function gameLoop(currentTime) {
     updatePlayerStats(stats);
     cashTimer += deltaTime;
     if (cashTimer >= 1000) {
-
-        const deltaCash = cash - lastCash;
-        lastCash = cash;
-        cashDeltas.push(deltaCash);
-        if (cashDeltas.length > 10) cashDeltas.shift();
-        const sum = cashDeltas.reduce((a, b) => a + b, 0);
-        cashPerSec = sum / Math.min(10, cashDeltas.length);
+        stageCashSum += cash;
+        stageCashSamples += 1;
+        stageAverageTimer += 1000;
         cashTimer = 0;
-        if (cashPerSecDisplay) {
-            cashPerSecDisplay.textContent = `Cash/s: ${cashPerSec.toFixed(2)}`;
+        if (stageAverageTimer >= 10000) {
+            const avgCash = stageCashSamples ? stageCashSum / stageCashSamples : 0;
+            if (cashPerSecDisplay) {
+                cashPerSecDisplay.textContent = `Avg Cash: ${avgCash.toFixed(2)}`;
+            }
+            stageAverageTimer = 0;
         }
     }
     playerAttackTimer += deltaTime;
