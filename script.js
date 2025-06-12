@@ -237,7 +237,7 @@ const unlockedJokers = [];
 // Load saved state if available
 loadGame();
 window.addEventListener("beforeunload", saveGame);
-setInterval(saveGame, 30000);
+const saveInterval = setInterval(saveGame, 30000);
 
 // attack progress bars
 let playerAttackFill = null;
@@ -1390,6 +1390,8 @@ function startNewGame() {
     if (typeof localStorage !== "undefined") {
         localStorage.removeItem("gameSave");
     }
+    window.removeEventListener("beforeunload", saveGame);
+    clearInterval(saveInterval);
     location.reload();
 }
 
