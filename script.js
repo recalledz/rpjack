@@ -941,7 +941,8 @@ function updateDealerLifeDisplay() {
 // Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
     const baseHp = 10 + stage + (world - 1) * 100;
-    return Math.floor(baseHp * (isBoss ? 10 : Math.pow(stage, 2)));
+    const multiplier = Math.sqrt(stage) * (isBoss ? 10 : 1);
+    return Math.floor(baseHp * multiplier);
 }
 
 // Base damage output scaled by stage and world
@@ -1001,7 +1002,8 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
     updateDeckDisplay();
     if (card.wrapperElement) {
         animateCardHit(card);
-        showDamageFloat(card, dDamage);
+        // Show actual damage dealt after shield reduction
+        showDamageFloat(card, finalDamage);
     }
     // if it’s dead, remove it
     if (card.currentHp === 0) {
