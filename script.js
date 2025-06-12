@@ -107,7 +107,7 @@ const upgrades = {
         effect: player => {
             const prev = player.baseCardHpBoost || 0;
             const diff = upgrades.baseCardHp.level - prev;
-            player.baseCardHpBoost = 3 + upgrades.baseCardHp.level;
+            player.baseCardHpBoost = upgrades.baseCardHp.level;
             pDeck.forEach(card => {
                 card.maxHp += diff;
                 card.currentHp += diff;
@@ -700,7 +700,7 @@ function renderDealerCard() {
            <i data-lucide="skull" class="dCard__icon" style="stroke:${color}; filter: drop-shadow(0 0 ${blur}px ${color});"></i>
            <span class="dCard__text">
              ${currentEnemy.name}<br>
-             Damage: ${minDamage} - ${maxDamage}
+             Damage: ${Math.floor(minDamage)} - ${Math.floor(maxDamage)}
            </span>
          `;
 
