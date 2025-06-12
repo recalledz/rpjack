@@ -79,11 +79,11 @@ const upgrades = {
         level: 0,
         baseValue: 1.0,
         unlocked: true,
-        costFormula: level => 200 * level ** 2,
+        costFormula: level => 100 * level ** 1.2,
         effect: player => {
             player.upgradeDamageMultiplier =
                 upgrades.globalDamage.baseValue +
-                0.1 * upgrades.globalDamage.level;
+                0.15 * upgrades.globalDamage.level;
         }
     },
     cardHpPerKill: {
@@ -103,7 +103,7 @@ const upgrades = {
         level: 0,
         baseValue: 0,
         unlocked: true,
-        costFormula: level => 100 * level ** 2,
+        costFormula: level => 100 * level ** 1.2,
         effect: player => {
             const prev = player.baseCardHpBoost || 0;
             const diff = upgrades.baseCardHp.level - prev;
@@ -133,7 +133,7 @@ const upgrades = {
         level: 0,
         baseValue: 5000,
         unlocked: false,
-        unlockCondition: () => stageData.stage >= 3,
+        unlockCondition: () => stageData.stage >= 10,
         costFormula: level => Math.floor(300 * level ** 2),
         effect: player => {
             const lvl = upgrades.autoAttackSpeed.level;
