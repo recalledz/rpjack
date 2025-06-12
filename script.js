@@ -605,10 +605,7 @@ function renderGlobalStats() {
     // Add a restart button to allow starting a new run from the stats screen
     const restartBtn = document.createElement("button");
     restartBtn.textContent = "Start New Run";
-    restartBtn.addEventListener("click", () => {
-        respawnPlayer();
-        showTab(mainTab);
-    });
+    restartBtn.addEventListener("click", startNewGame);
     container.appendChild(restartBtn);
 }
 
@@ -1388,6 +1385,14 @@ function hideRestartScreen() {
     }
 }
 
+// Fully wipe saved data and reload the page
+function startNewGame() {
+    if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("gameSave");
+    }
+    location.reload();
+}
+
 // Shuffle all current cards back into the deck and draw a new hand
 function redrawHand() {
     deck.push(...drawnCards);
@@ -1797,5 +1802,6 @@ window.devTools = {
         timeScale = timeScale === 1 ? FAST_MODE_SCALE : 1;
     },
     save: saveGame,
-    load: loadGame
+    load: loadGame,
+    newGame: startNewGame
 };
