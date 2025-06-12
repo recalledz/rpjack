@@ -106,8 +106,9 @@ const upgrades = {
         costFormula: level => 100 * level ** 2,
         effect: player => {
             const prev = player.baseCardHpBoost || 0;
-            const diff = upgrades.baseCardHp.level - prev;
-            player.baseCardHpBoost = 3 + upgrades.baseCardHp.level;
+            const newBoost = 3 * upgrades.baseCardHp.level;
+            const diff = newBoost - prev;
+            player.baseCardHpBoost = newBoost;
             pDeck.forEach(card => {
                 card.maxHp += diff;
                 card.currentHp += diff;
@@ -671,7 +672,7 @@ function renderDealerCard() {
         <i data-lucide="${currentEnemy.icon}" class="dCard__icon" style="color:${iconColor}"></i>
         <span class="dCard__text">
           ${currentEnemy.name}<br>
-          Damage: ${Math.floor(minDamage)} - ${Math.floor(maxDamage)}
+          Damage: ${minDamage} - ${maxDamage}
         </span>
       `;
 
@@ -941,8 +942,7 @@ function updateDealerLifeDisplay() {
 // Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
     const baseHp = 10 + stage + (world - 1) * 100;
-    const multiplier = Math.sqrt(stage) * (isBoss ? 10 : 1);
-    return Math.floor(baseHp * multiplier);
+    return Math.floor(baseHp * (isBoss ? 10 : Math.pow(stage, 2)));
 }
 
 // Base damage output scaled by stage and world
@@ -950,9 +950,9 @@ function calculateEnemyBasicDamage(stage, world) {
     let baseDamage;
 
     if (stage === 10) {
-        baseDamage = (stage**1.2) * 2;
+        baseDamage = stage * 2;
     } else if (stage <= 10) {
-        baseDamage = stage**1.1;
+        baseDamage = stage;
     } else {
         baseDamage = Math.floor(0.1 * stage * stage);
     }
