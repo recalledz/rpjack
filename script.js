@@ -249,6 +249,8 @@ let playerAttackTimer = 0;
 let lastCash = cash;
 let cashTimer = 0;
 let cashPerSec = 0;
+let cashDeltas = [];
+
 
 //=========tabs==========
 
@@ -1791,8 +1793,13 @@ function gameLoop(currentTime) {
     updatePlayerStats(stats);
     cashTimer += deltaTime;
     if (cashTimer >= 1000) {
-        cashPerSec = ((cash - lastCash) * 1000) / cashTimer;
+
+        const deltaCash = cash - lastCash;
         lastCash = cash;
+        cashDeltas.push(deltaCash);
+        if (cashDeltas.length > 10) cashDeltas.shift();
+        const sum = cashDeltas.reduce((a, b) => a + b, 0);
+        cashPerSec = sum / Math.min(10, cashDeltas.length);
         cashTimer = 0;
         if (cashPerSecDisplay) {
             cashPerSecDisplay.textContent = `Cash/s: ${cashPerSec.toFixed(2)}`;
