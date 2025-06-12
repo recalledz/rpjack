@@ -823,6 +823,7 @@ body {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
+    cursor: pointer;
 }
 
 .joker-wrapper .card {

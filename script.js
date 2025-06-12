@@ -37,6 +37,7 @@ const stats = {
     maxMana: 0,
     mana: 0,
     manaRegen: 0,
+    playerShield: 0,
     abilityCooldownReduction: 0,
     jokerCooldownReduction: 0,
     redrawCooldownReduction: 0
@@ -249,6 +250,7 @@ let lastCash = cash;
 let cashTimer = 0;
 let cashPerSec = 0;
 let cashDeltas = [];
+
 
 //=========tabs==========
 
@@ -977,13 +979,20 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
         damageAmount ??
         Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
 
+    let finalDamage = dDamage;
+    if (stats.playerShield > 0) {
+        const absorbed = Math.min(stats.playerShield, finalDamage);
+        stats.playerShield -= absorbed;
+        finalDamage -= absorbed;
+    }
+
     // target the front‐line card
     const card = drawnCards[0];
 
     // subtract **one** hit’s worth
-    card.currentHp = Math.max(0, card.currentHp - dDamage);
+    card.currentHp = Math.max(0, card.currentHp - finalDamage);
     addLog(
-        `${source} hit ${card.value}${card.symbol} for ${dDamage} damage!`,
+        `${source} hit ${card.value}${card.symbol} for ${finalDamage} damage!`,
         "damage"
     );
 
@@ -1264,12 +1273,86 @@ function renderJokers() {
             card.appendChild(img);
             wrapper.appendChild(card);
             container.appendChild(wrapper);
+
+            wrapper.addEventListener("click", e => {
+                showJokerTooltip(joker, e.pageX + 10, e.pageY + 10);
+                useJoker(joker);
+            });
         });
     });
 }
 
 function openJokerDetails(joker) {
     // Legacy overlay display no longer used
+}
+
+function showJokerTooltip(joker, x, y) {
+    if (!tooltip) return;
+    tooltip.innerHTML = `<strong>${joker.name}</strong><br>${joker.description}<br>Mana Cost: ${joker.manaCost}`;
+    tooltip.style.display = "block";
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+}
+
+document.addEventListener("click", e => {
+    if (!e.target.closest(".joker-wrapper")) {
+        if (tooltip) tooltip.style.display = "none";
+    }
+});
+
+function useJoker(joker) {
+    if (stats.mana < joker.manaCost) {
+        addLog("Not enough mana!", "info");
+        return;
+    }
+    stats.mana -= joker.manaCost;
+    updateManaBar();
+
+    switch (joker.abilityType) {
+        case "heal": {
+            const healAmt = joker.getScaledPower();
+            drawnCards.forEach(card => {
+                if (!card) return;
+                const before = card.currentHp;
+                card.currentHp = Math.min(card.maxHp, card.currentHp + healAmt);
+                if (card.currentHp > before) {
+                    card.hpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+                    animateCardHeal(card);
+                }
+            });
+            addLog(`Healed ${healAmt} HP`, "heal");
+            break;
+        }
+        case "damage": {
+            if (currentEnemy) {
+                const dmg = joker.getScaledPower();
+                currentEnemy.takeDamage(dmg);
+                updateDealerLifeBar(currentEnemy);
+                if (currentEnemy.isDefeated()) {
+                    currentEnemy.onDefeat?.();
+                }
+                addLog(`Dealt ${dmg} damage`, "damage");
+            }
+            break;
+        }
+        case "shield": {
+            const sAmt = joker.getScaledPower();
+            stats.playerShield += sAmt;
+            addLog(`Gained ${sAmt} shield`, "info");
+            break;
+        }
+        case "buff": {
+            const { finalMultiplier, finalDuration } = joker.getScaledPower();
+            stats.damageMultiplier *= finalMultiplier;
+            addLog(`Damage x${finalMultiplier} for ${finalDuration}s`, "info");
+            setTimeout(() => {
+                stats.damageMultiplier /= finalMultiplier;
+            }, finalDuration * 1000);
+            break;
+        }
+    }
+    updateHandDisplay();
+    updateDeckDisplay();
 }
 
 function awardJokerCard() {
@@ -1666,22 +1749,6 @@ setInterval(() => {
     heartHeal();
 }, 20000);
 
-/*setInterval(() => {
-  if (currentEnemy) {
-    currentEnemy.tick(100);
-  }
-  updateDrawButton();
-  updatePlayerStats(stats);
-
-
-}, 100)
-
-setInterval(() => {
-  if (!(currentEnemy instanceof Boss)) {
-    cDealerDamage();
-  }
-}, stageData.attackspeed);*/
-
 let lastFrameTime = performance.now();
 
 // Main animation loop; handles ticking the enemy and player actions
@@ -1726,6 +1793,7 @@ function gameLoop(currentTime) {
     updatePlayerStats(stats);
     cashTimer += deltaTime;
     if (cashTimer >= 1000) {
+
         const deltaCash = cash - lastCash;
         lastCash = cash;
         cashDeltas.push(deltaCash);
