@@ -1738,22 +1738,6 @@ setInterval(() => {
     heartHeal();
 }, 20000);
 
-/*setInterval(() => {
-  if (currentEnemy) {
-    currentEnemy.tick(100);
-  }
-  updateDrawButton();
-  updatePlayerStats(stats);
-
-
-}, 100)
-
-setInterval(() => {
-  if (!(currentEnemy instanceof Boss)) {
-    cDealerDamage();
-  }
-}, stageData.attackspeed);*/
-
 let lastFrameTime = performance.now();
 
 // Main animation loop; handles ticking the enemy and player actions
