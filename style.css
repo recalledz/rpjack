@@ -295,6 +295,11 @@ body {
     font-size: 0.8rem;
 }
 
+#cashPerSecDisplay {
+    align-self: flex-start;
+    font-size: 0.8rem;
+}
+
 #dealerBarFill {
     height: 30px;
     width: 100%;
