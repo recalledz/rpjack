@@ -118,7 +118,7 @@ Upgrade Name	Base Value	Max Value	Cost Formula	Notes
 Card Slots      3       ?       1000 * level^3	Increase the number of active cards
 Global Damage Multiplier	1.0	?	200 * level^2	Amplify all damage dealt
 Auto-Attack Speed	10000 ms	2000 ms	300 * level^2.2	Reduce time between automated attacks
-Base Card HP	value	?	100 * level^2	Enhance base HP for all cards
+Base Card HP        +3 per level   ?       100 * level^2   Enhance base HP for all cards
 Card HP per Kill        1       ?       150 * level^2	HP recovered by cards after each kill
 
 
