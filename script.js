@@ -860,7 +860,7 @@ function respawnDealerStage() {
 
 // What happens after defeating a regular dealer
 function onDealerDefeat() {
-    cardXp(stageData.stage ** 1.2 * stageData.world);
+    cardXp(stageData.stage ** 1.5 * stageData.world);
     cashOut();
     healCardsOnKill();
     stageData.kills += 1;
@@ -943,7 +943,7 @@ function updateDealerLifeDisplay() {
 // Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
     const baseHp = 10 + stage;
-    return Math.floor(baseHp * (isBoss ? 10 : Math.pow((stage+10*(world-1)), 1.1)));
+    return Math.floor(baseHp * (isBoss ? 10 * Math.pow((stage+10*(world-1)), 1.1): Math.pow((stage+10*(world-1)), 1.1)));
 }
 
 // Base damage output scaled by stage and world
