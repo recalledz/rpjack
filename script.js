@@ -942,8 +942,8 @@ function updateDealerLifeDisplay() {
 
 // Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
-    const baseHp = 10 + stage + (world - 1) * 100;
-    return Math.floor(baseHp * (isBoss ? 10 : Math.pow(stage, 2)));
+    const baseHp = 10 + stage;
+    return Math.floor(baseHp * (isBoss ? 10 : Math.pow((stage+10*(world-1)), 1.1)));
 }
 
 // Base damage output scaled by stage and world
