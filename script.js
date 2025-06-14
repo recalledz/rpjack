@@ -1953,10 +1953,11 @@ const avgCash = cashRateTracker.getRate();
 if (cashPerSecDisplay) {
   cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
 }
+}
 playerAttackTimer += deltaTime;
 if (playerAttackFill) {
-  const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
-  playerAttackFill.style.width = `${pratio * 100}%`;
+const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
+playerAttackFill.style.width = `${pratio * 100}%`;
 }
 if (playerAttackTimer >= stats.attackSpeed) {
 attack();
