@@ -18,7 +18,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { CashRateTracker, WorldProgressTracker } from "./utils/trackers.js";
+
 
 // --- Game State ---
 // `drawnCards` holds the cards currently in the player's hand
@@ -31,7 +31,6 @@ const cardBackImages = {
 };
 // resources and progress trackers
 let cash = 0;
-const cashRateTracker = new CashRateTracker();
 let cardPoints = 0;
 let currentEnemy = null;
 
@@ -93,7 +92,6 @@ Object.keys(BossTemplates).forEach(id => {
     stageKills: {}
   };
 });
-const worldProgressTracker = new WorldProgressTracker(worldProgress, WORLD_PROGRESS_TARGET, stageWeight);
 
 const playerStats = {
   timesPrestiged: 0,
@@ -289,7 +287,14 @@ let playerAttackFill = null;
 let enemyAttackFill = null;
 let playerAttackTimer = 0;
 let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
-
+let cashTimer = 0;
+let stageCashSum = 0;
+let stageCashSamples = 0;
+let stageAverageTimer = 0;
+let worldProgressTimer = 0;
+let worldProgressSum = 0;
+let worldProgressSamples = 0;
+let lastWorldPct = 0;
 
 
 //=========tabs==========
@@ -430,7 +435,6 @@ function purchaseUpgrade(key) {
   cash -= cost;
   cashDisplay.textContent = `Cash: $${cash}`;
   up.level += 1;
-
   up.effect(stats);
   if (key === "cardSlots") {
     while (drawnCards.length < stats.cardSlots && deck.length > 0) {
@@ -805,12 +809,24 @@ function showDamageFloat(card, amount) {
 //=========stage functions===========
 
 function recordWorldKill(world, stage) {
-  worldProgressTracker.record(world, stage);
+  const data = worldProgress[world];
+  if (!data) return;
+  data.stageKills[stage] = (data.stageKills[stage] || 0) + 1;
   updateWorldProgressUI(world);
 }
-function computeWorldProgress(id) {
-  return worldProgressTracker.compute(id);
 
+function computeWorldWeight(id) {
+  const data = worldProgress[id];
+  if (!data) return 0;
+  let weight = 0;
+  for (const [stage, kills] of Object.entries(data.stageKills)) {
+    weight += stageWeight(parseInt(stage)) * kills;
+  }
+  return weight;
+}
+
+function computeWorldProgress(id) {
+  return Math.min(computeWorldWeight(id) / WORLD_PROGRESS_TARGET, 1);
 }
 
 function updateWorldProgressUI(id) {
@@ -911,13 +927,14 @@ function nextWorld() {
 
 // Reset tracking for average cash when a new stage begins
 function resetStageCashStats() {
-  cashRateTracker.reset(cash);
+  stageCashSum = 0;
+  stageCashSamples = 0;
+  stageAverageTimer = 0;
+  cashTimer = 0;
   if (cashPerSecDisplay) {
     cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
   }
 }
-
-
 
 // Enable the next stage button when kill requirements met
 function nextStageChecker() {
@@ -1559,7 +1576,6 @@ function respawnPlayer() {
   deck.forEach(card => renderTabCard(card));
 
   cashDisplay.textContent = `Cash: $${cash}`;
-
   updateUpgradeButtons();
   renderStageInfo();
 
@@ -1695,8 +1711,6 @@ stats.points *
 stats.cashMulti
 );
 cashDisplay.textContent = `Cash: $${cash}`;
-
-  cashRateTracker.record(cash);
 updateUpgradeButtons();
 return cash;
 }
@@ -1787,7 +1801,6 @@ try {
 const state = JSON.parse(json);
 cash = state.cash || 0;
 cardPoints = state.cardPoints || 0;
-  cashRateTracker.reset(cash);
 Object.assign(stats, state.stats || {});
 systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
 Object.assign(stageData, state.stageData || {});
@@ -1842,7 +1855,6 @@ if (j) unlockedJokers.push(j);
 Object.values(upgrades).forEach(u => u.effect(stats));
 
 cashDisplay.textContent = `Cash: $${cash}`;
-
 cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
 
 renderUpgrades();
@@ -1949,11 +1961,34 @@ overlay.style.setProperty("--cooldown", ratio);
 
 updateDrawButton();
 updatePlayerStats(stats);
-const avgCash = cashRateTracker.getRate();
-if (cashPerSecDisplay) {
-  cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
-}
-}
+cashTimer += deltaTime;
+  if (cashTimer >= 1000) {
+    stageCashSum += cash;
+    stageCashSamples += 1;
+    stageAverageTimer += 1000;
+    worldProgressTimer += 1000;
+    const currentPct = computeWorldProgress(stageData.world) * 100;
+    worldProgressSum += currentPct - lastWorldPct;
+    worldProgressSamples += 1;
+    lastWorldPct = currentPct;
+    cashTimer = 0;
+    if (stageAverageTimer >= 10000) {
+      const avgCash = stageCashSamples ? stageCashSum / stageCashSamples: 0;
+      if (cashPerSecDisplay) {
+        cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
+      }
+      stageAverageTimer = 0;
+    }
+    if (worldProgressTimer >= 30000) {
+      const avgProg = worldProgressSamples ? worldProgressSum / worldProgressSamples : 0;
+      if (worldProgressPerSecDisplay) {
+        worldProgressPerSecDisplay.textContent = `Avg World Progress/sec: ${avgProg.toFixed(2)}%`;
+      }
+      worldProgressTimer = 0;
+      worldProgressSum = 0;
+      worldProgressSamples = 0;
+    }
+  }
 playerAttackTimer += deltaTime;
 if (playerAttackFill) {
 const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
@@ -2017,10 +2052,8 @@ advanceStage: () => nextStage(),
 giveCash: () => {
 const amount =
 parseInt(document.getElementById("debugCash").value) || 0;
-  cash += amount;
-  cashRateTracker.record(cash);
-  cashDisplay.textContent = `Cash: $${cash}`;
-
+cash += amount;
+cashDisplay.textContent = `Cash: $${cash}`;
 updateUpgradeButtons();
 },
 
