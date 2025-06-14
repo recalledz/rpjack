@@ -1307,6 +1307,10 @@ function healCardsOnKill() {
 
 function renderJokers() {
   if (!jokerContainers.length) return;
+  // Ensure mana system activates once the Healing Joker is obtained
+  if (unlockedJokers.some(j => j.id === "joker_heal") && !systems.manaUnlocked) {
+    unlockManaSystem();
+  }
 
   jokerContainers.forEach(container => {
     container.innerHTML = "";
