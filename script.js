@@ -603,10 +603,20 @@ function updateManaBar() {
 }
 
 function unlockManaSystem() {
+  // prevent duplicate initialization
+  if (systems.manaUnlocked) {
+    updateManaBar();
+    return;
+  }
+
   systems.manaUnlocked = true;
-  stats.maxMana = 50;
+  // establish baseline mana so upgrades scale correctly
+  upgrades.maxMana.baseValue = 50;
+  stats.maxMana = upgrades.maxMana.baseValue;
   stats.mana = stats.maxMana;
   stats.manaRegen = 0.01;
+  // re-apply upgrade effects in case levels were purchased before unlock
+  Object.values(upgrades).forEach(u => u.effect(stats));
   updateManaBar();
   checkUpgradeUnlocks();
 }
@@ -1541,9 +1551,21 @@ function useJoker(joker) {
 }
 
 function awardJokerCardByWorld(w) {
-  const template = AllJokerTemplates[w - 1];
-  if (!template) return;
-  if (unlockedJokers.find(j => j.id === template.id)) return;
+  const index = parseInt(w, 10) - 1;
+  const template = AllJokerTemplates[index];
+  if (!template) {
+    console.error("No joker template for world", w);
+    return;
+  }
+
+  if (unlockedJokers.find(j => j.id === template.id)) {
+    // ensure mana unlock persists even if the joker was already granted
+    if (template.id === "joker_heal" && !systems.manaUnlocked) {
+      unlockManaSystem();
+    }
+    return;
+  }
+
   unlockedJokers.push(template);
   addLog(`${template.name} unlocked!`, "info");
   if (template.id === "joker_heal" && !systems.manaUnlocked) {
