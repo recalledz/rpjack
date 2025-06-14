@@ -16,13 +16,13 @@ describe('🧮 Enemy Scaling Functions', () => {
   describe('calculateEnemyHp', () => {
     const cases = [
       { stage: 1, world: 1, hp: 11 },
-      { stage: 1, world: 2, hp: 111 },
-      { stage: 5, world: 1, hp: 33 },
-      { stage: 5, world: 2, hp: 257 },
-      { stage: 10, world: 1, hp: 63 },
-      { stage: 10, world: 2, hp: 379 },
-      { stage: 15, world: 1, hp: 96 },
-      { stage: 15, world: 2, hp: 484 }
+      { stage: 1, world: 2, hp: 14641 },
+      { stage: 5, world: 1, hp: 1875 },
+      { stage: 5, world: 2, hp: 50625 },
+      { stage: 10, world: 1, hp: 20000 },
+      { stage: 10, world: 2, hp: 160000 },
+      { stage: 15, world: 1, hp: 84375 },
+      { stage: 15, world: 2, hp: 390625 }
     ];
 
     cases.forEach(({ stage, world, hp }) => {

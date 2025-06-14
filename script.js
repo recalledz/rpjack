@@ -942,7 +942,10 @@ function updateDealerLifeDisplay() {
 // Determine how much health an enemy or boss should have
 function calculateEnemyHp(stage, world, isBoss = false) {
     const baseHp = 10 + stage;
-    return Math.floor(baseHp * (isBoss ? 10 * Math.pow((stage+10*(world-1)), 1.1): Math.pow((stage+10*(world-1)), 1.1)));
+    const effectiveStage = stage + 10 * (world - 1);
+    let hp = baseHp * Math.pow(effectiveStage, 3);
+    if (isBoss) hp *= 10;
+    return Math.floor(hp);
 }
 
 // Base damage output scaled by stage and world
@@ -1589,7 +1592,7 @@ function updatePlayerStats() {
         if (card.suit === "Diamonds")
             stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
 
-        card.damage = card.baseDamage * card.currentLevel;
+        card.damage = card.baseDamage + 5 * (card.currentLevel - 1);
         stats.pDamage += card.damage;
         stats.points += card.value;
     }

@@ -36,9 +36,10 @@ export class Card {
     this.XpCurrent = 0;
     this.XpReq = 1;
 
-    this.baseDamage = value;
+    const baseMultiplier = 1 + (value - 1) / 12;
+    this.baseDamage = 5 * baseMultiplier;
     this.damage = this.baseDamage;
-    this.maxHp = value;
+    this.maxHp = 5 * baseMultiplier;
     this.currentHp = this.maxHp;
     this.baseHpBoost = 0;
 
@@ -63,8 +64,9 @@ export class Card {
   levelUp() {
     this.currentLevel++;
     this.XpReq += this.currentLevel * 1.7 * (this.value ** 2);
-    this.damage = this.baseDamage * this.currentLevel;
-    this.maxHp = this.value * this.currentLevel + this.baseHpBoost;
+    this.damage = this.baseDamage + 5 * (this.currentLevel - 1);
+    const baseMultiplier = 1 + (this.value - 1) / 12;
+    this.maxHp = 5 * baseMultiplier + 5 * (this.currentLevel - 1) + this.baseHpBoost;
     this.currentHp = this.maxHp;
   }
 
