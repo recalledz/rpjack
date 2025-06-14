@@ -267,6 +267,7 @@ const dealerLifeDisplay =
 document.getElementsByClassName("dealerLifeDisplay")[0];
 const killsDisplay = document.getElementById("kills");
 const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
+const worldProgressPerSecDisplay = document.getElementById("worldProgressPerSecDisplay");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
@@ -288,6 +289,7 @@ let playerAttackFill = null;
 let enemyAttackFill = null;
 let playerAttackTimer = 0;
 let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
+
 
 
 //=========tabs==========
@@ -806,17 +808,24 @@ function recordWorldKill(world, stage) {
   worldProgressTracker.record(world, stage);
   updateWorldProgressUI(world);
 }
-
 function computeWorldProgress(id) {
   return worldProgressTracker.compute(id);
+
 }
 
 function updateWorldProgressUI(id) {
   const pct = computeWorldProgress(id) * 100;
+  const weight = computeWorldWeight(id);
   const fill = document.querySelector(
     `.world-progress[data-world="${id}"] .world-progress-fill`
   );
   if (fill) fill.style.width = `${pct}%`;
+  const textEl = document.querySelector(
+    `.world-progress-text[data-world="${id}"]`
+  );
+  if (textEl) {
+    textEl.textContent = `${weight}/${WORLD_PROGRESS_TARGET} (${pct.toFixed(1)}%)`;
+  }
   if (
     worldProgress[id] &&
     !worldProgress[id].bossDefeated &&
@@ -838,6 +847,10 @@ function renderWorldsMenu() {
     const entry = document.createElement("div");
     entry.classList.add("world-entry");
     entry.innerHTML = `<div>World ${id}</div>`;
+    const progressText = document.createElement("span");
+    progressText.classList.add("world-progress-text");
+    progressText.dataset.world = id;
+    entry.appendChild(progressText);
     const bar = document.createElement("div");
     bar.classList.add("world-progress");
     bar.dataset.world = id;
@@ -885,6 +898,10 @@ function nextWorld() {
   stageData.stage = 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
   resetStageCashStats();
+  worldProgressTimer = 0;
+  worldProgressSum = 0;
+  worldProgressSamples = 0;
+  lastWorldPct = computeWorldProgress(stageData.world) * 100;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
   nextStageChecker();
@@ -1835,8 +1852,9 @@ renderPlayerStats(stats);
   renderStageInfo();
   renderGlobalStats();
   renderWorldsMenu();
+  lastWorldPct = computeWorldProgress(stageData.world) * 100;
 
-updateManaBar();
+  updateManaBar();
 
   checkUpgradeUnlocks();
 
@@ -1858,6 +1876,7 @@ resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
 renderWorldsMenu();
+lastWorldPct = computeWorldProgress(stageData.world) * 100;
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);

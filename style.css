@@ -300,6 +300,11 @@ body {
     font-size: 0.8rem;
 }
 
+#worldProgressPerSecDisplay {
+    align-self: flex-start;
+    font-size: 0.8rem;
+}
+
 #dealerBarFill {
     height: 30px;
     width: 100%;
@@ -976,4 +981,8 @@ body {
     height: 100%;
     width: 0;
     background: green;
+}
+.world-progress-text {
+    font-size: 12px;
+    margin-left: 4px;
 }
