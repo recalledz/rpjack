@@ -564,7 +564,7 @@ function updateManaBar() {
   }
   manaBar.style.display = "flex";
   const ratio = stats.maxMana > 0 ? stats.mana / stats.maxMana: 0;
-  if (manaFill) manaFill.style.height = `${Math.min(1, ratio) * 100}%`;
+  if (manaFill) manaFill.style.width = `${Math.min(1, ratio) * 100}%`;
   if (manaText) manaText.textContent = `${Math.floor(stats.mana)}/${Math.floor(stats.maxMana)}`;
 }
 
