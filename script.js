@@ -19,6 +19,13 @@ import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
 import RateTracker from "./utils/rateTracker.js";
+import {
+  rollNewCardUpgrades,
+  addActiveUpgradeCardsToDeck,
+  applyCardUpgrade,
+  renderCardUpgrades,
+  unlockCardUpgrade
+} from "./cardUpgrades.js";
 
 
 // --- Game State ---
@@ -53,6 +60,11 @@ const stats = {
   maxMana: 0,
   mana: 0,
   manaRegen: 0,
+  healOnRedraw: 0,
+  abilityPower: 1,
+  spadeDamageMultiplier: 1,
+  heartHpMultiplier: 1,
+  diamondCashMultiplier: 1,
   playerShield: 0,
   abilityCooldownReduction: 0,
   jokerCooldownReduction: 0,
@@ -1138,6 +1150,10 @@ function onBossDefeat(boss) {
   healCardsOnKill();
   stats.upgradePower += 5;
   updateUpgradePowerDisplay();
+  rollNewCardUpgrades();
+  addActiveUpgradeCardsToDeck(deck);
+  shuffleArray(deck);
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'));
   nextWorld();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
@@ -1362,6 +1378,14 @@ function drawCard() {
 
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
+
+  // Upgrade cards apply immediately and are not kept in hand
+  if (card.upgradeId) {
+    applyCardUpgrade(card.upgradeId, { stats, pDeck });
+    renderCardUpgrades(document.querySelector('.card-upgrade-list'));
+    updatePlayerStats(stats);
+    return null;
+  }
 
   // 3) …put it into your hand…
   drawnCards.push(card);
@@ -1674,7 +1698,7 @@ const awardJokerCard = () => awardJokerCardByWorld(stageData.world);
 //=========player functions===========
 
 function spawnPlayer() {
-  for (let i = 0; i < stats.cardSlots; i++) {
+  while (drawnCards.length < stats.cardSlots && deck.length > 0) {
     drawCard();
   }
 }
@@ -1687,6 +1711,11 @@ function respawnPlayer() {
   deck = [...pDeck];
   drawnCards = [];
   discardPile = [];
+
+  rollNewCardUpgrades();
+  addActiveUpgradeCardsToDeck(deck);
+  shuffleArray(deck);
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'));
 
   handContainer.innerHTML = "";
   discardContainer.innerHTML = "";
@@ -1761,9 +1790,14 @@ deck.push(...drawnCards);
 drawnCards = [];
 handContainer.innerHTML = "";
 shuffleArray(deck);
-for (let i = 0; i < stats.cardSlots && deck.length > 0; i++) {
-drawCard();
-}
+ if (stats.healOnRedraw > 0) {
+   pDeck.forEach(c => {
+     c.currentHp = Math.min(c.maxHp, c.currentHp + stats.healOnRedraw);
+   });
+ }
+ while (drawnCards.length < stats.cardSlots && deck.length > 0) {
+   drawCard();
+ }
 updateDrawButton();
 updateDeckDisplay();
 updatePlayerStats(stats);
@@ -2032,6 +2066,10 @@ resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
 renderWorldsMenu();
+rollNewCardUpgrades();
+addActiveUpgradeCardsToDeck(deck);
+shuffleArray(deck);
+renderCardUpgrades(document.querySelector('.card-upgrade-list'));
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
