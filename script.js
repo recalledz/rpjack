@@ -248,6 +248,7 @@ const saveInterval = setInterval(saveGame, 30000);
 let playerAttackFill = null;
 let enemyAttackFill = null;
 let playerAttackTimer = 0;
+let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
 let cashTimer = 0;
 let stageCashSum = 0;
 let stageCashSamples = 0;
@@ -819,11 +820,8 @@ function spawnDealer() {
         }
     });
 
-    // Ensure the dealer gets an initial hit off immediately
-    if (typeof currentEnemy.onAttack === "function") {
-        currentEnemy.onAttack(currentEnemy);
-        currentEnemy.attackTimer = 0;
-    }
+    // carry over any attack progress from the last enemy
+    currentEnemy.attackTimer = currentEnemy.attackInterval * enemyAttackProgress;
 
     updateDealerLifeDisplay();
     renderEnemyAttackBar();
@@ -860,6 +858,8 @@ function respawnDealerStage() {
 
 // What happens after defeating a regular dealer
 function onDealerDefeat() {
+    // capture remaining attack progress before resetting
+    enemyAttackProgress = currentEnemy.attackTimer / currentEnemy.attackInterval;
     cardXp(stageData.stage ** 1.5 * stageData.world);
     cashOut();
     healCardsOnKill();
@@ -876,6 +876,8 @@ function onDealerDefeat() {
 
 // Called when the player defeats a boss enemy
 function onBossDefeat(boss) {
+    // capture remaining attack progress before resetting
+    enemyAttackProgress = boss.attackTimer / boss.attackInterval;
     cardXp(boss.xp);
     awardJokerCard();
     addLog(`${boss.name} was defeated!`);
@@ -922,11 +924,8 @@ function spawnBoss() {
         }
     });
 
-    // Ensure the boss gets an initial hit off immediately
-    if (typeof currentEnemy.onAttack === "function") {
-        currentEnemy.onAttack(currentEnemy);
-        currentEnemy.attackTimer = 0;
-    }
+    // carry over any attack progress from the last enemy
+    currentEnemy.attackTimer = currentEnemy.attackInterval * enemyAttackProgress;
 
     updateDealerLifeDisplay();
     renderEnemyAttackBar();
@@ -1380,6 +1379,7 @@ function spawnPlayer() {
 
 function respawnPlayer() {
     // Reset stage progression
+    enemyAttackProgress = 0;
     stageData.stage = 0;
     stageData.world = 1;
     stageData.kills = 0;
