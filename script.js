@@ -125,8 +125,8 @@ const upgrades = {
       player.baseCardHpBoost = newBoost;
       pDeck.forEach(card => {
         card.baseHpBoost = (card.baseHpBoost || 0) + diff;
-        card.maxHp += diff;
-        card.currentHp += diff;
+        card.maxHp = Math.round(card.maxHp + diff);
+        card.currentHp = Math.round(card.currentHp + diff);
       });
     }
   },
@@ -425,7 +425,7 @@ function renderTabCard(card) {
   cardPane.innerHTML = `
   <div class="card-value" style="color: ${card.color}">${card.value}</div>
   <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
-  <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
+  <div class="card-hp">HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}</div>
   `;
 
   // 3) XP bar
@@ -492,12 +492,12 @@ function updateDeckDisplay() {
 
     // 3) Update HP in deck tab
     if (card.deckHpDisplay) {
-      card.deckHpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+      card.deckHpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
     }
 
     // 4) If this card is currently on the field, update its HP too
     if (card.hpDisplay) {
-      card.hpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+      card.hpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
     }
   });
 }
@@ -1029,14 +1029,14 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   const card = drawnCards[0];
 
   // subtract **one** hit’s worth
-  card.currentHp = Math.max(0, card.currentHp - finalDamage);
+  card.currentHp = Math.round(Math.max(0, card.currentHp - finalDamage));
   addLog(
     `${source} hit ${card.value}${card.symbol} for ${finalDamage} damage!`,
     "damage"
   );
 
   // update its specific HP display
-  card.hpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+  card.hpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
   updateDeckDisplay();
   if (card.wrapperElement) {
     animateCardHit(card);
@@ -1166,7 +1166,7 @@ function updateDrawButton() {
 function updateHandDisplay() {
   drawnCards.forEach(card => {
     if (!card || !card.hpDisplay) return; // Skip if card or elements are missing
-    card.hpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+    card.hpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
     card.xpLabel.textContent = `LV: ${card.currentLevel}`;
     card.xpBarFill.style.width = `${(card.XpCurrent / card.XpReq) * 100}%`;
   });
@@ -1184,7 +1184,7 @@ function renderCard(card) {
   cardPane.innerHTML = `
   <div class="card-value" style="color: ${card.color}">${card.value}</div>
   <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
-  <div class="card-hp">HP: ${card.currentHp}/${card.maxHp}</div>
+  <div class="card-hp">HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}</div>
   `;
 
   // 3) XP bar
@@ -1239,14 +1239,13 @@ function heartHeal() {
 
   drawnCards.forEach(card => {
     if (card.suit === "Hearts") {
-      target.currentHp = Math.min(
-        target.currentHp + card.currentLevel,
-        target.maxHp
+      target.currentHp = Math.round(
+        Math.min(target.currentHp + card.currentLevel, target.maxHp)
       );
       animateCardHeal(target);
     }
   });
-  target.hpDisplay.textContent = `HP: ${target.currentHp}/${target.maxHp}`;
+  target.hpDisplay.textContent = `HP: ${Math.round(target.currentHp)}/${Math.round(target.maxHp)}`;
 }
 
 // Visual pulse when a card gains health
@@ -1367,9 +1366,9 @@ function useJoker(joker) {
       drawnCards.forEach(card => {
         if (!card) return;
         const before = card.currentHp;
-        card.currentHp = Math.min(card.maxHp, card.currentHp + healAmt);
+        card.currentHp = Math.round(Math.min(card.maxHp, card.currentHp + healAmt));
         if (card.currentHp > before) {
-          card.hpDisplay.textContent = `HP: ${card.currentHp}/${card.maxHp}`;
+          card.hpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
           animateCardHeal(card);
         }
       });

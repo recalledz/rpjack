@@ -15,7 +15,7 @@ export function simulateDeckSurvival({
   const deck = generateDeck();
   deck.forEach(card => {
     card.baseHpBoost = (card.baseHpBoost || 0) + baseCardHpLevel;
-    card.maxHp += baseCardHpLevel;
+    card.maxHp = Math.round(card.maxHp + baseCardHpLevel);
     card.currentHp = card.maxHp;
   });
 
@@ -39,7 +39,7 @@ export function simulateDeckSurvival({
       // heal surviving cards by 1 on kill
       deck.forEach(c => {
         if (c.currentHp > 0) {
-          c.currentHp = Math.min(c.maxHp, c.currentHp + 1);
+          c.currentHp = Math.round(Math.min(c.maxHp, c.currentHp + 1));
         }
       });
       continue;
