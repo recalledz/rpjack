@@ -823,7 +823,7 @@ body {
 
 .upgradesTab {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
     background-color: #5c5c5c;
     padding: 5px;
@@ -936,6 +936,7 @@ body {
     flex-direction: column;
     gap: 4px;
     margin-top: 4px;
+    flex: 1;
 }
 .bar-upgrade {
     display: flex;
@@ -957,9 +958,37 @@ body {
 .bar-info {
     font-size: 0.6rem;
 }
-.bar-invest-btn {
-    width: 60px;
-    font-size: 0.6rem;
+
+.card-upgrades {
+    flex: 1;
+}
+
+.bar-controls {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.bar-controls button {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    font-size: 0.7rem;
+}
+
+.bar-points {
+    min-width: 20px;
+    text-align: center;
+    font-size: 0.7rem;
+}
+
+.upgrade-card {
+    background: #333;
+    padding: 4px;
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 0.7rem;
+    border-radius: 4px;
 }
 
 .restart-overlay {
