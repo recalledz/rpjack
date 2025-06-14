@@ -74,6 +74,25 @@ let stageData = {
   attackspeed: 10000 //10 sec at start
 };
 
+// Weight a kill's contribution toward world completion based on the stage
+// Lower stages contribute less while stages beyond 10 scale slowly upward
+function stageWeight(stage) {
+  return stage <= 10 ? stage : 10 + Math.sqrt(stage - 10);
+}
+
+// Total weighted kills needed for a world to be considered "complete"
+const WORLD_PROGRESS_TARGET = 1820; // roughly matches old fixed requirements
+
+const worldProgress = {};
+Object.keys(BossTemplates).forEach(id => {
+  worldProgress[id] = {
+    unlocked: parseInt(id) === 1,
+    bossDefeated: false,
+    rewardClaimed: false,
+    stageKills: {}
+  };
+});
+
 const playerStats = {
   timesPrestiged: 0,
   decksUnlocked: 1,
@@ -236,6 +255,7 @@ let deck = [...pDeck];
 const btn = document.getElementById("clickalipse");
 const redrawBtn = document.getElementById("redrawBtn");
 const nextStageBtn = document.getElementById("nextStageBtn");
+const fightBossBtn = document.getElementById("fightBossBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
 const cardPointsDisplay = document.getElementById("cardPointsDisplay");
@@ -278,10 +298,12 @@ const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
 const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
 const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
 const playerStatsTabButton = document.getElementsByClassName("playerStatsTabButton")[0];
+const worldTabButton = document.getElementsByClassName("worldTabButton")[0];
 const mainTab = document.querySelector(".mainTab");
 const deckTab = document.querySelector(".deckTab");
 const starChartTab = document.querySelector(".starChartTab");
 const playerStatsTab = document.querySelector(".playerStatsTab");
+const worldsTab = document.querySelector(".worldsTab");
 const tooltip = document.getElementById("tooltip");
 
 function hideTab() {
@@ -289,6 +311,7 @@ function hideTab() {
   deckTab.style.display = "none";
   if (starChartTab) starChartTab.style.display = "none";
   if (playerStatsTab) playerStatsTab.style.display = "none";
+  if (worldsTab) worldsTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -315,6 +338,12 @@ if (playerStatsTabButton) {
   playerStatsTabButton.addEventListener("click", () => {
     renderGlobalStats();
     showTab(playerStatsTab);
+  });
+}
+if (worldTabButton) {
+  worldTabButton.addEventListener("click", () => {
+    renderWorldsMenu();
+    showTab(worldsTab);
   });
 }
 
@@ -774,6 +803,75 @@ function showDamageFloat(card, amount) {
 
 //=========stage functions===========
 
+function recordWorldKill(world, stage) {
+  const data = worldProgress[world];
+  if (!data) return;
+  data.stageKills[stage] = (data.stageKills[stage] || 0) + 1;
+  updateWorldProgressUI(world);
+}
+
+function computeWorldProgress(id) {
+  const data = worldProgress[id];
+  if (!data) return 0;
+  let weight = 0;
+  for (const [stage, kills] of Object.entries(data.stageKills)) {
+    weight += stageWeight(parseInt(stage)) * kills;
+  }
+  return Math.min(weight / WORLD_PROGRESS_TARGET, 1);
+}
+
+function updateWorldProgressUI(id) {
+  const pct = computeWorldProgress(id) * 100;
+  const fill = document.querySelector(
+    `.world-progress[data-world="${id}"] .world-progress-fill`
+  );
+  if (fill) fill.style.width = `${pct}%`;
+  if (
+    worldProgress[id] &&
+    !worldProgress[id].bossDefeated &&
+    pct >= 100 &&
+    id == stageData.world
+  ) {
+    fightBossBtn.style.display = "inline-block";
+  } else if (id == stageData.world) {
+    fightBossBtn.style.display = "none";
+  }
+}
+
+function renderWorldsMenu() {
+  const container = document.querySelector(".worldsContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  Object.entries(worldProgress).forEach(([id, data]) => {
+    if (!data.unlocked) return;
+    const entry = document.createElement("div");
+    entry.classList.add("world-entry");
+    entry.innerHTML = `<div>World ${id}</div>`;
+    const bar = document.createElement("div");
+    bar.classList.add("world-progress");
+    bar.dataset.world = id;
+    const fill = document.createElement("div");
+    fill.classList.add("world-progress-fill");
+    bar.appendChild(fill);
+    entry.appendChild(bar);
+    const btn = document.createElement("button");
+    if (data.bossDefeated && !data.rewardClaimed) {
+      btn.textContent = "Claim Reward";
+      btn.addEventListener("click", () => {
+        awardJokerCardByWorld(parseInt(id));
+        data.rewardClaimed = true;
+        renderWorldsMenu();
+      });
+    } else {
+      btn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
+      btn.disabled = true;
+    }
+    entry.appendChild(btn);
+    container.appendChild(entry);
+    updateWorldProgressUI(id);
+  });
+}
+
 // ===== Stage and world management =====
 // Advance to the next stage after defeating enough enemies
 function nextStage() {
@@ -876,7 +974,7 @@ function removeDealerLifeBar() {
 // After a kill, decide whether to spawn a dealer or a boss
 function respawnDealerStage() {
   removeDealerLifeBar();
-  if (stageData.stage % 10 === 0) {
+  if (stageData.stage === 10) {
     spawnBoss();
   } else {
     spawnDealer();
@@ -894,6 +992,7 @@ function onDealerDefeat() {
   playerStats.stageKills[stageData.stage] = stageData.kills;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
+  recordWorldKill(stageData.world, stageData.stage);
   dealerDeathAnimation();
   dealerBarDeathAnimation(() => {
     nextStageChecker();
@@ -906,7 +1005,11 @@ function onBossDefeat(boss) {
   // capture remaining attack progress before resetting
   enemyAttackProgress = boss.attackTimer / boss.attackInterval;
   cardXp(boss.xp);
-  awardJokerCard();
+  worldProgress[stageData.world].bossDefeated = true;
+  worldProgress[stageData.world].rewardClaimed = false;
+  if (worldProgress[stageData.world + 1]) {
+    worldProgress[stageData.world + 1].unlocked = true;
+  }
   addLog(`${boss.name} was defeated!`);
   currentEnemy = null;
 
@@ -915,6 +1018,8 @@ function onBossDefeat(boss) {
 
   healCardsOnKill();
   nextWorld();
+  renderWorldsMenu();
+  fightBossBtn.style.display = "none";
   respawnDealerStage();
 }
 
@@ -1411,8 +1516,8 @@ function useJoker(joker) {
   updateDeckDisplay();
 }
 
-function awardJokerCard() {
-  const template = AllJokerTemplates[stageData.world - 1];
+function awardJokerCardByWorld(w) {
+  const template = AllJokerTemplates[w - 1];
   if (!template) return;
   if (unlockedJokers.find(j => j.id === template.id)) return;
   unlockedJokers.push(template);
@@ -1423,6 +1528,8 @@ function awardJokerCard() {
   renderJokers();
 }
 
+const awardJokerCard = () => awardJokerCardByWorld(stageData.world);
+
 //=========player functions===========
 
 function spawnPlayer() {
@@ -1432,68 +1539,28 @@ function spawnPlayer() {
 }
 
 function respawnPlayer() {
-  // Reset stage progression
   enemyAttackProgress = 0;
-  stageData.stage = 0;
-  stageData.world = 1;
-  stageData.kills = 0;
+  cash = 0;
 
-  // Reset upgrades to level 0 and reapply effects
-  Object.values(upgrades).forEach(up => {
-    up.level = 0;
-    up.effect(stats);
-});
+  deck = [...pDeck];
+  drawnCards = [];
+  discardPile = [];
 
-// Rebuild the deck from scratch
-pDeck = generateDeck();
-deck = [...pDeck];
-drawnCards = [];
-discardPile = [];
+  handContainer.innerHTML = "";
+  discardContainer.innerHTML = "";
+  deckTabContainer.innerHTML = "";
+  deck.forEach(card => renderTabCard(card));
 
-// Clear card related UI containers
-handContainer.innerHTML = "";
-discardContainer.innerHTML = "";
-deckTabContainer.innerHTML = "";
+  cashDisplay.textContent = `Cash: $${cash}`;
+  updateUpgradeButtons();
+  renderStageInfo();
 
-// Re-render the deck tab
-deck.forEach(card => renderTabCard(card));
-
-// Reset core player values
-cash = 0;
-cardPoints = 0;
-Object.assign(stats, {
-  points: 0,
-  pDamage: 0,
-  pRegen: 0,
-  cashMulti: 1,
-  damageMultiplier: 1,
-  upgradeDamageMultiplier: 1,
-  cardSlots: upgrades.cardSlots.baseValue,
-  attackSpeed: 5000,
-  hpPerKill: 1,
-  maxMana: 0,
-  mana: 0,
-  manaRegen: 0
-});
-
-systems.manaUnlocked = false;
-updateManaBar();
-
-// Refresh UI elements
-cashDisplay.textContent = `Cash: $${cash}`;
-cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
-pointsDisplay.textContent = stats.points;
-renderUpgrades();
-updateUpgradeButtons();
-renderStageInfo();
-
-// Spawn the player hand and enemy for the new run
-spawnPlayer();
-
-stageData.stage = 1;
-stageData.kills = playerStats.stageKills[stageData.stage] || 0;
-killsDisplay.textContent = `Kills: ${stageData.kills}`;
-renderGlobalStats();
+  spawnPlayer();
+  respawnDealerStage();
+  updatePlayerStats(stats);
+  killsDisplay.textContent = `Kills: ${stageData.kills}`;
+  renderGlobalStats();
+  renderWorldsMenu();
 }
 
 let restartOverlay = null;
@@ -1686,9 +1753,10 @@ stageData,
 cash,
 cardPoints,
 deck: deckData,
-upgrades: upgradeLevels,
-unlockedJokers: unlockedJokers.map(j => j.id),
-playerStats
+  upgrades: upgradeLevels,
+  unlockedJokers: unlockedJokers.map(j => j.id),
+  playerStats,
+  worldProgress
 };
 
 try {
@@ -1713,6 +1781,12 @@ Object.assign(stats, state.stats || {});
 systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
 Object.assign(stageData, state.stageData || {});
 Object.assign(playerStats, state.playerStats || {});
+if (state.worldProgress) {
+  Object.entries(state.worldProgress).forEach(([id, data]) => {
+    if (!worldProgress[id]) worldProgress[id] = data;
+    else Object.assign(worldProgress[id], data);
+  });
+}
 
 if (state.upgrades) {
 Object.entries(state.upgrades).forEach(([k, lvl]) => {
@@ -1763,12 +1837,13 @@ renderUpgrades();
 renderJokers();
 updateUpgradeButtons();
 renderPlayerStats(stats);
-renderStageInfo();
-renderGlobalStats();
+  renderStageInfo();
+  renderGlobalStats();
+  renderWorldsMenu();
 
 updateManaBar();
 
-checkUpgradeUnlocks();
+  checkUpgradeUnlocks();
 
 addLog("Game loaded!",
 "info");
@@ -1787,11 +1862,19 @@ spawnDealer();
 resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
+renderWorldsMenu();
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
 redrawBtn.addEventListener("click", redrawHand);
 nextStageBtn.addEventListener("click", nextStage);
+fightBossBtn.addEventListener("click", () => {
+  fightBossBtn.style.display = "none";
+  stageData.stage = 10;
+  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  renderStageInfo();
+  spawnBoss();
+});
 
 /*function retry() {
   points =0

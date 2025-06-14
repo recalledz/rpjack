@@ -948,3 +948,28 @@ body {
         gap: 8px;
     }
 }
+
+/* worlds menu */
+.worldsTab {
+    display: none;
+}
+.world-entry {
+    margin-bottom: 8px;
+}
+.world-progress {
+    width: 100%;
+    height: 8px;
+    background: #090b09;
+    border: 1px solid grey;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+.world-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: green;
+}
