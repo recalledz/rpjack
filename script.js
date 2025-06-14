@@ -972,7 +972,7 @@ function updateDealerLifeDisplay() {
 function calculateEnemyHp(stage, world, isBoss = false) {
   const baseHp = 10 + stage;
   const effectiveStage = stage + 10 * (world - 1);
-  let hp = baseHp * Math.pow(effectiveStage, 1.2);
+  let hp = baseHp * Math.pow(effectiveStage, 1.1);
   if (isBoss) hp *= 5;
   return Math.floor(hp);
 }
