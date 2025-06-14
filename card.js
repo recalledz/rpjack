@@ -39,7 +39,7 @@ export class Card {
     const baseMultiplier = 1 + (value - 1) / 12;
     this.baseDamage = 5 * baseMultiplier;
     this.damage = this.baseDamage;
-    this.maxHp = 5 * baseMultiplier;
+    this.maxHp = Math.round(5 * baseMultiplier);
     this.currentHp = this.maxHp;
     this.baseHpBoost = 0;
 
@@ -66,12 +66,13 @@ export class Card {
     this.XpReq += this.currentLevel * 1.7 * (this.value ** 2);
     this.damage = this.baseDamage + 5 * (this.currentLevel - 1);
     const baseMultiplier = 1 + (this.value - 1) / 12;
-    this.maxHp = 5 * baseMultiplier + 5 * (this.currentLevel - 1) + this.baseHpBoost;
+    this.maxHp = Math.round(5 * baseMultiplier + 5 * (this.currentLevel - 1) + this.baseHpBoost);
     this.currentHp = this.maxHp;
   }
 
   healFromKill() {
-    this.currentHp = Math.min(this.maxHp, this.currentHp + this.hpPerKill);
+    const healed = Math.min(this.maxHp, this.currentHp + this.hpPerKill);
+    this.currentHp = Math.round(healed);
   }
 
   upgradeHpPerKill(amount = 1) {
@@ -79,7 +80,8 @@ export class Card {
   }
 
   takeDamage(amount) {
-    this.currentHp = Math.max(0, this.currentHp - amount);
+    const remaining = Math.max(0, this.currentHp - amount);
+    this.currentHp = Math.round(remaining);
   }
 
   isDefeated() {
