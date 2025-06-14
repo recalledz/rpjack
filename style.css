@@ -951,7 +951,11 @@ body {
 
 /* worlds menu */
 .worldsTab {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #556b7a;
+    padding: 5px;
 }
 .world-entry {
     margin-bottom: 8px;
