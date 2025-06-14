@@ -265,6 +265,7 @@ const dealerLifeDisplay =
 document.getElementsByClassName("dealerLifeDisplay")[0];
 const killsDisplay = document.getElementById("kills");
 const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
+const worldProgressPerSecDisplay = document.getElementById("worldProgressPerSecDisplay");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
@@ -290,6 +291,10 @@ let cashTimer = 0;
 let stageCashSum = 0;
 let stageCashSamples = 0;
 let stageAverageTimer = 0;
+let worldProgressTimer = 0;
+let worldProgressSum = 0;
+let worldProgressSamples = 0;
+let lastWorldPct = 0;
 
 
 //=========tabs==========
@@ -810,22 +815,33 @@ function recordWorldKill(world, stage) {
   updateWorldProgressUI(world);
 }
 
-function computeWorldProgress(id) {
+function computeWorldWeight(id) {
   const data = worldProgress[id];
   if (!data) return 0;
   let weight = 0;
   for (const [stage, kills] of Object.entries(data.stageKills)) {
     weight += stageWeight(parseInt(stage)) * kills;
   }
-  return Math.min(weight / WORLD_PROGRESS_TARGET, 1);
+  return weight;
+}
+
+function computeWorldProgress(id) {
+  return Math.min(computeWorldWeight(id) / WORLD_PROGRESS_TARGET, 1);
 }
 
 function updateWorldProgressUI(id) {
   const pct = computeWorldProgress(id) * 100;
+  const weight = computeWorldWeight(id);
   const fill = document.querySelector(
     `.world-progress[data-world="${id}"] .world-progress-fill`
   );
   if (fill) fill.style.width = `${pct}%`;
+  const textEl = document.querySelector(
+    `.world-progress-text[data-world="${id}"]`
+  );
+  if (textEl) {
+    textEl.textContent = `${weight}/${WORLD_PROGRESS_TARGET} (${pct.toFixed(1)}%)`;
+  }
   if (
     worldProgress[id] &&
     !worldProgress[id].bossDefeated &&
@@ -847,6 +863,10 @@ function renderWorldsMenu() {
     const entry = document.createElement("div");
     entry.classList.add("world-entry");
     entry.innerHTML = `<div>World ${id}</div>`;
+    const progressText = document.createElement("span");
+    progressText.classList.add("world-progress-text");
+    progressText.dataset.world = id;
+    entry.appendChild(progressText);
     const bar = document.createElement("div");
     bar.classList.add("world-progress");
     bar.dataset.world = id;
@@ -894,6 +914,10 @@ function nextWorld() {
   stageData.stage = 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
   resetStageCashStats();
+  worldProgressTimer = 0;
+  worldProgressSum = 0;
+  worldProgressSamples = 0;
+  lastWorldPct = computeWorldProgress(stageData.world) * 100;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
   nextStageChecker();
@@ -1840,8 +1864,9 @@ renderPlayerStats(stats);
   renderStageInfo();
   renderGlobalStats();
   renderWorldsMenu();
+  lastWorldPct = computeWorldProgress(stageData.world) * 100;
 
-updateManaBar();
+  updateManaBar();
 
   checkUpgradeUnlocks();
 
@@ -1863,6 +1888,7 @@ resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
 renderWorldsMenu();
+lastWorldPct = computeWorldProgress(stageData.world) * 100;
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
@@ -1936,19 +1962,33 @@ overlay.style.setProperty("--cooldown", ratio);
 updateDrawButton();
 updatePlayerStats(stats);
 cashTimer += deltaTime;
-if (cashTimer >= 1000) {
-stageCashSum += cash;
-stageCashSamples += 1;
-stageAverageTimer += 1000;
-cashTimer = 0;
-if (stageAverageTimer >= 10000) {
-const avgCash = stageCashSamples ? stageCashSum / stageCashSamples: 0;
-if (cashPerSecDisplay) {
-cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
-}
-stageAverageTimer = 0;
-}
-}
+  if (cashTimer >= 1000) {
+    stageCashSum += cash;
+    stageCashSamples += 1;
+    stageAverageTimer += 1000;
+    worldProgressTimer += 1000;
+    const currentPct = computeWorldProgress(stageData.world) * 100;
+    worldProgressSum += currentPct - lastWorldPct;
+    worldProgressSamples += 1;
+    lastWorldPct = currentPct;
+    cashTimer = 0;
+    if (stageAverageTimer >= 10000) {
+      const avgCash = stageCashSamples ? stageCashSum / stageCashSamples: 0;
+      if (cashPerSecDisplay) {
+        cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
+      }
+      stageAverageTimer = 0;
+    }
+    if (worldProgressTimer >= 30000) {
+      const avgProg = worldProgressSamples ? worldProgressSum / worldProgressSamples : 0;
+      if (worldProgressPerSecDisplay) {
+        worldProgressPerSecDisplay.textContent = `Avg World Progress/sec: ${avgProg.toFixed(2)}%`;
+      }
+      worldProgressTimer = 0;
+      worldProgressSum = 0;
+      worldProgressSamples = 0;
+    }
+  }
 playerAttackTimer += deltaTime;
 if (playerAttackFill) {
 const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
