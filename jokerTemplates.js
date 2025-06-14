@@ -25,7 +25,7 @@ export const DamageJoker = {
   baseValue: 8,
   manaCost: 15,
   image: "assets/jokers/damage_joker.png",
-  awardCondition: "defeat_boss_world_2",
+  awardCondition: "defeat_boss_world_3",
 
   getScaledPower(context = {}) {
     const { damageBonus = 0 } = context;
@@ -44,7 +44,7 @@ export const ShieldJoker = {
   baseValue: 5,
   manaCost: 12,
   image: "assets/jokers/shield_joker.png",
-  awardCondition: "defeat_boss_world_3",
+  awardCondition: "defeat_boss_world_2",
 
   getScaledPower(context = {}) {
     const { shieldBonus = 0 } = context;
@@ -88,7 +88,7 @@ export const BuffJoker = {
 
 export const AllJokerTemplates = [
   HealingJoker,
-  DamageJoker,
   ShieldJoker,
+  DamageJoker,
   BuffJoker,
 ];
