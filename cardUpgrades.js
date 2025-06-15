@@ -194,6 +194,7 @@ export function renderCardUpgrades(container, options = {}) {
     const cost = getCardUpgradeCost(id, stats);
     const wrapper = document.createElement('div');
     wrapper.classList.add('card-wrapper');
+    wrapper.dataset.id = id;
     const card = document.createElement('div');
     card.classList.add('card', 'upgrade-card');
     card.innerHTML = `
