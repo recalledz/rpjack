@@ -389,6 +389,7 @@ function showCardUpgradesPanel() {
     onPurchase: purchaseCardUpgrade
   });
   renderPurchasedUpgrades();
+  updateActiveEffects();
 }
 
 mainTabButton.addEventListener("click", () => {
