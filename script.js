@@ -354,11 +354,6 @@ const dpsDisplay = document.getElementById("dpsDisplay");
 
 const unlockedJokers = [];
 
-// Load saved state if available
-loadGame();
-window.addEventListener("beforeunload", saveGame);
-const saveInterval = setInterval(saveGame, 30000);
-
 // attack progress bars
 let playerAttackFill = null;
 let enemyAttackFill = null;
@@ -368,6 +363,11 @@ let cashTimer = 0;
 let worldProgressTimer = 0;
 const cashRateTracker = new RateTracker(10000);
 const worldProgressRateTracker = new RateTracker(30000);
+
+// Load saved state if available
+loadGame();
+window.addEventListener("beforeunload", saveGame);
+const saveInterval = setInterval(saveGame, 30000);
 
 
 //=========tabs==========
@@ -1869,11 +1869,11 @@ stageData.dealerLifeCurrent = currentEnemy.currentHp;
 if (currentEnemy.isDefeated()) {
 currentEnemy.onDefeat?.();
 } else {
-dealerLifeDisplay.textContent = `Life: ${Math.floor(
-currentEnemy.currentHp
-)}/${currentEnemy.maxHp}`;
-renderDealerLifeBarFill();
-}
+  dealerLifeDisplay.textContent = `Life: ${Math.floor(
+    currentEnemy.currentHp
+  )}/${currentEnemy.maxHp}`;
+  renderDealerLifeBarFill(currentEnemy);
+  }
 }
 
 /*if (currentEnemy instanceof Boss) {
