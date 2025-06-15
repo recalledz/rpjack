@@ -392,43 +392,52 @@ function showCardUpgradesPanel() {
   updateActiveEffects();
 }
 
-mainTabButton.addEventListener("click", () => {
-  showTab(mainTab);
-});
+function initTabs() {
+  if (mainTabButton)
+    mainTabButton.addEventListener("click", () => {
+      showTab(mainTab);
+    });
 
-deckTabButton.addEventListener("click", () => {
-  showTab(deckTab);
-});
+  if (deckTabButton)
+    deckTabButton.addEventListener("click", () => {
+      showTab(deckTab);
+    });
 
-if (starChartTabButton) {
-  starChartTabButton.addEventListener("click", () => {
-    initStarChart();
-    showTab(starChartTab);
-  });
-}
-if (playerStatsTabButton) {
-  playerStatsTabButton.addEventListener("click", () => {
-    renderGlobalStats();
-    showTab(playerStatsTab);
-  });
-}
-if (worldTabButton) {
-  worldTabButton.addEventListener("click", () => {
-    renderWorldsMenu();
-    showTab(worldsTab);
-  });
-}
-if (upgradesTabButton) {
-  upgradesTabButton.addEventListener("click", () => {
-    showTab(upgradesTab);
-    showBarUpgradesPanel();
-  });
-}
+  if (starChartTabButton) {
+    starChartTabButton.addEventListener("click", () => {
+      initStarChart();
+      showTab(starChartTab);
+    });
+  }
 
-if (barSubTabButton) barSubTabButton.addEventListener('click', showBarUpgradesPanel);
-if (cardSubTabButton) cardSubTabButton.addEventListener('click', showCardUpgradesPanel);
+  if (playerStatsTabButton) {
+    playerStatsTabButton.addEventListener("click", () => {
+      renderGlobalStats();
+      showTab(playerStatsTab);
+    });
+  }
 
-showTab(mainTab); // Start with main tab visible
+  if (worldTabButton) {
+    worldTabButton.addEventListener("click", () => {
+      renderWorldsMenu();
+      showTab(worldsTab);
+    });
+  }
+
+  if (upgradesTabButton) {
+    upgradesTabButton.addEventListener("click", () => {
+      showTab(upgradesTab);
+      showBarUpgradesPanel();
+    });
+  }
+
+  if (barSubTabButton)
+    barSubTabButton.addEventListener("click", showBarUpgradesPanel);
+  if (cardSubTabButton)
+    cardSubTabButton.addEventListener("click", showCardUpgradesPanel);
+
+  showTab(mainTab); // Start with main tab visible
+}
 
 // Allow collapsing/expanding vignette UI panels
 function initVignetteToggles() {
@@ -771,6 +780,7 @@ function updateDeckDisplay() {
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
+  initTabs();
   renderDealerCard();
   initVignetteToggles();
   Object.values(upgrades).forEach(u => u.effect(stats));
