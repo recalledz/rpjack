@@ -869,7 +869,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   renderJokers();
-  renderPlayerAttackBar();
+  const buttons = document.querySelector('.buttonsContainer');
+  playerAttackFill = renderPlayerAttackBar(buttons);
   requestAnimationFrame(gameLoop);
 });
 
