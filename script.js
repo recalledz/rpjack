@@ -854,7 +854,7 @@ function updateManaBar() {
   }
   manaBar.style.display = "flex";
   const ratio = stats.maxMana > 0 ? stats.mana / stats.maxMana: 0;
-  if (manaFill) manaFill.style.height = `${Math.min(1, ratio) * 100}%`;
+  if (manaFill) manaFill.style.width = `${Math.min(1, ratio) * 100}%`;
   if (manaText) manaText.textContent = `${Math.floor(stats.mana)}/${Math.floor(stats.maxMana)}`;
 }
 
@@ -1751,6 +1751,10 @@ function healCardsOnKill() {
 
 function renderJokers() {
   if (!jokerContainers.length) return;
+  // Ensure mana system activates once the Healing Joker is obtained
+  if (unlockedJokers.some(j => j.id === "joker_heal") && !systems.manaUnlocked) {
+    unlockManaSystem();
+  }
 
   // Ensure mana system visibility if the healing joker was just unlocked
   if (

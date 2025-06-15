@@ -172,6 +172,12 @@ Priest	Holy	Healing and support abilities
 
 Active abilities that operate on cooldowns.
 
+- **Healing Joker** – Rewarded after defeating the first boss. Restores health.
+- **Shield Joker** – Rewarded after the second boss. Grants shield points; each point negates one damage from the next enemy attack.
+- **Damage Joker** – Rewarded after the third boss. Deals direct damage.
+- **Buff Joker** – Rewarded after the fourth boss. Temporarily increases damage output.
+
+
 Feature	Base Value	Cost Formula	Notes
 
 Max Slots	2	500 * level^2.5	Maximum number of jokers equipped

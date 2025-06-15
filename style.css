@@ -135,12 +135,13 @@ body {
 
 .gameColumn {
     display: grid;
-    grid-template-columns: 20px 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
     grid-template-areas:
-        ". buttons"
-        "mana hand"
-        "mana jokers";
+        "buttons"
+        "mana"
+        "hand"
+        "jokers";
     overflow-y: auto;
     gap: 10px;
     position: relative;
@@ -161,17 +162,15 @@ body {
 
 .manaBar {
     grid-area: mana;
-}
-
-.manaBar {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 20px;
 }
 
 .manaBarInner {
     position: relative;
-    width: 20px;
+    width: 100%;
     height: 100%;
     background: black;
     border: 1px solid #333;
@@ -179,10 +178,10 @@ body {
 
 .manaFill {
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    width: 100%;
-    height: 0%;
+    height: 100%;
+    width: 0%;
     background: #351691;
 }
 
@@ -190,24 +189,10 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
+    transform: translate(-50%, -50%);
     color: #fff;
     font-size: 0.7rem;
     white-space: nowrap;
-}
-
-.manaBar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.manaBarInner {
-    position: relative;
-    width: 20px;
-    height: 100%;
-    background: black;
-    border: 1px solid #333;
 }
 
 
