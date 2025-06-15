@@ -961,8 +961,14 @@ body {
 }
 .bar-upgrade {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
 }
 .bar {
     width: 100%;
@@ -993,16 +999,16 @@ body {
 
 .bar-controls {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     align-items: center;
     margin-left: auto;
 }
 
 .bar-controls button {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     padding: 0;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
 }
 
 .bar-points {
@@ -1012,11 +1018,11 @@ body {
 }
 
 .upgrade-card {
-    background: #333;
+    background: #fff;
     padding: 4px;
     margin-bottom: 4px;
-    color: #fff;
-    font-size: 0.7rem;
+    color: #000;
+    font-size: 0.6rem;
     border-radius: 4px;
     display: flex;
     flex-direction: column;
@@ -1026,11 +1032,12 @@ body {
 .upgrade-card button {
     width: 100%;
     padding: 2px 4px;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     background: linear-gradient(135deg, #e8ffe8, #c8facc);
     border: 1px solid #4caf50;
     border-radius: 4px;
     cursor: pointer;
+    color: #000;
 }
 
 .upgrade-popup {

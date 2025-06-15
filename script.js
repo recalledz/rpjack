@@ -451,6 +451,18 @@ function updateUpgradeButtons() {
     row.classList.toggle("affordable", affordable);
     row.classList.toggle("unaffordable", !affordable);
   });
+  updateCardUpgradeButtons();
+}
+
+function updateCardUpgradeButtons() {
+  document.querySelectorAll('.card-upgrade-list .card-wrapper').forEach(wrap => {
+    const btn = wrap.querySelector('button');
+    const id = wrap.dataset.id;
+    if (!btn || !id) return;
+    const cost = getCardUpgradeCost(id, stats);
+    btn.disabled = cash < cost;
+    btn.textContent = `Buy $${cost}`;
+  });
 }
 
 // Deduct cash and apply the effects of the chosen upgrade
@@ -567,16 +579,19 @@ function renderBarUpgrades() {
     const row = document.createElement('div');
     row.classList.add('bar-upgrade');
     row.dataset.key = key;
+    const header = document.createElement('div');
+    header.classList.add('bar-header');
     const label = document.createElement('div');
     label.classList.add('bar-label');
     label.textContent = key === 'damage' ? 'Damage' : 'Max HP';
+    const info = document.createElement('div');
+    info.classList.add('bar-info');
+    header.append(label, info);
     const barEl = document.createElement('div');
     barEl.classList.add('bar');
     const fill = document.createElement('div');
     fill.classList.add('bar-fill');
     barEl.appendChild(fill);
-    const info = document.createElement('div');
-    info.classList.add('bar-info');
     const controls = document.createElement('div');
     controls.classList.add('bar-controls');
     const minus = document.createElement('button');
@@ -589,7 +604,7 @@ function renderBarUpgrades() {
     plus.textContent = '+';
     plus.addEventListener('click', () => allocateBarPoint(key));
     controls.append(minus, pts, plus);
-    row.append(label, barEl, info, controls);
+    row.append(header, barEl, controls);
     container.appendChild(row);
     updateBarUI(key);
   });
