@@ -471,13 +471,12 @@ body {
 /* buttons container */
 
 .buttonsContainer {
-    padding: 5px;
+    padding: 8px;
     gap: 5px;
     display: flex;
     flex-wrap: wrap; /* allow the attack bar to sit above the buttons */
     justify-content: center;
     align-items: center;
-    padding: 0 8px;
 }
 
 .buttonsContainer > button {
@@ -505,7 +504,7 @@ body {
 /* auto attack progress bars */
 .playerAttackBar {
     width: 50%;
-    height: 6px;
+    height: 4px;
     background: #090b09;
     border: 1px solid grey;
     border-radius: 8px;
