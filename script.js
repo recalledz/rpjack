@@ -364,8 +364,7 @@ let worldProgressTimer = 0;
 const cashRateTracker = new RateTracker(10000);
 const worldProgressRateTracker = new RateTracker(30000);
 
-// Load saved state if available
-loadGame();
+// Load saved state when DOM is ready
 window.addEventListener("beforeunload", saveGame);
 const saveInterval = setInterval(saveGame, 30000);
 
@@ -840,6 +839,7 @@ function updateDeckDisplay() {
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   initTabs();
+  loadGame();
   renderDealerCard();
   initVignetteToggles();
   Object.values(upgrades).forEach(u => u.effect(stats));
@@ -854,6 +854,50 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   renderPurchasedUpgrades();
   updateActiveEffects();
+  // Start or resume the game after loading
+  spawnPlayer();
+  respawnDealerStage();
+  resetStageCashStats();
+  renderStageInfo();
+  nextStageChecker();
+  renderWorldsMenu();
+  rollNewCardUpgrades();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  renderPurchasedUpgrades();
+  updateActiveEffects();
+  shuffleArray(deck);
+  checkUpgradeUnlocks();
+
+  btn.addEventListener("click", () => drawCard(getCardState()));
+  redrawBtn.addEventListener("click", () => redrawHand(getCardState()));
+  nextStageBtn.addEventListener("click", nextStage);
+  fightBossBtn.addEventListener("click", () => {
+    fightBossBtn.style.display = "none";
+    stageData.stage = 10;
+    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+    renderStageInfo();
+    currentEnemy = spawnBoss(
+      stageData,
+      enemyAttackProgress,
+      boss => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(
+          stageData.stage,
+          stageData.world
+        );
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
+          minDamage;
+        cDealerDamage(dmg, null, boss.name);
+      },
+      () => onBossDefeat(currentEnemy)
+    );
+    updateDealerLifeDisplay();
+    enemyAttackFill = renderEnemyAttackBar();
+    dealerDeathAnimation();
+  });
   const buyBtn = document.getElementById('buyUpgradePowerBtn');
   if (buyBtn) {
     buyBtn.addEventListener('click', () => {
@@ -2122,49 +2166,6 @@ e);
 }
 }
 
-//=========game start===========
-
-// Spawn the player's cards before the enemy so the initial
-// first strike doesn't trigger a full respawn
-spawnPlayer();
-respawnDealerStage();
-resetStageCashStats();
-renderStageInfo();
-nextStageChecker();
-renderWorldsMenu();
-rollNewCardUpgrades();
-renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
-  stats,
-  cash,
-  onPurchase: purchaseCardUpgrade
-});
-renderPurchasedUpgrades();
-updateActiveEffects();
-shuffleArray(deck);
-checkUpgradeUnlocks();
-
-btn.addEventListener("click", () => drawCard(getCardState()));
-redrawBtn.addEventListener("click", () => redrawHand(getCardState()));
-nextStageBtn.addEventListener("click", nextStage);
-fightBossBtn.addEventListener("click", () => {
-  fightBossBtn.style.display = "none";
-  stageData.stage = 10;
-  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
-  renderStageInfo();
-  currentEnemy = spawnBoss(
-    stageData,
-    enemyAttackProgress,
-    boss => {
-      const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
-      const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-      cDealerDamage(dmg, null, boss.name);
-    },
-    () => onBossDefeat(currentEnemy)
-  );
-  updateDealerLifeDisplay();
-  enemyAttackFill = renderEnemyAttackBar();
-  dealerDeathAnimation();
-});
 
 /*function retry() {
   points =0
