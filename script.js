@@ -840,7 +840,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   initTabs();
   loadGame();
-  renderDealerCard();
   initVignetteToggles();
   Object.values(upgrades).forEach(u => u.effect(stats));
   renderUpgrades();
@@ -857,6 +856,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start or resume the game after loading
   spawnPlayer();
   respawnDealerStage();
+  renderDealerCard();
   resetStageCashStats();
   renderStageInfo();
   nextStageChecker();
