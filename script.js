@@ -414,13 +414,13 @@ function hideUpgradePanels() {
 
 function showBarUpgradesPanel() {
   hideUpgradePanels();
-  if (barUpgradesPanel) barUpgradesPanel.style.display = "";
+  if (barUpgradesPanel) barUpgradesPanel.style.display = "block";
   renderBarUpgrades();
 }
 
 function showCardUpgradesPanel() {
   hideUpgradePanels();
-  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "";
+  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "block";
   renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
     stats,
     cash,
