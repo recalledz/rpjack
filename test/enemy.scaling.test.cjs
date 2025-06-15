@@ -1,16 +1,11 @@
 const { expect } = require('chai');
-const fs = require('fs');
-const vm = require('vm');
-const path = require('path');
-
-// Extract the functions from script.js without executing the entire file
-const script = fs.readFileSync(path.resolve(__dirname, '../script.js'), 'utf8');
-const hpCode = script.match(/function calculateEnemyHp\([\s\S]*?\n\}/)[0];
-const dmgCode = script.match(/function calculateEnemyBasicDamage\([\s\S]*?\n\}/)[0];
-const context = {};
-vm.createContext(context);
-vm.runInContext(`${hpCode}\n${dmgCode}`, context);
-const { calculateEnemyHp, calculateEnemyBasicDamage } = context;
+let calculateEnemyHp;
+let calculateEnemyBasicDamage;
+before(async () => {
+  const mod = await import('../enemySpawning.js');
+  calculateEnemyHp = mod.calculateEnemyHp;
+  calculateEnemyBasicDamage = mod.calculateEnemyBasicDamage;
+});
 
 describe('🧮 Enemy Scaling Functions', () => {
   describe('calculateEnemyHp', () => {
