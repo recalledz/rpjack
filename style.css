@@ -823,10 +823,18 @@ body {
 
 .upgradesTab {
     display: flex;
-    flex-direction: row;
-    gap: 10px;
+    flex-direction: column; /* stack upgrade UI vertically */
+    gap: 6px;
     background-color: #5c5c5c;
     padding: 5px;
+    align-items: flex-start;
+}
+
+/* Reduce button padding so bars remain visible */
+#buyUpgradePowerBtn {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    align-self: flex-start;
 }
 
 /* Joker container and tiles */
