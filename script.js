@@ -40,6 +40,8 @@ const cardBackImages = {
 // resources and progress trackers
 let cash = 0;
 let cardPoints = 0;
+// Track how many card points have already been converted to cash
+let lastCashOutPoints = 0;
 let currentEnemy = null;
 
 // track how many upgrade power points have been bought total
@@ -1084,6 +1086,8 @@ function nextStage() {
   nextStageChecker();
   renderStageInfo();
   checkUpgradeUnlocks();
+  // start the next stage without double-counting points
+  lastCashOutPoints = stats.points;
   respawnDealerStage();
 }
 
@@ -1104,6 +1108,8 @@ function nextWorld() {
   nextStageChecker();
   renderStageInfo();
   checkUpgradeUnlocks();
+  // entering a new world resets cash-out tracking
+  lastCashOutPoints = stats.points;
 }
 
 // Reset tracking for average cash when a new stage begins
@@ -1802,6 +1808,8 @@ function respawnPlayer() {
   spawnPlayer();
   respawnDealerStage();
   updatePlayerStats(stats);
+  // reset baseline so new kills don't award previous points again
+  lastCashOutPoints = stats.points;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
   renderWorldsMenu();
@@ -1929,16 +1937,22 @@ renderDealerLifeBarFill();
 
 // Convert points earned this stage into spendable cash
 function cashOut() {
-cash = Math.floor(
-cash +
-stats.points *
-(1 + Math.pow(stageData.stage, 0.5)) *
-stats.cashMulti
-);
-cashDisplay.textContent = `Cash: $${cash}`;
-cashRateTracker.record(cash);
-updateUpgradeButtons();
-return cash;
+  // Only convert points earned since the last cash out
+  const newPoints = Math.max(0, stats.points - lastCashOutPoints);
+  if (newPoints === 0) return cash;
+
+  cash = Math.floor(
+    cash +
+    newPoints *
+    (1 + Math.pow(stageData.stage, 0.5)) *
+    stats.cashMulti
+  );
+
+  lastCashOutPoints = stats.points;
+  cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.record(cash);
+  updateUpgradeButtons();
+  return cash;
 }
 
 // Recalculate combat stats based on cards currently drawn
@@ -2003,6 +2017,7 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     stageData,
     cash,
     upgradePowerPurchased,
+    lastCashOutPoints,
     cardPoints,
     deck: deckData,
     upgrades: upgradeLevels,
@@ -2028,10 +2043,11 @@ if (!json) return;
 
 try {
 const state = JSON.parse(json);
-cash = state.cash || 0;
-cardPoints = state.cardPoints || 0;
-upgradePowerPurchased = state.upgradePowerPurchased || 0;
-Object.assign(stats, state.stats || {});
+  cash = state.cash || 0;
+  cardPoints = state.cardPoints || 0;
+  upgradePowerPurchased = state.upgradePowerPurchased || 0;
+  lastCashOutPoints = state.lastCashOutPoints || 0;
+  Object.assign(stats, state.stats || {});
 systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
 Object.assign(stageData, state.stageData || {});
 Object.assign(playerStats, state.playerStats || {});
