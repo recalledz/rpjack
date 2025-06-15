@@ -584,6 +584,16 @@ body {
     max-height: 120px;
 }
 
+@media (min-width: 1024px) {
+    .card-wrapper {
+        max-width: 140px;
+        max-height: none;
+    }
+    .handContainer {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
 .card {
     display: flex;
     flex-direction: column;
