@@ -1937,18 +1937,15 @@ renderDealerLifeBarFill();
 
 // Convert points earned this stage into spendable cash
 function cashOut() {
-  // Only convert points earned since the last cash out
-  const newPoints = Math.max(0, stats.points - lastCashOutPoints);
-  if (newPoints === 0) return cash;
-
-  cash = Math.floor(
-    cash +
-    newPoints *
+  // Reward cash based on current card points and stage multiplier
+  const reward = Math.floor(
+    stats.points *
     (1 + Math.pow(stageData.stage, 0.5)) *
     stats.cashMulti
   );
+  if (reward <= 0) return cash;
 
-  lastCashOutPoints = stats.points;
+  cash += reward;
   cashDisplay.textContent = `Cash: $${cash}`;
   cashRateTracker.record(cash);
   updateUpgradeButtons();
