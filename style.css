@@ -285,6 +285,11 @@ body {
     font-size: 0.8rem;
 }
 
+#worldProgressPerSecDisplay {
+    align-self: flex-start;
+    font-size: 0.8rem;
+}
+
 #dealerBarFill {
     height: 30px;
     width: 100%;
@@ -801,6 +806,35 @@ body {
     padding: 5px;
 }
 
+.upgradesTab {
+    display: flex;
+    gap: 10px;
+    background-color: #5c5c5c;
+    padding: 5px;
+}
+
+.bar-upgrades-container {
+    width: 33%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-upgrades-container {
+    width: 67%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+/* Reduce button padding so bars remain visible */
+#buyUpgradePowerBtn {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    align-self: flex-start;
+}
+
 /* Joker container and tiles */
 .joker-wrapper {
     max-width: 90px;
@@ -903,6 +937,103 @@ body {
     opacity: 0.5;
 }
 
+.bar-upgrades {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+    flex: 1;
+}
+.bar-upgrade {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+}
+.bar {
+    width: 100%;
+    height: 8px;
+    background: #444;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-label {
+    width: 60px;
+    font-size: 0.7rem;
+}
+.bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #4caf50;
+}
+.bar-info {
+    font-size: 0.6rem;
+}
+
+.card-upgrade-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 8px;
+}
+
+.bar-controls {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    margin-left: auto;
+}
+
+.bar-controls button {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    font-size: 0.6rem;
+}
+
+.bar-points {
+    min-width: 20px;
+    text-align: center;
+    font-size: 0.7rem;
+}
+
+.upgrade-card {
+    background: #fff;
+    padding: 4px;
+    margin-bottom: 4px;
+    color: #000;
+    font-size: 0.6rem;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.upgrade-card button {
+    width: 100%;
+    padding: 2px 4px;
+    font-size: 0.6rem;
+    background: linear-gradient(135deg, #e8ffe8, #c8facc);
+    border: 1px solid #4caf50;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #000;
+}
+
+.upgrade-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    pointer-events: none;
+}
+
 .restart-overlay {
     position: fixed;
     top: 0;
@@ -932,4 +1063,48 @@ body {
     .handContainer {
         gap: 8px;
     }
+}
+
+/* worlds menu */
+.worldsTab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #556b7a;
+    padding: 5px;
+}
+.world-entry {
+    margin-bottom: 8px;
+}
+.world-progress {
+    width: 100%;
+    height: 8px;
+    background: #090b09;
+    border: 1px solid grey;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+.world-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: green;
+}
+.world-progress-text {
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.card-upgrades {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-upgrade-entry.active {
+    font-weight: bold;
 }

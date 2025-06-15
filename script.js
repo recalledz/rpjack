@@ -18,6 +18,16 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
+import RateTracker from "./utils/rateTracker.js";
+import {
+  rollNewCardUpgrades,
+  applyCardUpgrade,
+  renderCardUpgrades,
+  unlockCardUpgrade,
+  createUpgradeCard,
+  getCardUpgradeCost,
+  cardUpgradeDefinitions
+} from "./cardUpgrades.js";
 
 
 // --- Game State ---
@@ -32,11 +42,21 @@ const cardBackImages = {
 // resources and progress trackers
 let cash = 0;
 let cardPoints = 0;
+// Track how many card points have already been converted to cash
+let lastCashOutPoints = 0;
 let currentEnemy = null;
+
+// track how many upgrade power points have been bought total
+let upgradePowerPurchased = 0;
+
+function upgradePowerCost() {
+  return Math.floor(50 * Math.pow(1.5, upgradePowerPurchased));
+}
 
 // Persistent player stats affecting combat and rewards
 const stats = {
   points: 0,
+  upgradePower: 0,
   pDamage: 0,
   pRegen: 0,
   cashMulti: 1,
@@ -51,6 +71,11 @@ const stats = {
   maxMana: 0,
   mana: 0,
   manaRegen: 0,
+  healOnRedraw: 0,
+  abilityPower: 1,
+  spadeDamageMultiplier: 1,
+  heartHpMultiplier: 1,
+  diamondCashMultiplier: 1,
   playerShield: 0,
   abilityCooldownReduction: 0,
   jokerCooldownReduction: 0,
@@ -60,6 +85,18 @@ const stats = {
 const systems = {
   manaUnlocked: false
 };
+
+const barUpgrades = {
+  damage: { level: 0, progress: 0, points: 0, multiplier: 1 },
+  maxHp: { level: 0, progress: 0, points: 0, multiplier: 1 }
+};
+
+function computeBarMultiplier(level) {
+  return 1 + (level / (level + 20)) * 9;
+}
+
+// progress gained per second for each point invested in a bar
+const BAR_PROGRESS_RATE = 0.1;
 
 // Data for the current stage and world progression
 let stageData = {
@@ -73,6 +110,25 @@ let stageData = {
   playerXp: 1,
   attackspeed: 10000 //10 sec at start
 };
+
+// Weight a kill's contribution toward world completion based on the stage
+// Lower stages contribute less while stages beyond 10 scale slowly upward
+function stageWeight(stage) {
+  return stage <= 10 ? stage : 10 + Math.sqrt(stage - 10);
+}
+
+// Total weighted kills needed for a world to be considered "complete"
+const WORLD_PROGRESS_TARGET = 1820; // roughly matches old fixed requirements
+
+const worldProgress = {};
+Object.keys(BossTemplates).forEach(id => {
+  worldProgress[id] = {
+    unlocked: parseInt(id) === 1,
+    bossDefeated: false,
+    rewardClaimed: false,
+    stageKills: {}
+  };
+});
 
 const playerStats = {
   timesPrestiged: 0,
@@ -236,6 +292,7 @@ let deck = [...pDeck];
 const btn = document.getElementById("clickalipse");
 const redrawBtn = document.getElementById("redrawBtn");
 const nextStageBtn = document.getElementById("nextStageBtn");
+const fightBossBtn = document.getElementById("fightBossBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
 const cardPointsDisplay = document.getElementById("cardPointsDisplay");
@@ -245,6 +302,7 @@ const dealerLifeDisplay =
 document.getElementsByClassName("dealerLifeDisplay")[0];
 const killsDisplay = document.getElementById("kills");
 const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
+const worldProgressPerSecDisplay = document.getElementById("worldProgressPerSecDisplay");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
@@ -267,9 +325,9 @@ let enemyAttackFill = null;
 let playerAttackTimer = 0;
 let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
 let cashTimer = 0;
-let stageCashSum = 0;
-let stageCashSamples = 0;
-let stageAverageTimer = 0;
+let worldProgressTimer = 0;
+const cashRateTracker = new RateTracker(10000);
+const worldProgressRateTracker = new RateTracker(30000);
 
 
 //=========tabs==========
@@ -278,10 +336,14 @@ const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
 const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
 const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
 const playerStatsTabButton = document.getElementsByClassName("playerStatsTabButton")[0];
+const worldTabButton = document.getElementsByClassName("worldTabButton")[0];
+const upgradesTabButton = document.getElementsByClassName("upgradesTabButton")[0];
 const mainTab = document.querySelector(".mainTab");
 const deckTab = document.querySelector(".deckTab");
 const starChartTab = document.querySelector(".starChartTab");
 const playerStatsTab = document.querySelector(".playerStatsTab");
+const worldsTab = document.querySelector(".worldsTab");
+const upgradesTab = document.querySelector(".upgradesTab");
 const tooltip = document.getElementById("tooltip");
 
 function hideTab() {
@@ -289,6 +351,8 @@ function hideTab() {
   deckTab.style.display = "none";
   if (starChartTab) starChartTab.style.display = "none";
   if (playerStatsTab) playerStatsTab.style.display = "none";
+  if (worldsTab) worldsTab.style.display = "none";
+  if (upgradesTab) upgradesTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -315,6 +379,18 @@ if (playerStatsTabButton) {
   playerStatsTabButton.addEventListener("click", () => {
     renderGlobalStats();
     showTab(playerStatsTab);
+  });
+}
+if (worldTabButton) {
+  worldTabButton.addEventListener("click", () => {
+    renderWorldsMenu();
+    showTab(worldsTab);
+  });
+}
+if (upgradesTabButton) {
+  upgradesTabButton.addEventListener("click", () => {
+    renderBarUpgrades();
+    showTab(upgradesTab);
   });
 }
 
@@ -375,6 +451,18 @@ function updateUpgradeButtons() {
     row.classList.toggle("affordable", affordable);
     row.classList.toggle("unaffordable", !affordable);
   });
+  updateCardUpgradeButtons();
+}
+
+function updateCardUpgradeButtons() {
+  document.querySelectorAll('.card-upgrade-list .card-wrapper').forEach(wrap => {
+    const btn = wrap.querySelector('button');
+    const id = wrap.dataset.id;
+    if (!btn || !id) return;
+    const cost = getCardUpgradeCost(id, stats);
+    btn.disabled = cash < cost;
+    btn.textContent = `Buy $${cost}`;
+  });
 }
 
 // Deduct cash and apply the effects of the chosen upgrade
@@ -400,6 +488,7 @@ function purchaseUpgrade(key) {
   if (cash < cost) return;
   cash -= cost;
   cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.record(cash);
   up.level += 1;
   up.effect(stats);
   if (key === "cardSlots") {
@@ -410,6 +499,116 @@ function purchaseUpgrade(key) {
   renderUpgrades();
   updateDrawButton();
   renderPlayerStats(stats);
+}
+
+function purchaseCardUpgrade(id, cost) {
+  if (cash < cost) return;
+  cash -= cost;
+  cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.record(cash);
+  deck.push(createUpgradeCard(id));
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  updateUpgradeButtons();
+}
+
+function updateUpgradePowerDisplay() {
+  const el = document.getElementById('upgradePowerDisplay');
+  if (el) el.textContent = `Upgrade Power: ${Math.floor(stats.upgradePower)}`;
+}
+
+function updateUpgradePowerCost() {
+  const btn = document.getElementById('buyUpgradePowerBtn');
+  if (btn) btn.textContent = `Buy Upgrade Point ($${upgradePowerCost()})`;
+}
+
+function updateBarUI(key) {
+  const bar = barUpgrades[key];
+  const wrapper = document.querySelector(`.bar-upgrade[data-key="${key}"]`);
+  if (!wrapper) return;
+  const fill = wrapper.querySelector('.bar-fill');
+  const info = wrapper.querySelector('.bar-info');
+  const pointsEl = wrapper.querySelector('.bar-points');
+  const req = 10 + bar.level * 5;
+  if (fill) fill.style.width = `${(bar.progress / req) * 100}%`;
+  if (info) info.textContent = `Lv. ${bar.level} ×${bar.multiplier.toFixed(2)}`;
+  if (pointsEl) pointsEl.textContent = bar.points;
+}
+
+function allocateBarPoint(key) {
+  if (stats.upgradePower <= 0) return;
+  const bar = barUpgrades[key];
+  bar.points += 1;
+  stats.upgradePower -= 1;
+  updateBarUI(key);
+  updateUpgradePowerDisplay();
+}
+
+function deallocateBarPoint(key) {
+  const bar = barUpgrades[key];
+  if (bar.points <= 0) return;
+  bar.points -= 1;
+  stats.upgradePower += 1;
+  updateBarUI(key);
+  updateUpgradePowerDisplay();
+}
+
+function tickBarProgress(delta) {
+  Object.entries(barUpgrades).forEach(([key, bar]) => {
+    if (bar.points <= 0) return;
+    bar.progress += (bar.points * BAR_PROGRESS_RATE * delta) / 1000;
+    const req = 10 + bar.level * 5;
+    if (bar.progress >= req) {
+      bar.progress -= req;
+      bar.level += 1;
+      bar.multiplier = computeBarMultiplier(bar.level);
+      updatePlayerStats();
+    }
+    updateBarUI(key);
+  });
+}
+
+function renderBarUpgrades() {
+  const container = document.querySelector('.bar-upgrades');
+  if (!container) return;
+  container.innerHTML = '';
+  Object.entries(barUpgrades).forEach(([key, bar]) => {
+    const row = document.createElement('div');
+    row.classList.add('bar-upgrade');
+    row.dataset.key = key;
+    const header = document.createElement('div');
+    header.classList.add('bar-header');
+    const label = document.createElement('div');
+    label.classList.add('bar-label');
+    label.textContent = key === 'damage' ? 'Damage' : 'Max HP';
+    const info = document.createElement('div');
+    info.classList.add('bar-info');
+    header.append(label, info);
+    const barEl = document.createElement('div');
+    barEl.classList.add('bar');
+    const fill = document.createElement('div');
+    fill.classList.add('bar-fill');
+    barEl.appendChild(fill);
+    const controls = document.createElement('div');
+    controls.classList.add('bar-controls');
+    const minus = document.createElement('button');
+    minus.textContent = '-';
+    minus.addEventListener('click', () => deallocateBarPoint(key));
+    const pts = document.createElement('span');
+    pts.classList.add('bar-points');
+    pts.textContent = bar.points;
+    const plus = document.createElement('button');
+    plus.textContent = '+';
+    plus.addEventListener('click', () => allocateBarPoint(key));
+    controls.append(minus, pts, plus);
+    row.append(header, barEl, controls);
+    container.appendChild(row);
+    updateBarUI(key);
+  });
+  updateUpgradePowerDisplay();
 }
 //=========card tab==========
 
@@ -502,6 +701,7 @@ function updateDeckDisplay() {
   });
 }
 
+
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
@@ -509,6 +709,28 @@ document.addEventListener("DOMContentLoaded", () => {
   initVignetteToggles();
   Object.values(upgrades).forEach(u => u.effect(stats));
   renderUpgrades();
+  renderBarUpgrades();
+  updateUpgradePowerDisplay();
+  updateUpgradePowerCost();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  const buyBtn = document.getElementById('buyUpgradePowerBtn');
+  if (buyBtn) {
+    buyBtn.addEventListener('click', () => {
+      const cost = upgradePowerCost();
+      if (cash < cost) return;
+      cash -= cost;
+      cashDisplay.textContent = `Cash: $${cash}`;
+      cashRateTracker.record(cash);
+      stats.upgradePower += 1;
+      upgradePowerPurchased += 1;
+      updateUpgradePowerDisplay();
+      updateUpgradePowerCost();
+    });
+  }
   renderJokers();
   renderPlayerAttackBar();
   requestAnimationFrame(gameLoop);
@@ -569,10 +791,20 @@ function updateManaBar() {
 }
 
 function unlockManaSystem() {
+  // prevent duplicate initialization
+  if (systems.manaUnlocked) {
+    updateManaBar();
+    return;
+  }
+
   systems.manaUnlocked = true;
-  stats.maxMana = 50;
+  // establish baseline mana so upgrades scale correctly
+  upgrades.maxMana.baseValue = 50;
+  stats.maxMana = upgrades.maxMana.baseValue;
   stats.mana = stats.maxMana;
   stats.manaRegen = 0.01;
+  // re-apply upgrade effects in case levels were purchased before unlock
+  Object.values(upgrades).forEach(u => u.effect(stats));
   updateManaBar();
   checkUpgradeUnlocks();
 }
@@ -774,6 +1006,93 @@ function showDamageFloat(card, amount) {
 
 //=========stage functions===========
 
+function recordWorldKill(world, stage) {
+  const data = worldProgress[world];
+  if (!data) return;
+  data.stageKills[stage] = (data.stageKills[stage] || 0) + 1;
+  updateWorldProgressUI(world);
+  if (world === stageData.world) {
+    worldProgressRateTracker.record(computeWorldProgress(world) * 100);
+  }
+}
+
+function computeWorldWeight(id) {
+  const data = worldProgress[id];
+  if (!data) return 0;
+  let weight = 0;
+  for (const [stage, kills] of Object.entries(data.stageKills)) {
+    weight += stageWeight(parseInt(stage)) * kills;
+  }
+  return weight;
+}
+
+function computeWorldProgress(id) {
+  return Math.min(computeWorldWeight(id) / WORLD_PROGRESS_TARGET, 1);
+}
+
+function updateWorldProgressUI(id) {
+  const pct = computeWorldProgress(id) * 100;
+  const weight = computeWorldWeight(id);
+  const fill = document.querySelector(
+    `.world-progress[data-world="${id}"] .world-progress-fill`
+  );
+  if (fill) fill.style.width = `${pct}%`;
+  const textEl = document.querySelector(
+    `.world-progress-text[data-world="${id}"]`
+  );
+  if (textEl) {
+    textEl.textContent = `${weight}/${WORLD_PROGRESS_TARGET} (${pct.toFixed(1)}%)`;
+  }
+  if (
+    worldProgress[id] &&
+    !worldProgress[id].bossDefeated &&
+    pct >= 100 &&
+    id == stageData.world
+  ) {
+    fightBossBtn.style.display = "inline-block";
+  } else if (id == stageData.world) {
+    fightBossBtn.style.display = "none";
+  }
+}
+
+function renderWorldsMenu() {
+  const container = document.querySelector(".worldsContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  Object.entries(worldProgress).forEach(([id, data]) => {
+    if (!data.unlocked) return;
+    const entry = document.createElement("div");
+    entry.classList.add("world-entry");
+    entry.innerHTML = `<div>World ${id}</div>`;
+    const progressText = document.createElement("span");
+    progressText.classList.add("world-progress-text");
+    progressText.dataset.world = id;
+    entry.appendChild(progressText);
+    const bar = document.createElement("div");
+    bar.classList.add("world-progress");
+    bar.dataset.world = id;
+    const fill = document.createElement("div");
+    fill.classList.add("world-progress-fill");
+    bar.appendChild(fill);
+    entry.appendChild(bar);
+    const btn = document.createElement("button");
+    if (data.bossDefeated && !data.rewardClaimed) {
+      btn.textContent = "Claim Reward";
+      btn.addEventListener("click", () => {
+        awardJokerCardByWorld(parseInt(id));
+        data.rewardClaimed = true;
+        renderWorldsMenu();
+      });
+    } else {
+      btn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
+      btn.disabled = true;
+    }
+    entry.appendChild(btn);
+    container.appendChild(entry);
+    updateWorldProgressUI(id);
+  });
+}
+
 // ===== Stage and world management =====
 // Advance to the next stage after defeating enough enemies
 function nextStage() {
@@ -786,6 +1105,8 @@ function nextStage() {
   nextStageChecker();
   renderStageInfo();
   checkUpgradeUnlocks();
+  // start the next stage without double-counting points
+  lastCashOutPoints = stats.points;
   respawnDealerStage();
 }
 
@@ -796,19 +1117,24 @@ function nextWorld() {
   stageData.stage = 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
   resetStageCashStats();
+  worldProgressTimer = 0;
+  worldProgressRateTracker.reset(computeWorldProgress(stageData.world) * 100);
+  if (worldProgressPerSecDisplay) {
+    worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
+  }
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
   nextStageChecker();
   renderStageInfo();
   checkUpgradeUnlocks();
+  // entering a new world resets cash-out tracking
+  lastCashOutPoints = stats.points;
 }
 
 // Reset tracking for average cash when a new stage begins
 function resetStageCashStats() {
-  stageCashSum = 0;
-  stageCashSamples = 0;
-  stageAverageTimer = 0;
   cashTimer = 0;
+  cashRateTracker.reset(cash);
   if (cashPerSecDisplay) {
     cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
   }
@@ -876,7 +1202,7 @@ function removeDealerLifeBar() {
 // After a kill, decide whether to spawn a dealer or a boss
 function respawnDealerStage() {
   removeDealerLifeBar();
-  if (stageData.stage % 10 === 0) {
+  if (stageData.stage === 10) {
     spawnBoss();
   } else {
     spawnDealer();
@@ -894,6 +1220,7 @@ function onDealerDefeat() {
   playerStats.stageKills[stageData.stage] = stageData.kills;
   killsDisplay.textContent = `Kills: ${stageData.kills}`;
   renderGlobalStats();
+  recordWorldKill(stageData.world, stageData.stage);
   dealerDeathAnimation();
   dealerBarDeathAnimation(() => {
     nextStageChecker();
@@ -906,7 +1233,11 @@ function onBossDefeat(boss) {
   // capture remaining attack progress before resetting
   enemyAttackProgress = boss.attackTimer / boss.attackInterval;
   cardXp(boss.xp);
-  awardJokerCard();
+  worldProgress[stageData.world].bossDefeated = true;
+  worldProgress[stageData.world].rewardClaimed = false;
+  if (worldProgress[stageData.world + 1]) {
+    worldProgress[stageData.world + 1].unlocked = true;
+  }
   addLog(`${boss.name} was defeated!`);
   currentEnemy = null;
 
@@ -914,7 +1245,18 @@ function onBossDefeat(boss) {
   renderGlobalStats();
 
   healCardsOnKill();
+  stats.upgradePower += 5;
+  updateUpgradePowerDisplay();
+  rollNewCardUpgrades();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  shuffleArray(deck);
   nextWorld();
+  renderWorldsMenu();
+  fightBossBtn.style.display = "none";
   respawnDealerStage();
 }
 
@@ -1137,6 +1479,19 @@ function drawCard() {
   // 2) Take the *same* object out of deck…
   const card = deck.shift();
 
+  // Upgrade cards apply immediately and are not kept in hand
+  if (card.upgradeId) {
+    showUpgradePopup(card.upgradeId);
+    applyCardUpgrade(card.upgradeId, { stats, pDeck });
+    renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+      stats,
+      cash,
+      onPurchase: purchaseCardUpgrade
+    });
+    updatePlayerStats(stats);
+    return null;
+  }
+
   // 3) …put it into your hand…
   drawnCards.push(card);
 
@@ -1274,6 +1629,23 @@ function animateCardLevelUp(card) {
   );
 }
 
+function showUpgradePopup(id) {
+  const def = cardUpgradeDefinitions[id];
+  if (!def) return;
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('upgrade-popup');
+  wrapper.innerHTML = `
+    <div class="card-wrapper">
+      <div class="card upgrade-card">
+        <div class="card-suit"><i data-lucide="sword"></i></div>
+        <div class="card-desc">${def.name}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(wrapper);
+  lucide.createIcons();
+  setTimeout(() => wrapper.remove(), 3000);
+}
+
 // Fade out and remove the card when its HP reaches zero
 function animateCardDeath(card, callback) {
   const w = card.wrapperElement;
@@ -1309,6 +1681,14 @@ function renderJokers() {
   if (!jokerContainers.length) return;
   // Ensure mana system activates once the Healing Joker is obtained
   if (unlockedJokers.some(j => j.id === "joker_heal") && !systems.manaUnlocked) {
+    unlockManaSystem();
+  }
+
+  // Ensure mana system visibility if the healing joker was just unlocked
+  if (
+    !systems.manaUnlocked &&
+    unlockedJokers.find(j => j.id === "joker_heal")
+  ) {
     unlockManaSystem();
   }
 
@@ -1415,10 +1795,22 @@ function useJoker(joker) {
   updateDeckDisplay();
 }
 
-function awardJokerCard() {
-  const template = AllJokerTemplates[stageData.world - 1];
-  if (!template) return;
-  if (unlockedJokers.find(j => j.id === template.id)) return;
+function awardJokerCardByWorld(w) {
+  const index = parseInt(w, 10) - 1;
+  const template = AllJokerTemplates[index];
+  if (!template) {
+    console.error("No joker template for world", w);
+    return;
+  }
+
+  if (unlockedJokers.find(j => j.id === template.id)) {
+    // ensure mana unlock persists even if the joker was already granted
+    if (template.id === "joker_heal" && !systems.manaUnlocked) {
+      unlockManaSystem();
+    }
+    return;
+  }
+
   unlockedJokers.push(template);
   addLog(`${template.name} unlocked!`, "info");
   if (template.id === "joker_heal" && !systems.manaUnlocked) {
@@ -1427,77 +1819,51 @@ function awardJokerCard() {
   renderJokers();
 }
 
+const awardJokerCard = () => awardJokerCardByWorld(stageData.world);
+
 //=========player functions===========
 
 function spawnPlayer() {
-  for (let i = 0; i < stats.cardSlots; i++) {
+  while (drawnCards.length < stats.cardSlots && deck.length > 0) {
     drawCard();
   }
 }
 
 function respawnPlayer() {
-  // Reset stage progression
   enemyAttackProgress = 0;
-  stageData.stage = 0;
-  stageData.world = 1;
-  stageData.kills = 0;
+  cash = 0;
+  cashRateTracker.reset(cash);
 
-  // Reset upgrades to level 0 and reapply effects
-  Object.values(upgrades).forEach(up => {
-    up.level = 0;
-    up.effect(stats);
-});
+  deck = [...pDeck];
+  drawnCards = [];
+  discardPile = [];
 
-// Rebuild the deck from scratch
-pDeck = generateDeck();
-deck = [...pDeck];
-drawnCards = [];
-discardPile = [];
+  rollNewCardUpgrades();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  shuffleArray(deck);
 
-// Clear card related UI containers
-handContainer.innerHTML = "";
-discardContainer.innerHTML = "";
-deckTabContainer.innerHTML = "";
+  handContainer.innerHTML = "";
+  discardContainer.innerHTML = "";
+  deckTabContainer.innerHTML = "";
+  deck.forEach(card => renderTabCard(card));
 
-// Re-render the deck tab
-deck.forEach(card => renderTabCard(card));
+  cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.reset(cash);
+  updateUpgradeButtons();
+  renderStageInfo();
 
-// Reset core player values
-cash = 0;
-cardPoints = 0;
-Object.assign(stats, {
-  points: 0,
-  pDamage: 0,
-  pRegen: 0,
-  cashMulti: 1,
-  damageMultiplier: 1,
-  upgradeDamageMultiplier: 1,
-  cardSlots: upgrades.cardSlots.baseValue,
-  attackSpeed: 5000,
-  hpPerKill: 1,
-  maxMana: 0,
-  mana: 0,
-  manaRegen: 0
-});
-
-systems.manaUnlocked = false;
-updateManaBar();
-
-// Refresh UI elements
-cashDisplay.textContent = `Cash: $${cash}`;
-cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
-pointsDisplay.textContent = stats.points;
-renderUpgrades();
-updateUpgradeButtons();
-renderStageInfo();
-
-// Spawn the player hand and enemy for the new run
-spawnPlayer();
-
-stageData.stage = 1;
-stageData.kills = playerStats.stageKills[stageData.stage] || 0;
-killsDisplay.textContent = `Kills: ${stageData.kills}`;
-renderGlobalStats();
+  spawnPlayer();
+  respawnDealerStage();
+  updatePlayerStats(stats);
+  // reset baseline so new kills don't award previous points again
+  lastCashOutPoints = stats.points;
+  killsDisplay.textContent = `Kills: ${stageData.kills}`;
+  renderGlobalStats();
+  renderWorldsMenu();
 }
 
 let restartOverlay = null;
@@ -1555,9 +1921,14 @@ deck.push(...drawnCards);
 drawnCards = [];
 handContainer.innerHTML = "";
 shuffleArray(deck);
-for (let i = 0; i < stats.cardSlots && deck.length > 0; i++) {
-drawCard();
-}
+ if (stats.healOnRedraw > 0) {
+   pDeck.forEach(c => {
+     c.currentHp = Math.min(c.maxHp, c.currentHp + stats.healOnRedraw);
+   });
+ }
+ while (drawnCards.length < stats.cardSlots && deck.length > 0) {
+   drawCard();
+ }
 updateDrawButton();
 updateDeckDisplay();
 updatePlayerStats(stats);
@@ -1617,22 +1988,27 @@ renderDealerLifeBarFill();
 
 // Convert points earned this stage into spendable cash
 function cashOut() {
-cash = Math.floor(
-cash +
-stats.points *
-(1 + Math.pow(stageData.stage, 0.5)) *
-stats.cashMulti
-);
-cashDisplay.textContent = `Cash: $${cash}`;
-updateUpgradeButtons();
-return cash;
+  // Reward cash based on current card points and stage multiplier
+  const reward = Math.floor(
+    stats.points *
+    (1 + Math.pow(stageData.stage, 0.5)) *
+    stats.cashMulti
+  );
+  if (reward <= 0) return cash;
+
+  cash += reward;
+  cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.record(cash);
+  updateUpgradeButtons();
+  return cash;
 }
 
 // Recalculate combat stats based on cards currently drawn
 function updatePlayerStats() {
-// Reset base stats
-stats.pDamage = 0;
-stats.damageMultiplier = stats.upgradeDamageMultiplier;
+  // Reset base stats
+  stats.pDamage = 0;
+  stats.damageMultiplier =
+    stats.upgradeDamageMultiplier * barUpgrades.damage.multiplier;
 stats.pRegen = 0;
 stats.cashMulti = 1;
 stats.points = 0;
@@ -1684,16 +2060,20 @@ const upgradeUnlocked = Object.fromEntries(
 Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
 );
 
-const state = {
-stats,
-stageData,
-cash,
-cardPoints,
-deck: deckData,
-upgrades: upgradeLevels,
-unlockedJokers: unlockedJokers.map(j => j.id),
-playerStats
-};
+  const state = {
+    stats,
+    stageData,
+    cash,
+    upgradePowerPurchased,
+    lastCashOutPoints,
+    cardPoints,
+    deck: deckData,
+    upgrades: upgradeLevels,
+    unlockedJokers: unlockedJokers.map(j => j.id),
+    playerStats,
+    worldProgress,
+    barUpgrades
+  };
 
 try {
 localStorage.setItem("gameSave", JSON.stringify(state));
@@ -1711,12 +2091,26 @@ if (!json) return;
 
 try {
 const state = JSON.parse(json);
-cash = state.cash || 0;
-cardPoints = state.cardPoints || 0;
-Object.assign(stats, state.stats || {});
+  cash = state.cash || 0;
+  cardPoints = state.cardPoints || 0;
+  upgradePowerPurchased = state.upgradePowerPurchased || 0;
+  lastCashOutPoints = state.lastCashOutPoints || 0;
+  Object.assign(stats, state.stats || {});
 systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
 Object.assign(stageData, state.stageData || {});
 Object.assign(playerStats, state.playerStats || {});
+  if (state.worldProgress) {
+    Object.entries(state.worldProgress).forEach(([id, data]) => {
+      if (!worldProgress[id]) worldProgress[id] = data;
+      else Object.assign(worldProgress[id], data);
+    });
+  }
+
+  if (state.barUpgrades) {
+    Object.entries(state.barUpgrades).forEach(([k, v]) => {
+      if (barUpgrades[k]) Object.assign(barUpgrades[k], v);
+    });
+  }
 
 if (state.upgrades) {
 Object.entries(state.upgrades).forEach(([k, lvl]) => {
@@ -1752,10 +2146,18 @@ deck = [...pDeck];
 
 unlockedJokers.length = 0;
 if (Array.isArray(state.unlockedJokers)) {
-state.unlockedJokers.forEach(id => {
-const j = AllJokerTemplates.find(t => t.id === id);
-if (j) unlockedJokers.push(j);
-});
+  state.unlockedJokers.forEach(id => {
+    const j = AllJokerTemplates.find(t => t.id === id);
+    if (j) unlockedJokers.push(j);
+  });
+}
+
+// ensure mana system initializes if the healing joker was saved
+if (
+  !systems.manaUnlocked &&
+  unlockedJokers.find(j => j.id === "joker_heal")
+) {
+  unlockManaSystem();
 }
 
 Object.values(upgrades).forEach(u => u.effect(stats));
@@ -1763,16 +2165,27 @@ Object.values(upgrades).forEach(u => u.effect(stats));
 cashDisplay.textContent = `Cash: $${cash}`;
 cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
 
-renderUpgrades();
-renderJokers();
+  renderUpgrades();
+  renderBarUpgrades();
+  updateUpgradePowerDisplay();
+  renderJokers();
 updateUpgradeButtons();
-renderPlayerStats(stats);
-renderStageInfo();
-renderGlobalStats();
+  renderPlayerStats(stats);
+  renderStageInfo();
+  renderGlobalStats();
+  renderWorldsMenu();
+  cashRateTracker.reset(cash);
+  worldProgressRateTracker.reset(
+    computeWorldProgress(stageData.world) * 100
+  );
+  if (cashPerSecDisplay) cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
+  if (worldProgressPerSecDisplay)
+    worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
 
-updateManaBar();
+  updateManaBar();
 
-checkUpgradeUnlocks();
+  checkUpgradeUnlocks();
+  updateUpgradePowerCost();
 
 addLog("Game loaded!",
 "info");
@@ -1791,11 +2204,26 @@ spawnDealer();
 resetStageCashStats();
 renderStageInfo();
 nextStageChecker();
+renderWorldsMenu();
+rollNewCardUpgrades();
+renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+  stats,
+  cash,
+  onPurchase: purchaseCardUpgrade
+});
+shuffleArray(deck);
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);
 redrawBtn.addEventListener("click", redrawHand);
 nextStageBtn.addEventListener("click", nextStage);
+fightBossBtn.addEventListener("click", () => {
+  fightBossBtn.style.display = "none";
+  stageData.stage = 10;
+  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  renderStageInfo();
+  spawnBoss();
+});
 
 /*function retry() {
   points =0
@@ -1854,22 +2282,27 @@ overlay.style.setProperty("--cooldown", ratio);
 });
 }
 
-updateDrawButton();
-updatePlayerStats(stats);
-cashTimer += deltaTime;
-if (cashTimer >= 1000) {
-stageCashSum += cash;
-stageCashSamples += 1;
-stageAverageTimer += 1000;
-cashTimer = 0;
-if (stageAverageTimer >= 10000) {
-const avgCash = stageCashSamples ? stageCashSum / stageCashSamples: 0;
-if (cashPerSecDisplay) {
-cashPerSecDisplay.textContent = `Avg Cash/sec: ${avgCash.toFixed(2)}`;
-}
-stageAverageTimer = 0;
-}
-}
+  updateDrawButton();
+  updatePlayerStats(stats);
+  cashTimer += deltaTime;
+  worldProgressTimer += deltaTime;
+  if (cashTimer >= 1000) {
+    cashRateTracker.record(cash);
+    if (cashPerSecDisplay) {
+      const rate = cashRateTracker.getRate();
+      cashPerSecDisplay.textContent = `Avg Cash/sec: ${rate.toFixed(2)}`;
+    }
+    cashTimer = 0;
+  }
+  if (worldProgressTimer >= 1000) {
+    const currentPct = computeWorldProgress(stageData.world) * 100;
+    worldProgressRateTracker.record(currentPct);
+    if (worldProgressPerSecDisplay) {
+      const rate = worldProgressRateTracker.getRate();
+      worldProgressPerSecDisplay.textContent = `Avg World Progress/sec: ${rate.toFixed(2)}%`;
+    }
+    worldProgressTimer = 0;
+  }
 playerAttackTimer += deltaTime;
 if (playerAttackFill) {
 const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
@@ -1888,6 +2321,9 @@ stats.mana + (stats.manaRegen * deltaTime) / 1000
 );
 updateManaBar();
 }
+
+  // passive progress for bar upgrades
+  tickBarProgress(deltaTime);
 requestAnimationFrame(gameLoop);
 }
 
@@ -1935,6 +2371,7 @@ const amount =
 parseInt(document.getElementById("debugCash").value) || 0;
 cash += amount;
 cashDisplay.textContent = `Cash: $${cash}`;
+cashRateTracker.record(cash);
 updateUpgradeButtons();
 },
 
