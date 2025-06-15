@@ -21,10 +21,12 @@ import {
 import RateTracker from "./utils/rateTracker.js";
 import {
   rollNewCardUpgrades,
-  addActiveUpgradeCardsToDeck,
   applyCardUpgrade,
   renderCardUpgrades,
-  unlockCardUpgrade
+  unlockCardUpgrade,
+  createUpgradeCard,
+  getCardUpgradeCost,
+  cardUpgradeDefinitions
 } from "./cardUpgrades.js";
 
 
@@ -487,6 +489,20 @@ function purchaseUpgrade(key) {
   renderPlayerStats(stats);
 }
 
+function purchaseCardUpgrade(id, cost) {
+  if (cash < cost) return;
+  cash -= cost;
+  cashDisplay.textContent = `Cash: $${cash}`;
+  cashRateTracker.record(cash);
+  deck.push(createUpgradeCard(id));
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  updateUpgradeButtons();
+}
+
 function updateUpgradePowerDisplay() {
   const el = document.getElementById('upgradePowerDisplay');
   if (el) el.textContent = `Upgrade Power: ${Math.floor(stats.upgradePower)}`;
@@ -670,22 +686,6 @@ function updateDeckDisplay() {
   });
 }
 
-const upgradeCardTemplates = [
-  { id: 'hp_boost', name: 'HP Boost', desc: '+10 Max HP' },
-  { id: 'dmg_boost', name: 'Damage Boost', desc: '+2 Damage' }
-];
-
-function spawnUpgradeCards() {
-  const container = document.querySelector('.card-upgrade-list');
-  if (!container) return;
-  container.innerHTML = '';
-  upgradeCardTemplates.forEach(t => {
-    const div = document.createElement('div');
-    div.classList.add('upgrade-card');
-    div.textContent = t.name;
-    container.appendChild(div);
-  });
-}
 
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
@@ -697,7 +697,11 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBarUpgrades();
   updateUpgradePowerDisplay();
   updateUpgradePowerCost();
-  spawnUpgradeCards();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
   const buyBtn = document.getElementById('buyUpgradePowerBtn');
   if (buyBtn) {
     buyBtn.addEventListener('click', () => {
@@ -1229,9 +1233,12 @@ function onBossDefeat(boss) {
   stats.upgradePower += 5;
   updateUpgradePowerDisplay();
   rollNewCardUpgrades();
-  addActiveUpgradeCardsToDeck(deck);
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
   shuffleArray(deck);
-  renderCardUpgrades(document.querySelector('.card-upgrade-list'));
   nextWorld();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
@@ -1459,8 +1466,13 @@ function drawCard() {
 
   // Upgrade cards apply immediately and are not kept in hand
   if (card.upgradeId) {
+    showUpgradePopup(card.upgradeId);
     applyCardUpgrade(card.upgradeId, { stats, pDeck });
-    renderCardUpgrades(document.querySelector('.card-upgrade-list'));
+    renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+      stats,
+      cash,
+      onPurchase: purchaseCardUpgrade
+    });
     updatePlayerStats(stats);
     return null;
   }
@@ -1600,6 +1612,23 @@ function animateCardLevelUp(card) {
       once: true
     }
   );
+}
+
+function showUpgradePopup(id) {
+  const def = cardUpgradeDefinitions[id];
+  if (!def) return;
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('upgrade-popup');
+  wrapper.innerHTML = `
+    <div class="card-wrapper">
+      <div class="card upgrade-card">
+        <div class="card-suit"><i data-lucide="sword"></i></div>
+        <div class="card-desc">${def.name}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(wrapper);
+  lucide.createIcons();
+  setTimeout(() => wrapper.remove(), 3000);
 }
 
 // Fade out and remove the card when its HP reaches zero
@@ -1791,9 +1820,12 @@ function respawnPlayer() {
   discardPile = [];
 
   rollNewCardUpgrades();
-  addActiveUpgradeCardsToDeck(deck);
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
   shuffleArray(deck);
-  renderCardUpgrades(document.querySelector('.card-upgrade-list'));
 
   handContainer.innerHTML = "";
   discardContainer.innerHTML = "";
@@ -2155,9 +2187,12 @@ renderStageInfo();
 nextStageChecker();
 renderWorldsMenu();
 rollNewCardUpgrades();
-addActiveUpgradeCardsToDeck(deck);
+renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+  stats,
+  cash,
+  onPurchase: purchaseCardUpgrade
+});
 shuffleArray(deck);
-renderCardUpgrades(document.querySelector('.card-upgrade-list'));
 checkUpgradeUnlocks();
 
 btn.addEventListener("click", drawCard);

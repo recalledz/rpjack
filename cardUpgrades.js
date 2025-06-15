@@ -104,6 +104,13 @@ export const cardUpgradeDefinitions = {
   }
 };
 
+const rarityCostMultiplier = {
+  common: 1,
+  uncommon: 1.5,
+  rare: 2,
+  'super-rare': 3
+};
+
 const rarityWeights = {
   common: 60,
   uncommon: 25,
@@ -154,6 +161,15 @@ export function createUpgradeCard(id) {
   return { upgradeId: id };
 }
 
+export function getCardUpgradeCost(id, stats) {
+  const def = cardUpgradeDefinitions[id];
+  if (!def) return 0;
+  const rarityMult = rarityCostMultiplier[def.rarity] || 1;
+  const handPoints = stats.points || 30;
+  const payout = Math.floor(handPoints * (1 + Math.sqrt(9)) * (stats.cashMulti || 1));
+  return Math.floor(payout * 100 * rarityMult);
+}
+
 export function addActiveUpgradeCardsToDeck(deck) {
   activeCardUpgrades.forEach(id => {
     deck.push(createUpgradeCard(id));
@@ -167,18 +183,30 @@ export function applyCardUpgrade(id, context) {
   def.effect(context);
 }
 
-export function renderCardUpgrades(container) {
+export function renderCardUpgrades(container, options = {}) {
   if (!container) return;
+  const { stats = {}, cash = 0, onPurchase = null } = options;
   container.innerHTML = '';
   const ids = new Set([...activeCardUpgrades, ...Object.keys(upgradeLevels)]);
   ids.forEach(id => {
     const def = cardUpgradeDefinitions[id];
-    const row = document.createElement('div');
-    row.classList.add('card-upgrade-entry');
-    if (activeCardUpgrades.includes(id)) row.classList.add('active');
     const level = upgradeLevels[id] || 0;
-    row.textContent = `${def.name} (Lv. ${level})`;
-    container.appendChild(row);
+    const cost = getCardUpgradeCost(id, stats);
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('card-wrapper');
+    const card = document.createElement('div');
+    card.classList.add('card', 'upgrade-card');
+    card.innerHTML = `
+      <div class="card-suit"><i data-lucide="sword"></i></div>
+      <div class="card-desc">${def.name} (Lv. ${level})</div>
+    `;
+    wrapper.appendChild(card);
+    const btn = document.createElement('button');
+    btn.textContent = `Buy $${cost}`;
+    btn.disabled = cash < cost || !onPurchase;
+    btn.addEventListener('click', () => onPurchase && onPurchase(id, cost));
+    wrapper.appendChild(btn);
+    container.appendChild(wrapper);
   });
 }
 
