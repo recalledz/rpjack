@@ -334,29 +334,29 @@ const worldProgressRateTracker = new RateTracker(30000);
 
 //=========tabs==========
 
-const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
-const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
-const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
-const playerStatsTabButton = document.getElementsByClassName("playerStatsTabButton")[0];
-const worldTabButton = document.getElementsByClassName("worldTabButton")[0];
-const upgradesTabButton = document.getElementsByClassName("upgradesTabButton")[0];
-const mainTab = document.querySelector(".mainTab");
-const deckTab = document.querySelector(".deckTab");
-const starChartTab = document.querySelector(".starChartTab");
-const playerStatsTab = document.querySelector(".playerStatsTab");
-const worldsTab = document.querySelector(".worldsTab");
-const upgradesTab = document.querySelector(".upgradesTab");
-const barSubTabButton = document.querySelector('.barSubTabButton');
-const cardSubTabButton = document.querySelector('.cardSubTabButton');
-const barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
-const cardUpgradesPanel = document.querySelector('.card-upgrades-panel');
-const purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
-const activeEffectsContainer = document.querySelector('.active-effects');
-const tooltip = document.getElementById("tooltip");
+let mainTabButton;
+let deckTabButton;
+let starChartTabButton;
+let playerStatsTabButton;
+let worldTabButton;
+let upgradesTabButton;
+let mainTab;
+let deckTab;
+let starChartTab;
+let playerStatsTab;
+let worldsTab;
+let upgradesTab;
+let barSubTabButton;
+let cardSubTabButton;
+let barUpgradesPanel;
+let cardUpgradesPanel;
+let purchasedUpgradeList;
+let activeEffectsContainer;
+let tooltip;
 
 function hideTab() {
-  mainTab.style.display = "none";
-  deckTab.style.display = "none";
+  if (mainTab) mainTab.style.display = "none";
+  if (deckTab) deckTab.style.display = "none";
   if (starChartTab) starChartTab.style.display = "none";
   if (playerStatsTab) playerStatsTab.style.display = "none";
   if (worldsTab) worldsTab.style.display = "none";
@@ -366,7 +366,7 @@ function hideTab() {
 function showTab(tab) {
   hideTab();
   // Reset display so CSS controls layout
-  tab.style.display = "";
+  if (tab) tab.style.display = "";
 }
 
 function hideUpgradePanels() {
@@ -393,6 +393,27 @@ function showCardUpgradesPanel() {
 }
 
 function initTabs() {
+  if (typeof document === 'undefined') return;
+
+  mainTabButton = document.querySelector('.mainTabButton');
+  deckTabButton = document.querySelector('.deckTabButton');
+  starChartTabButton = document.querySelector('.starChartTabButton');
+  playerStatsTabButton = document.querySelector('.playerStatsTabButton');
+  worldTabButton = document.querySelector('.worldTabButton');
+  upgradesTabButton = document.querySelector('.upgradesTabButton');
+  mainTab = document.querySelector('.mainTab');
+  deckTab = document.querySelector('.deckTab');
+  starChartTab = document.querySelector('.starChartTab');
+  playerStatsTab = document.querySelector('.playerStatsTab');
+  worldsTab = document.querySelector('.worldsTab');
+  upgradesTab = document.querySelector('.upgradesTab');
+  barSubTabButton = document.querySelector('.barSubTabButton');
+  cardSubTabButton = document.querySelector('.cardSubTabButton');
+  barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
+  cardUpgradesPanel = document.querySelector('.card-upgrades-panel');
+  purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
+  activeEffectsContainer = document.querySelector('.active-effects');
+  tooltip = document.getElementById('tooltip');
   if (mainTabButton)
     mainTabButton.addEventListener("click", () => {
       showTab(mainTab);
