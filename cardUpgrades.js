@@ -130,6 +130,10 @@ export const upgradeLevels = {};
 
 let activeCardUpgrades = [];
 
+export function removeActiveUpgrade(id) {
+  activeCardUpgrades = activeCardUpgrades.filter(a => a !== id);
+}
+
 export function unlockCardUpgrade(id) {
   if (!unlockedCardUpgrades.includes(id)) {
     unlockedCardUpgrades.push(id);

@@ -26,7 +26,9 @@ import {
   unlockCardUpgrade,
   createUpgradeCard,
   getCardUpgradeCost,
-  cardUpgradeDefinitions
+  cardUpgradeDefinitions,
+  upgradeLevels as cardUpgradeLevels,
+  removeActiveUpgrade
 } from "./cardUpgrades.js";
 
 
@@ -344,6 +346,12 @@ const starChartTab = document.querySelector(".starChartTab");
 const playerStatsTab = document.querySelector(".playerStatsTab");
 const worldsTab = document.querySelector(".worldsTab");
 const upgradesTab = document.querySelector(".upgradesTab");
+const barSubTabButton = document.querySelector('.barSubTabButton');
+const cardSubTabButton = document.querySelector('.cardSubTabButton');
+const barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
+const cardUpgradesPanel = document.querySelector('.card-upgrades-panel');
+const purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
+const activeEffectsContainer = document.querySelector('.active-effects');
 const tooltip = document.getElementById("tooltip");
 
 function hideTab() {
@@ -359,6 +367,29 @@ function showTab(tab) {
   hideTab();
   // Reset display so CSS controls layout
   tab.style.display = "";
+}
+
+function hideUpgradePanels() {
+  if (barUpgradesPanel) barUpgradesPanel.style.display = "none";
+  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "none";
+}
+
+function showBarUpgradesPanel() {
+  hideUpgradePanels();
+  if (barUpgradesPanel) barUpgradesPanel.style.display = "";
+  renderBarUpgrades();
+}
+
+function showCardUpgradesPanel() {
+  hideUpgradePanels();
+  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "";
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  renderPurchasedUpgrades();
+  updateActiveEffects();
 }
 
 mainTabButton.addEventListener("click", () => {
@@ -389,10 +420,13 @@ if (worldTabButton) {
 }
 if (upgradesTabButton) {
   upgradesTabButton.addEventListener("click", () => {
-    renderBarUpgrades();
     showTab(upgradesTab);
+    showBarUpgradesPanel();
   });
 }
+
+if (barSubTabButton) barSubTabButton.addEventListener('click', showBarUpgradesPanel);
+if (cardSubTabButton) cardSubTabButton.addEventListener('click', showCardUpgradesPanel);
 
 showTab(mainTab); // Start with main tab visible
 
@@ -507,12 +541,44 @@ function purchaseCardUpgrade(id, cost) {
   cashDisplay.textContent = `Cash: $${cash}`;
   cashRateTracker.record(cash);
   deck.push(createUpgradeCard(id));
+  removeActiveUpgrade(id);
   renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
     stats,
     cash,
     onPurchase: purchaseCardUpgrade
   });
+  renderPurchasedUpgrades();
   updateUpgradeButtons();
+}
+
+function renderPurchasedUpgrades() {
+  if (!purchasedUpgradeList) return;
+  purchasedUpgradeList.innerHTML = '';
+  deck.forEach(c => {
+    if (!c.upgradeId) return;
+    const wrap = document.createElement('div');
+    wrap.classList.add('card-wrapper');
+    const cardEl = document.createElement('div');
+    cardEl.classList.add('card', 'upgrade-card');
+    const def = cardUpgradeDefinitions[c.upgradeId];
+    cardEl.innerHTML = `<div class="card-suit"><i data-lucide="sword"></i></div><div class="card-desc">${def.name}</div>`;
+    wrap.appendChild(cardEl);
+    purchasedUpgradeList.appendChild(wrap);
+  });
+  lucide.createIcons();
+}
+
+function updateActiveEffects() {
+  if (!activeEffectsContainer) return;
+  activeEffectsContainer.innerHTML = '';
+  Object.entries(cardUpgradeLevels).forEach(([id, lvl]) => {
+    if (lvl > 0) {
+      const def = cardUpgradeDefinitions[id];
+      const div = document.createElement('div');
+      div.textContent = `${def.name} (Lv. ${lvl})`;
+      activeEffectsContainer.appendChild(div);
+    }
+  });
 }
 
 function updateUpgradePowerDisplay() {
@@ -717,6 +783,8 @@ document.addEventListener("DOMContentLoaded", () => {
     cash,
     onPurchase: purchaseCardUpgrade
   });
+  renderPurchasedUpgrades();
+  updateActiveEffects();
   const buyBtn = document.getElementById('buyUpgradePowerBtn');
   if (buyBtn) {
     buyBtn.addEventListener('click', () => {
@@ -1253,6 +1321,8 @@ function onBossDefeat(boss) {
     cash,
     onPurchase: purchaseCardUpgrade
   });
+  renderPurchasedUpgrades();
+  updateActiveEffects();
   shuffleArray(deck);
   nextWorld();
   renderWorldsMenu();
@@ -1488,6 +1558,8 @@ function drawCard() {
       cash,
       onPurchase: purchaseCardUpgrade
     });
+    renderPurchasedUpgrades();
+    updateActiveEffects();
     updatePlayerStats(stats);
     return null;
   }
@@ -2182,6 +2254,8 @@ updateUpgradeButtons();
 
   checkUpgradeUnlocks();
   updateUpgradePowerCost();
+  renderPurchasedUpgrades();
+  updateActiveEffects();
 
 addLog("Game loaded!",
 "info");
@@ -2207,6 +2281,8 @@ renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
   cash,
   onPurchase: purchaseCardUpgrade
 });
+renderPurchasedUpgrades();
+updateActiveEffects();
 shuffleArray(deck);
 checkUpgradeUnlocks();
 
