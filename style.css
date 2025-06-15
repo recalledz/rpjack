@@ -41,23 +41,23 @@ body {
     display: flex;
     gap: 12px;
     padding: 10px;
-    background: rgba(10, 10, 30, 0.8);
-    box-shadow: 0 0 12px #222;
-    border-bottom: 2px solid #00ffee;
+    background: radial-gradient(circle, #3b1a1a 0%, #1a0000 100%);
+    box-shadow: 0 0 20px #d4af37;
+    border-bottom: 3px solid #d4af37;
 }
 
 .tabsContainer button {
-    background: #111;
-    color: #00ffee;
-    border: 1px solid #00ffee;
+    background: #220000;
+    color: #d4af37;
+    border: 1px solid #d4af37;
     padding: 8px 14px;
     border-radius: 8px;
     font-weight: bold;
     transition: all 0.2s;
 }
 .tabsContainer button:hover {
-    background: #00ffee;
-    color: #000;
+    background: #d4af37;
+    color: #220000;
 }
 
 /* tabs container */
@@ -823,20 +823,29 @@ body {
 
 .upgradesTab {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     background-color: #5c5c5c;
     padding: 5px;
 }
 
-.bar-upgrades-container {
-    width: 33%;
+.upgrade-subtabs {
     display: flex;
-    flex-direction: column;
     gap: 6px;
 }
 
+.upgrade-subtabs button {
+    flex: 1;
+}
+
+.bar-upgrades-panel,
+.card-upgrades-panel {
+    display: none;
+}
+
+.bar-upgrades-container,
 .card-upgrades-container {
-    width: 67%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -997,6 +1006,12 @@ body {
     gap: 8px;
 }
 
+.purchased-upgrade-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 8px;
+}
+
 .bar-controls {
     display: flex;
     gap: 2px;
@@ -1028,6 +1043,7 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    transform: rotate(5deg);
 }
 .upgrade-card button {
     width: 100%;
@@ -1047,6 +1063,14 @@ body {
     transform: translate(-50%, -50%);
     z-index: 2000;
     pointer-events: none;
+}
+
+.active-effects {
+    font-size: 0.6rem;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .restart-overlay {
