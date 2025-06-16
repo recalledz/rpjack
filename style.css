@@ -709,12 +709,14 @@ body {
 .xpBarLabel {
     position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    width: 100%;
     line-height: 1em;
     font-size: 0.6em;
     color: white;
     pointer-events: none; /* clicks pass through */
+    text-align: center;
+    white-space: nowrap;
 }
 
 @keyframes card-heal {
