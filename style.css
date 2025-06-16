@@ -116,6 +116,10 @@ body {
     gap: 10px;
 }
 
+.mainTab.world-2-theme {
+    background: radial-gradient(circle, #3b1a1a 0%, #1a0000 100%);
+}
+
 .dealerContainer {
     grid-area: dealer;
 }
