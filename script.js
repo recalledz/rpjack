@@ -1,7 +1,9 @@
 // Core modules that power the card game
 import generateDeck, {
   shuffleArray,
-  Card
+  Card,
+  recalcCardHp,
+  updateAllCardHp
 } from "./card.js"; // card utilities
 import addLog from "./log.js"; // helper for appending to the event log
 import Enemy from "./enemy.js"; // base enemy class
@@ -120,20 +122,7 @@ const barUpgrades = {
   maxHp: { level: 0, progress: 0, points: 0, multiplier: 1 }
 };
 
-// Recompute a card's HP using all current multipliers
-function recalcCardHp(card) {
-  const baseMul = 1 + (card.value - 1) / 12;
-  const baseHp = 5 * baseMul + 5 * (card.currentLevel - 1) + card.baseHpBoost;
-  const suitMult = card.suit === 'Hearts' ? stats.heartHpMultiplier : 1;
-  const hp = Math.round(baseHp * barUpgrades.maxHp.multiplier * suitMult);
-  const ratio = card.maxHp > 0 ? card.currentHp / card.maxHp : 1;
-  card.maxHp = hp;
-  card.currentHp = Math.round(Math.min(hp, ratio * hp));
-}
-
-function updateAllCardHp() {
-  pDeck.forEach(recalcCardHp);
-}
+// Card HP adjustments moved to card.js utilities
 
 function computeBarMultiplier(level) {
   return 1 + (level / (level + 20)) * 9;
@@ -205,6 +194,9 @@ function getDealerIconStyle(stage) {
 let pDeck = generateDeck();
 let deck = [...pDeck];
 
+// Helper bound functions for card utilities
+const recalcAllCardHp = () => updateAllCardHp(pDeck, stats, barUpgrades);
+
 function getCardState() {
   return {
     deck,
@@ -220,7 +212,7 @@ function getCardState() {
     cash,
     renderPurchasedUpgrades,
     updateActiveEffects,
-    updateAllCardHp,
+    updateAllCardHp: recalcAllCardHp,
     pDeck,
     shuffleArray,
     updateDrawButton,
@@ -625,7 +617,7 @@ function tickBarProgress(delta) {
       bar.level += 1;
       bar.multiplier = computeBarMultiplier(bar.level);
       if (key === 'maxHp') {
-        updateAllCardHp();
+        recalcAllCardHp();
       }
       updatePlayerStats();
     }
@@ -1992,7 +1984,7 @@ function updatePlayerStats() {
 
   for (const card of drawnCards) {
     if (!card) continue;
-    recalcCardHp(card);
+    recalcCardHp(card, stats, barUpgrades);
 
     if (card.suit === "Spades")
       stats.damageMultiplier += 0.1 * card.currentLevel;
