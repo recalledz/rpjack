@@ -299,7 +299,11 @@ export function renderCardUpgrades(container, options = {}) {
     const btn = document.createElement('button');
     btn.textContent = `Buy $${cost}`;
     btn.disabled = cash < cost || !onPurchase;
-    btn.addEventListener('click', () => onPurchase && onPurchase(id, cost));
+    btn.addEventListener('click', () => {
+      if (!onPurchase) return;
+      wrapper.classList.add('purchasing');
+      setTimeout(() => onPurchase(id, cost), 300);
+    });
     wrapper.appendChild(btn);
     container.appendChild(wrapper);
   });
