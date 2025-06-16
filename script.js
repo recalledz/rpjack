@@ -20,6 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
+import { Jobs, assignJob, getAvailableJobs } from "./classes.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import {
   rollNewCardUpgrades,
@@ -236,6 +237,7 @@ const killsDisplay = document.getElementById("kills");
 const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
 const worldProgressPerSecDisplay = document.getElementById("worldProgressPerSecDisplay");
 const deckTabContainer = document.getElementsByClassName("deckTabContainer")[0];
+const deckJobsContainer = document.getElementsByClassName("deckJobsContainer")[0];
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
 const jokerContainers = document.querySelectorAll(".jokerContainer");
 const manaBar = document.getElementById("manaBar");
@@ -394,6 +396,7 @@ function initTabs() {
       setActiveTabButton(playerStatsTabButton);
     });
   }
+
 
   if (worldTabButton) {
     worldTabButton.addEventListener("click", () => {
@@ -753,6 +756,7 @@ function updateDeckDisplay() {
       card.hpDisplay.textContent = `HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}`;
     }
   });
+  renderJobAssignments();
 }
 
 
@@ -782,6 +786,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStageInfo();
   nextStageChecker();
   renderWorldsMenu();
+  renderJobAssignments();
   rollNewCardUpgrades();
   renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
     stats,
@@ -1188,6 +1193,44 @@ function updateWorldTabNotification() {
   const newWorldAvailable = highestUnlocked > stageData.world;
   const shouldGlow = rewardAvailable || newWorldAvailable;
   worldTabButton.classList.toggle("glow-notify", shouldGlow);
+}
+
+// Show cards eligible for job assignment in the Deck tab
+function renderJobAssignments() {
+  const container = deckJobsContainer;
+  if (!container) return;
+  container.innerHTML = '';
+  pDeck.forEach(card => {
+    if (card.currentLevel >= 20 && !card.job) {
+      const row = document.createElement('div');
+      row.classList.add('job-entry');
+      row.textContent = `${card.value}${card.symbol} (Lv. ${card.currentLevel})`;
+
+      const select = document.createElement('select');
+      getAvailableJobs(card).forEach(id => {
+        const j = Jobs[id];
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = j.name;
+        select.appendChild(opt);
+      });
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Assign';
+      btn.addEventListener('click', () => {
+        const id = select.value;
+        if (assignJob(card, id)) {
+          renderJobAssignments();
+        }
+      });
+
+      row.append(' ', select, btn);
+      container.appendChild(row);
+    }
+  });
+  if (!container.firstChild) {
+    container.textContent = 'No eligible cards.';
+  }
 }
 
 // ===== Stage and world management =====
