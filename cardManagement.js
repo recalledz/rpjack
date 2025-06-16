@@ -13,6 +13,7 @@ export function drawCard(state) {
     cash,
     renderPurchasedUpgrades,
     updateActiveEffects,
+    updateAllCardHp,
     pDeck
   } = state;
 
@@ -22,7 +23,7 @@ export function drawCard(state) {
 
   if (card.upgradeId) {
     showUpgradePopup(card.upgradeId);
-    applyCardUpgrade(card.upgradeId, { stats, pDeck });
+    applyCardUpgrade(card.upgradeId, { stats, pDeck, updateAllCardHp });
     renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
       stats,
       cash,
@@ -30,6 +31,7 @@ export function drawCard(state) {
     });
     renderPurchasedUpgrades();
     updateActiveEffects();
+    updateAllCardHp();
     return null;
   }
 

@@ -82,8 +82,9 @@ export const cardUpgradeDefinitions = {
     name: 'Heart HP Multiplier +5%',
     rarity: 'rare',
     prestige: true,
-    effect: ({ stats }) => {
+    effect: ({ stats, updateAllCardHp }) => {
       stats.heartHpMultiplier = (stats.heartHpMultiplier || 1) + 0.05;
+      if (typeof updateAllCardHp === 'function') updateAllCardHp();
     }
   },
   clubsPlaceholder: {
