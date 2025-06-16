@@ -1141,3 +1141,12 @@ body {
 .card-upgrade-entry.active {
     font-weight: bold;
 }
+
+@keyframes glow-pulse {
+    from { box-shadow: 0 0 5px 2px gold; }
+    to { box-shadow: 0 0 12px 4px gold; }
+}
+
+.glow-notify {
+    animation: glow-pulse 1s infinite alternate;
+}

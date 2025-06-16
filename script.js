@@ -1217,22 +1217,51 @@ function renderWorldsMenu() {
     fill.classList.add("world-progress-fill");
     bar.appendChild(fill);
     entry.appendChild(bar);
-    const btn = document.createElement("button");
+    const claimBtn = document.createElement("button");
     if (data.bossDefeated && !data.rewardClaimed) {
-      btn.textContent = "Claim Reward";
-      btn.addEventListener("click", () => {
+      claimBtn.textContent = "Claim Reward";
+      claimBtn.addEventListener("click", () => {
         awardJokerCardByWorld(parseInt(id));
         data.rewardClaimed = true;
         renderWorldsMenu();
+        updateWorldTabNotification();
       });
     } else {
-      btn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
-      btn.disabled = true;
+      claimBtn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
+      claimBtn.disabled = true;
     }
-    entry.appendChild(btn);
+    entry.appendChild(claimBtn);
+
+    const visitBtn = document.createElement("button");
+    if (parseInt(id) === stageData.world) {
+      visitBtn.textContent = "Current";
+      visitBtn.disabled = true;
+    } else {
+      visitBtn.textContent = `Go To World ${id}`;
+      visitBtn.addEventListener("click", () => {
+        goToWorld(parseInt(id));
+      });
+    }
+    entry.appendChild(visitBtn);
     container.appendChild(entry);
     updateWorldProgressUI(id);
   });
+  updateWorldTabNotification();
+}
+
+// Highlight the Worlds tab when rewards can be claimed or a new world is unlocked
+function updateWorldTabNotification() {
+  if (!worldTabButton) return;
+  let highestUnlocked = 0;
+  let rewardAvailable = false;
+  Object.entries(worldProgress).forEach(([id, data]) => {
+    const num = parseInt(id);
+    if (data.unlocked && num > highestUnlocked) highestUnlocked = num;
+    if (data.bossDefeated && !data.rewardClaimed) rewardAvailable = true;
+  });
+  const newWorldAvailable = highestUnlocked > stageData.world;
+  const shouldGlow = rewardAvailable || newWorldAvailable;
+  worldTabButton.classList.toggle("glow-notify", shouldGlow);
 }
 
 // ===== Stage and world management =====
@@ -1271,6 +1300,30 @@ function nextWorld() {
   checkUpgradeUnlocks();
   // entering a new world resets cash-out tracking
   lastCashOutPoints = stats.points;
+}
+
+// Travel to a specific world when selected in the Worlds tab
+function goToWorld(id) {
+  if (!worldProgress[id] || !worldProgress[id].unlocked) return;
+  playerStats.stageKills[stageData.stage] = stageData.kills;
+  stageData.world = parseInt(id);
+  stageData.stage = 1;
+  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  resetStageCashStats();
+  worldProgressTimer = 0;
+  worldProgressRateTracker.reset(computeWorldProgress(stageData.world) * 100);
+  if (worldProgressPerSecDisplay) {
+    worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
+  }
+  killsDisplay.textContent = `Kills: ${stageData.kills}`;
+  renderGlobalStats();
+  nextStageChecker();
+  renderStageInfo();
+  checkUpgradeUnlocks();
+  lastCashOutPoints = stats.points;
+  respawnDealerStage();
+  renderWorldsMenu();
+  updateWorldTabNotification();
 }
 
 // Reset tracking for average cash when a new stage begins
@@ -1388,7 +1441,8 @@ function onBossDefeat(boss) {
   renderPurchasedUpgrades();
   updateActiveEffects();
   shuffleArray(deck);
-  nextWorld();
+  // Unlock the next world but require the player to travel manually
+  updateWorldTabNotification();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
   respawnDealerStage();
@@ -2157,6 +2211,7 @@ updateUpgradeButtons();
   updateUpgradePowerCost();
   renderPurchasedUpgrades();
   updateActiveEffects();
+  updateWorldTabNotification();
 
 addLog("Game loaded!",
 "info");
