@@ -54,6 +54,10 @@ body {
     border-radius: 8px;
     font-weight: bold;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 .tabsContainer button:hover {
     background: #d4af37;
