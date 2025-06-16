@@ -27,6 +27,7 @@ import {
   createUpgradeCard,
   getCardUpgradeCost,
   cardUpgradeDefinitions,
+  upgrades,
   upgradeLevels as cardUpgradeLevels,
   removeActiveUpgrade
 } from "./cardUpgrades.js";
@@ -158,136 +159,8 @@ const playerStats = {
 const FAST_MODE_SCALE = 10;
 let timeScale = 1;
 
-// Definitions for purchasable upgrades and their effects
-const upgrades = {
-  // Unlocked from start
-  globalDamage: {
-    name: "Global Damage Multiplier",
-    level: 0,
-    baseValue: 1.0,
-    unlocked: true,
-    costFormula: level => 100 * level ** 1.2,
-    effect: player => {
-      player.upgradeDamageMultiplier =
-      upgrades.globalDamage.baseValue +
-      0.15 * upgrades.globalDamage.level;
-    }
-  },
-  cardHpPerKill: {
-    name: "Card HP per Kill",
-    level: 0,
-    baseValue: 1,
-    unlocked: true,
-    costFormula: level => 150 * level ** 2,
-    effect: player => {
-      player.hpPerKill =
-      upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
-      pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
-    }
-  },
-  baseCardHp: {
-    name: "Base Card HP Boost",
-    level: 0,
-    baseValue: 0,
-    unlocked: true,
-    costFormula: level => 100 * level ** 1.2,
-    effect: player => {
-      const prev = player.baseCardHpBoost || 0;
-      const newBoost = 3 * upgrades.baseCardHp.level;
-      const diff = newBoost - prev;
-      player.baseCardHpBoost = newBoost;
-      pDeck.forEach(card => {
-        card.baseHpBoost = (card.baseHpBoost || 0) + diff;
-        card.maxHp = Math.round(card.maxHp + diff);
-        card.currentHp = Math.round(card.currentHp + diff);
-      });
-    }
-  },
-
-  // Locked at start
-  cardSlots: {
-    name: "Card Slots",
-    level: 0,
-    baseValue: 3,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 5,
-    costFormula: level => 100000 * level ** 3,
-    effect: player => {
-      player.cardSlots =
-      upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
-    }
-  },
-  autoAttackSpeed: {
-    name: "Auto-Attack Speed",
-    level: 0,
-    baseValue: 5000,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 10,
-    costFormula: level => Math.floor(300 * level ** 2),
-    effect: player => {
-      const lvl = upgrades.autoAttackSpeed.level;
-      const base = upgrades.autoAttackSpeed.baseValue;
-      const fastReduction = 500 * Math.min(lvl, 4);
-      const diminishing = 250 * Math.max(lvl - 4, 0);
-      player.attackSpeed = Math.max(2000, base - fastReduction - diminishing);
-    }
-  },
-  maxMana: {
-    name: "Maximum Mana",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 15,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.maxMana = upgrades.maxMana.baseValue + 10 * upgrades.maxMana.level;
-    }
-  },
-  manaRegen: {
-    name: "Mana Regeneration",
-    level: 0,
-    baseValue: 0.1,
-    unlocked: false,
-    unlockCondition: () => systems.manaUnlocked,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.manaRegen = upgrades.manaRegen.baseValue + 0.1 *upgrades.manaRegen.level;
-    }
-  },
-  abilityCooldownReduction: {
-    name: "Ability Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 10,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.abilityCooldownReduction = upgrades.abilityCooldownReduction.level * 0.05;
-    }
-  },
-  jokerCooldownReduction: {
-    name: "Joker Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 12,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
-    }
-  },
-  redrawCooldownReduction: {
-    name: "Redraw Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 8,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.redrawCooldownReduction = upgrades.redrawCooldownReduction.level * 0.1;
-    }
-  }
-};
+// Definitions for purchasable upgrades and their effects are
+// centralized in cardUpgrades.js
 
 // Utility to colorize the enemy icon based on stage level
 function getDealerIconStyle(stage) {
@@ -571,7 +444,7 @@ function updateCardUpgradeButtons() {
 function checkUpgradeUnlocks() {
   let changed = false;
   Object.entries(upgrades).forEach(([key, up]) => {
-    if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition()) {
+    if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition({ stageData, systems })) {
       up.unlocked = true;
       changed = true;
       addLog(`${up.name} unlocked!`, "info");
@@ -591,12 +464,7 @@ function purchaseUpgrade(key) {
   cashDisplay.textContent = `Cash: $${cash}`;
   cashRateTracker.record(cash);
   up.level += 1;
-  up.effect(stats);
-  if (key === "cardSlots") {
-    while (drawnCards.length < stats.cardSlots && deck.length > 0) {
-      drawCard(getCardState());
-    }
-  }
+  up.effect({ stats, pDeck, stageData, systems });
   renderUpgrades();
   updateDrawButton();
   renderPlayerStats(stats);
@@ -842,7 +710,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadGame();
   renderDealerCard();
   initVignetteToggles();
-  Object.values(upgrades).forEach(u => u.effect(stats));
+  Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   renderUpgrades();
   renderBarUpgrades();
   updateUpgradePowerDisplay();
@@ -941,12 +809,12 @@ function unlockManaSystem() {
 
   systems.manaUnlocked = true;
   // establish baseline mana so upgrades scale correctly
-  upgrades.maxMana.baseValue = 50;
-  stats.maxMana = upgrades.maxMana.baseValue;
+  const baseMana = 50;
+  stats.maxMana = baseMana;
   stats.mana = stats.maxMana;
   stats.manaRegen = 0.01;
   // re-apply upgrade effects in case levels were purchased before unlock
-  Object.values(upgrades).forEach(u => u.effect(stats));
+  Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   updateManaBar();
   checkUpgradeUnlocks();
 }
@@ -2129,7 +1997,7 @@ if (
   unlockManaSystem();
 }
 
-Object.values(upgrades).forEach(u => u.effect(stats));
+Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
 
 cashDisplay.textContent = `Cash: $${cash}`;
 cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
