@@ -1345,7 +1345,26 @@ function onBossDefeat(boss) {
   updateWorldTabNotification();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
-  respawnDealerStage();
+  dealerDeathAnimation();
+  dealerBarDeathAnimation(() => {
+    nextStageChecker();
+    currentEnemy = spawnDealer(
+      stageData,
+      enemyAttackProgress,
+      Enemy => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(
+          stageData.stage,
+          stageData.world
+        );
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
+          minDamage;
+        cDealerDamage(dmg, null, Enemy.name);
+      },
+      onDealerDefeat
+    );
+    updateDealerLifeDisplay();
+    enemyAttackFill = renderEnemyAttackBar();
+  });
 }
 
 // Spawn the boss that appears every 10 stages
