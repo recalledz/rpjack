@@ -41,23 +41,30 @@ body {
     display: flex;
     gap: 12px;
     padding: 10px;
-    background: radial-gradient(circle, #3b1a1a 0%, #1a0000 100%);
+    background: radial-gradient(circle, #00451b 0%, #001a0a 100%);
     box-shadow: 0 0 20px #d4af37;
     border-bottom: 3px solid #d4af37;
 }
 
 .tabsContainer button {
-    background: #220000;
+    background: rgba(0, 0, 0, 0.4);
     color: #d4af37;
-    border: 1px solid #d4af37;
+    border: 3px solid #d4af37;
     padding: 8px 14px;
     border-radius: 8px;
     font-weight: bold;
+    text-shadow: 0 0 6px #000;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
     transition: all 0.2s;
 }
 .tabsContainer button:hover {
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+    color: #fff4b3;
+}
+.tabsContainer button.active {
     background: #d4af37;
     color: #220000;
+    box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #d4af37;
 }
 
 /* tabs container */

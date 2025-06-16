@@ -280,6 +280,12 @@ let purchasedUpgradeList;
 let activeEffectsContainer;
 let tooltip;
 
+function setActiveTabButton(btn) {
+  document.querySelectorAll('.tabsContainer button').forEach(b => {
+    b.classList.toggle('active', b === btn);
+  });
+}
+
 function hideTab() {
   if (mainTab) mainTab.style.display = "none";
   if (deckTab) deckTab.style.display = "none";
@@ -343,17 +349,20 @@ function initTabs() {
   if (mainTabButton)
     mainTabButton.addEventListener("click", () => {
       showTab(mainTab);
+      setActiveTabButton(mainTabButton);
     });
 
   if (deckTabButton)
     deckTabButton.addEventListener("click", () => {
       showTab(deckTab);
+      setActiveTabButton(deckTabButton);
     });
 
   if (starChartTabButton) {
     starChartTabButton.addEventListener("click", () => {
       initStarChart();
       showTab(starChartTab);
+      setActiveTabButton(starChartTabButton);
     });
   }
 
@@ -361,6 +370,7 @@ function initTabs() {
     playerStatsTabButton.addEventListener("click", () => {
       renderGlobalStats();
       showTab(playerStatsTab);
+      setActiveTabButton(playerStatsTabButton);
     });
   }
 
@@ -368,6 +378,7 @@ function initTabs() {
     worldTabButton.addEventListener("click", () => {
       renderWorldsMenu();
       showTab(worldsTab);
+      setActiveTabButton(worldTabButton);
     });
   }
 
@@ -375,6 +386,7 @@ function initTabs() {
     upgradesTabButton.addEventListener("click", () => {
       showTab(upgradesTab);
       showBarUpgradesPanel();
+      setActiveTabButton(upgradesTabButton);
     });
   }
 
@@ -384,6 +396,7 @@ function initTabs() {
     cardSubTabButton.addEventListener("click", showCardUpgradesPanel);
 
   showTab(mainTab); // Start with main tab visible
+  setActiveTabButton(mainTabButton);
 }
 
 // Allow collapsing/expanding vignette UI panels
