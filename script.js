@@ -46,6 +46,17 @@ import {
   renderDealerLifeBarFill
 } from "./rendering.js";
 import { drawCard, redrawHand } from "./cardManagement.js";
+import {
+  deckMastery,
+  deckConfigs,
+  selectedDeck,
+  addDeckMasteryProgress,
+  renderDeckList,
+  renderDeckCards,
+  renderJokerView,
+  renderJobsList,
+  showJobs
+} from "./deck.js";
 
 
 // --- Game State ---
