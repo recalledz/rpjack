@@ -2,7 +2,7 @@
 import generateDeck from "./card.js";
 import { Enemy } from "./enemy.js"; // assume this works without DOM
 import { Boss } from "./boss.js";
-import { upgrades as allUpgrades } from "./script.js"; // if needed, or copy upgrade logic
+import { upgrades as allUpgrades } from "./cardUpgrades.js";
 import { saveCSV } from "./utils/logger.cjs";
 
 export class GameSimulator {
@@ -40,7 +40,7 @@ export class GameSimulator {
       if (this.stats.cash >= cost) {
         this.stats.cash -= cost;
         up.level += 1;
-        up.effect(this.stats);
+        up.effect({ stats: this.stats });
         this.logs.push(`Bought ${up.name} to level ${up.level}`);
       }
     };
