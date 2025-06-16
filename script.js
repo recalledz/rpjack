@@ -27,9 +27,25 @@ import {
   createUpgradeCard,
   getCardUpgradeCost,
   cardUpgradeDefinitions,
+  upgrades,
   upgradeLevels as cardUpgradeLevels,
   removeActiveUpgrade
 } from "./cardUpgrades.js";
+import {
+  calculateEnemyHp,
+  calculateEnemyBasicDamage,
+  spawnDealer,
+  spawnBoss
+} from "./enemySpawning.js";
+import {
+  renderCard,
+  renderDiscardCard,
+  renderDealerLifeBar,
+  renderEnemyAttackBar,
+  renderPlayerAttackBar,
+  renderDealerLifeBarFill
+} from "./rendering.js";
+import { drawCard, redrawHand } from "./cardManagement.js";
 
 
 // --- Game State ---
@@ -93,6 +109,21 @@ const barUpgrades = {
   maxHp: { level: 0, progress: 0, points: 0, multiplier: 1 }
 };
 
+// Recompute a card's HP using all current multipliers
+function recalcCardHp(card) {
+  const baseMul = 1 + (card.value - 1) / 12;
+  const baseHp = 5 * baseMul + 5 * (card.currentLevel - 1) + card.baseHpBoost;
+  const suitMult = card.suit === 'Hearts' ? stats.heartHpMultiplier : 1;
+  const hp = Math.round(baseHp * barUpgrades.maxHp.multiplier * suitMult);
+  const ratio = card.maxHp > 0 ? card.currentHp / card.maxHp : 1;
+  card.maxHp = hp;
+  card.currentHp = Math.round(Math.min(hp, ratio * hp));
+}
+
+function updateAllCardHp() {
+  pDeck.forEach(recalcCardHp);
+}
+
 function computeBarMultiplier(level) {
   return 1 + (level / (level + 20)) * 9;
 }
@@ -143,136 +174,8 @@ const playerStats = {
 const FAST_MODE_SCALE = 10;
 let timeScale = 1;
 
-// Definitions for purchasable upgrades and their effects
-const upgrades = {
-  // Unlocked from start
-  globalDamage: {
-    name: "Global Damage Multiplier",
-    level: 0,
-    baseValue: 1.0,
-    unlocked: true,
-    costFormula: level => 100 * level ** 1.2,
-    effect: player => {
-      player.upgradeDamageMultiplier =
-      upgrades.globalDamage.baseValue +
-      0.15 * upgrades.globalDamage.level;
-    }
-  },
-  cardHpPerKill: {
-    name: "Card HP per Kill",
-    level: 0,
-    baseValue: 1,
-    unlocked: true,
-    costFormula: level => 150 * level ** 2,
-    effect: player => {
-      player.hpPerKill =
-      upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
-      pDeck.forEach(card => (card.hpPerKill = player.hpPerKill));
-    }
-  },
-  baseCardHp: {
-    name: "Base Card HP Boost",
-    level: 0,
-    baseValue: 0,
-    unlocked: true,
-    costFormula: level => 100 * level ** 1.2,
-    effect: player => {
-      const prev = player.baseCardHpBoost || 0;
-      const newBoost = 3 * upgrades.baseCardHp.level;
-      const diff = newBoost - prev;
-      player.baseCardHpBoost = newBoost;
-      pDeck.forEach(card => {
-        card.baseHpBoost = (card.baseHpBoost || 0) + diff;
-        card.maxHp = Math.round(card.maxHp + diff);
-        card.currentHp = Math.round(card.currentHp + diff);
-      });
-    }
-  },
-
-  // Locked at start
-  cardSlots: {
-    name: "Card Slots",
-    level: 0,
-    baseValue: 3,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 5,
-    costFormula: level => 100000 * level ** 3,
-    effect: player => {
-      player.cardSlots =
-      upgrades.cardSlots.baseValue + upgrades.cardSlots.level;
-    }
-  },
-  autoAttackSpeed: {
-    name: "Auto-Attack Speed",
-    level: 0,
-    baseValue: 5000,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 10,
-    costFormula: level => Math.floor(300 * level ** 2),
-    effect: player => {
-      const lvl = upgrades.autoAttackSpeed.level;
-      const base = upgrades.autoAttackSpeed.baseValue;
-      const fastReduction = 500 * Math.min(lvl, 4);
-      const diminishing = 250 * Math.max(lvl - 4, 0);
-      player.attackSpeed = Math.max(2000, base - fastReduction - diminishing);
-    }
-  },
-  maxMana: {
-    name: "Maximum Mana",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 15,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.maxMana = upgrades.maxMana.baseValue + 10 * upgrades.maxMana.level;
-    }
-  },
-  manaRegen: {
-    name: "Mana Regeneration",
-    level: 0,
-    baseValue: 0.1,
-    unlocked: false,
-    unlockCondition: () => systems.manaUnlocked,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.manaRegen = upgrades.manaRegen.baseValue + 0.1 *upgrades.manaRegen.level;
-    }
-  },
-  abilityCooldownReduction: {
-    name: "Ability Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 10,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.abilityCooldownReduction = upgrades.abilityCooldownReduction.level * 0.05;
-    }
-  },
-  jokerCooldownReduction: {
-    name: "Joker Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 12,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
-    }
-  },
-  redrawCooldownReduction: {
-    name: "Redraw Cooldown Reduction",
-    level: 0,
-    baseValue: 0,
-    unlocked: false,
-    unlockCondition: () => stageData.stage >= 8,
-    costFormula: level => 200 * level ** 2,
-    effect: player => {
-      player.redrawCooldownReduction = upgrades.redrawCooldownReduction.level * 0.1;
-    }
-  }
-};
+// Definitions for purchasable upgrades and their effects are
+// centralized in cardUpgrades.js
 
 // Utility to colorize the enemy icon based on stage level
 function getDealerIconStyle(stage) {
@@ -290,6 +193,30 @@ function getDealerIconStyle(stage) {
 
 let pDeck = generateDeck();
 let deck = [...pDeck];
+
+function getCardState() {
+  return {
+    deck,
+    drawnCards,
+    handContainer,
+    renderCard: card => renderCard(card, handContainer),
+    updateDeckDisplay,
+    stats,
+    showUpgradePopup,
+    applyCardUpgrade,
+    renderCardUpgrades,
+    purchaseCardUpgrade,
+    cash,
+    renderPurchasedUpgrades,
+    updateActiveEffects,
+    updateAllCardHp,
+    pDeck,
+    shuffleArray,
+    updateDrawButton,
+    updatePlayerStats,
+    drawCard, // will be replaced after definition
+  };
+}
 
 const btn = document.getElementById("clickalipse");
 const redrawBtn = document.getElementById("redrawBtn");
@@ -316,11 +243,6 @@ const dpsDisplay = document.getElementById("dpsDisplay");
 
 const unlockedJokers = [];
 
-// Load saved state if available
-loadGame();
-window.addEventListener("beforeunload", saveGame);
-const saveInterval = setInterval(saveGame, 30000);
-
 // attack progress bars
 let playerAttackFill = null;
 let enemyAttackFill = null;
@@ -331,28 +253,38 @@ let worldProgressTimer = 0;
 const cashRateTracker = new RateTracker(10000);
 const worldProgressRateTracker = new RateTracker(30000);
 
+// Load saved state when DOM is ready
+window.addEventListener("beforeunload", saveGame);
+const saveInterval = setInterval(saveGame, 30000);
+
 
 //=========tabs==========
 
-const mainTabButton = document.getElementsByClassName("mainTabButton")[0];
-const deckTabButton = document.getElementsByClassName("deckTabButton")[0];
-const starChartTabButton = document.getElementsByClassName("starChartTabButton")[0];
-const playerStatsTabButton = document.getElementsByClassName("playerStatsTabButton")[0];
-const worldTabButton = document.getElementsByClassName("worldTabButton")[0];
-const upgradesTabButton = document.getElementsByClassName("upgradesTabButton")[0];
-const mainTab = document.querySelector(".mainTab");
-const deckTab = document.querySelector(".deckTab");
-const starChartTab = document.querySelector(".starChartTab");
-const playerStatsTab = document.querySelector(".playerStatsTab");
-const worldsTab = document.querySelector(".worldsTab");
-const upgradesTab = document.querySelector(".upgradesTab");
-const barSubTabButton = document.querySelector('.barSubTabButton');
-const cardSubTabButton = document.querySelector('.cardSubTabButton');
-const barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
-const cardUpgradesPanel = document.querySelector('.card-upgrades-panel');
-const purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
-const activeEffectsContainer = document.querySelector('.active-effects');
-const tooltip = document.getElementById("tooltip");
+let mainTabButton;
+let deckTabButton;
+let starChartTabButton;
+let playerStatsTabButton;
+let worldTabButton;
+let upgradesTabButton;
+let mainTab;
+let deckTab;
+let starChartTab;
+let playerStatsTab;
+let worldsTab;
+let upgradesTab;
+let barSubTabButton;
+let cardSubTabButton;
+let barUpgradesPanel;
+let cardUpgradesPanel;
+let purchasedUpgradeList;
+let activeEffectsContainer;
+let tooltip;
+
+function setActiveTabButton(btn) {
+  document.querySelectorAll('.tabsContainer button').forEach(b => {
+    b.classList.toggle('active', b === btn);
+  });
+}
 
 function applyWorldTheme() {
   if (mainTab) {
@@ -373,8 +305,8 @@ function selectWorld(id) {
 }
 
 function hideTab() {
-  mainTab.style.display = "none";
-  deckTab.style.display = "none";
+  if (mainTab) mainTab.style.display = "none";
+  if (deckTab) deckTab.style.display = "none";
   if (starChartTab) starChartTab.style.display = "none";
   if (playerStatsTab) playerStatsTab.style.display = "none";
   if (worldsTab) worldsTab.style.display = "none";
@@ -384,7 +316,7 @@ function hideTab() {
 function showTab(tab) {
   hideTab();
   // Reset display so CSS controls layout
-  tab.style.display = "";
+  if (tab) tab.style.display = "";
 }
 
 function hideUpgradePanels() {
@@ -394,13 +326,13 @@ function hideUpgradePanels() {
 
 function showBarUpgradesPanel() {
   hideUpgradePanels();
-  if (barUpgradesPanel) barUpgradesPanel.style.display = "";
+  if (barUpgradesPanel) barUpgradesPanel.style.display = "block";
   renderBarUpgrades();
 }
 
 function showCardUpgradesPanel() {
   hideUpgradePanels();
-  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "";
+  if (cardUpgradesPanel) cardUpgradesPanel.style.display = "block";
   renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
     stats,
     cash,
@@ -410,43 +342,80 @@ function showCardUpgradesPanel() {
   updateActiveEffects();
 }
 
-mainTabButton.addEventListener("click", () => {
-  showTab(mainTab);
-});
+function initTabs() {
+  if (typeof document === 'undefined') return;
 
-deckTabButton.addEventListener("click", () => {
-  showTab(deckTab);
-});
+  mainTabButton = document.querySelector('.mainTabButton');
+  deckTabButton = document.querySelector('.deckTabButton');
+  starChartTabButton = document.querySelector('.starChartTabButton');
+  playerStatsTabButton = document.querySelector('.playerStatsTabButton');
+  worldTabButton = document.querySelector('.worldTabButton');
+  upgradesTabButton = document.querySelector('.upgradesTabButton');
+  mainTab = document.querySelector('.mainTab');
+  deckTab = document.querySelector('.deckTab');
+  starChartTab = document.querySelector('.starChartTab');
+  playerStatsTab = document.querySelector('.playerStatsTab');
+  worldsTab = document.querySelector('.worldsTab');
+  upgradesTab = document.querySelector('.upgradesTab');
+  barSubTabButton = document.querySelector('.barSubTabButton');
+  cardSubTabButton = document.querySelector('.cardSubTabButton');
+  barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
+  cardUpgradesPanel = document.querySelector('.card-upgrades-panel');
+  purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
+  activeEffectsContainer = document.querySelector('.active-effects');
+  tooltip = document.getElementById('tooltip');
+  if (mainTabButton)
+    mainTabButton.addEventListener("click", () => {
+      showTab(mainTab);
+      setActiveTabButton(mainTabButton);
+    });
 
-if (starChartTabButton) {
-  starChartTabButton.addEventListener("click", () => {
-    initStarChart();
-    showTab(starChartTab);
-  });
-}
-if (playerStatsTabButton) {
-  playerStatsTabButton.addEventListener("click", () => {
-    renderGlobalStats();
-    showTab(playerStatsTab);
-  });
-}
-if (worldTabButton) {
-  worldTabButton.addEventListener("click", () => {
-    renderWorldsMenu();
-    showTab(worldsTab);
-  });
-}
-if (upgradesTabButton) {
-  upgradesTabButton.addEventListener("click", () => {
-    showTab(upgradesTab);
-    showBarUpgradesPanel();
-  });
-}
+  if (deckTabButton)
+    deckTabButton.addEventListener("click", () => {
+      showTab(deckTab);
+      setActiveTabButton(deckTabButton);
+    });
 
-if (barSubTabButton) barSubTabButton.addEventListener('click', showBarUpgradesPanel);
-if (cardSubTabButton) cardSubTabButton.addEventListener('click', showCardUpgradesPanel);
+  if (starChartTabButton) {
+    starChartTabButton.addEventListener("click", () => {
+      initStarChart();
+      showTab(starChartTab);
+      setActiveTabButton(starChartTabButton);
+    });
+  }
 
-showTab(mainTab); // Start with main tab visible
+  if (playerStatsTabButton) {
+    playerStatsTabButton.addEventListener("click", () => {
+      renderGlobalStats();
+      showTab(playerStatsTab);
+      setActiveTabButton(playerStatsTabButton);
+    });
+  }
+
+  if (worldTabButton) {
+    worldTabButton.addEventListener("click", () => {
+      renderWorldsMenu();
+      showTab(worldsTab);
+      setActiveTabButton(worldTabButton);
+    });
+  }
+
+  if (upgradesTabButton) {
+    upgradesTabButton.addEventListener("click", () => {
+      showTab(upgradesTab);
+      showBarUpgradesPanel();
+      setActiveTabButton(upgradesTabButton);
+    });
+  }
+
+  if (barSubTabButton)
+    barSubTabButton.addEventListener("click", showBarUpgradesPanel);
+  if (cardSubTabButton)
+    cardSubTabButton.addEventListener("click", showCardUpgradesPanel);
+
+  showTab(mainTab); // Start with main tab visible
+  setActiveTabButton(mainTabButton);
+}
 
 // Allow collapsing/expanding vignette UI panels
 function initVignetteToggles() {
@@ -522,7 +491,7 @@ function updateCardUpgradeButtons() {
 function checkUpgradeUnlocks() {
   let changed = false;
   Object.entries(upgrades).forEach(([key, up]) => {
-    if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition()) {
+    if (!up.unlocked && typeof up.unlockCondition === "function" && up.unlockCondition({ stageData, systems })) {
       up.unlocked = true;
       changed = true;
       addLog(`${up.name} unlocked!`, "info");
@@ -542,12 +511,7 @@ function purchaseUpgrade(key) {
   cashDisplay.textContent = `Cash: $${cash}`;
   cashRateTracker.record(cash);
   up.level += 1;
-  up.effect(stats);
-  if (key === "cardSlots") {
-    while (drawnCards.length < stats.cardSlots && deck.length > 0) {
-      drawCard();
-    }
-  }
+  up.effect({ stats, pDeck, stageData, systems });
   renderUpgrades();
   updateDrawButton();
   renderPlayerStats(stats);
@@ -649,6 +613,9 @@ function tickBarProgress(delta) {
       bar.progress -= req;
       bar.level += 1;
       bar.multiplier = computeBarMultiplier(bar.level);
+      if (key === 'maxHp') {
+        updateAllCardHp();
+      }
       updatePlayerStats();
     }
     updateBarUI(key);
@@ -789,9 +756,10 @@ function updateDeckDisplay() {
 //========render functions==========
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
-  renderDealerCard();
+  initTabs();
+  loadGame();
   initVignetteToggles();
-  Object.values(upgrades).forEach(u => u.effect(stats));
+  Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   renderUpgrades();
   renderBarUpgrades();
   updateUpgradePowerDisplay();
@@ -803,6 +771,51 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   renderPurchasedUpgrades();
   updateActiveEffects();
+  // Start or resume the game after loading
+  spawnPlayer();
+  respawnDealerStage();
+  renderDealerCard();
+  resetStageCashStats();
+  renderStageInfo();
+  nextStageChecker();
+  renderWorldsMenu();
+  rollNewCardUpgrades();
+  renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
+    stats,
+    cash,
+    onPurchase: purchaseCardUpgrade
+  });
+  renderPurchasedUpgrades();
+  updateActiveEffects();
+  shuffleArray(deck);
+  checkUpgradeUnlocks();
+
+  btn.addEventListener("click", () => drawCard(getCardState()));
+  redrawBtn.addEventListener("click", () => redrawHand(getCardState()));
+  nextStageBtn.addEventListener("click", nextStage);
+  fightBossBtn.addEventListener("click", () => {
+    fightBossBtn.style.display = "none";
+    stageData.stage = 10;
+    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+    renderStageInfo();
+    currentEnemy = spawnBoss(
+      stageData,
+      enemyAttackProgress,
+      boss => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(
+          stageData.stage,
+          stageData.world
+        );
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
+          minDamage;
+        cDealerDamage(dmg, null, boss.name);
+      },
+      () => onBossDefeat(currentEnemy)
+    );
+    updateDealerLifeDisplay();
+    enemyAttackFill = renderEnemyAttackBar();
+    dealerDeathAnimation();
+  });
   const buyBtn = document.getElementById('buyUpgradePowerBtn');
   if (buyBtn) {
     buyBtn.addEventListener('click', () => {
@@ -818,51 +831,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   renderJokers();
-  renderPlayerAttackBar();
+  const buttons = document.querySelector('.buttonsContainer');
+  playerAttackFill = renderPlayerAttackBar(buttons);
   requestAnimationFrame(gameLoop);
 });
 
-// life
-function renderDealerLifeBar() {
-  if (document.querySelector(".dealerLifeContainer")) return;
-  const dealerContainerLife = document.createElement("div");
-  const dealerBarFill = document.createElement("div");
-
-  dealerContainerLife.classList.add("dealerLifeContainer");
-  dealerBarFill.id = "dealerBarFill";
-
-  dealerContainerLife.appendChild(dealerBarFill);
-  dealerLifeDisplay.insertAdjacentElement("afterend", dealerContainerLife);
-  dealerLifeDisplay.textContent = `Life: ${currentEnemy.maxHp}`;
-}
-
-function renderEnemyAttackBar() {
-  const existing = document.querySelector(".enemyAttackBar");
-  if (existing) existing.remove();
-  const bar = document.createElement("div");
-  const fill = document.createElement("div");
-  bar.classList.add("enemyAttackBar");
-  fill.classList.add("enemyAttackFill");
-  bar.appendChild(fill);
-  enemyAttackFill = fill;
-  const lifeContainer = document.querySelector(".dealerLifeContainer");
-  if (lifeContainer) lifeContainer.insertAdjacentElement("afterend", bar);
-}
-
-function renderPlayerAttackBar() {
-  const container = document.querySelector(".buttonsContainer");
-  if (!container) return;
-  const bar = document.getElementById("playerAttackBar");
-  if (!bar) return;
-  playerAttackFill = bar.querySelector(".playerAttackFill");
-}
-
-function renderDealerLifeBarFill() {
-  const dealerBarFill = document.getElementById("dealerBarFill");
-  dealerBarFill.style.width = `${
-  (currentEnemy.currentHp / currentEnemy.maxHp) * 100
-  }%`;
-} //red fill gauge render
+// life rendering moved to rendering.js
 
 function updateManaBar() {
   if (!manaBar) return;
@@ -885,12 +859,12 @@ function unlockManaSystem() {
 
   systems.manaUnlocked = true;
   // establish baseline mana so upgrades scale correctly
-  upgrades.maxMana.baseValue = 50;
-  stats.maxMana = upgrades.maxMana.baseValue;
+  const baseMana = 50;
+  stats.maxMana = baseMana;
   stats.mana = stats.maxMana;
   stats.manaRegen = 0.01;
   // re-apply upgrade effects in case levels were purchased before unlock
-  Object.values(upgrades).forEach(u => u.effect(stats));
+  Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   updateManaBar();
   checkUpgradeUnlocks();
 }
@@ -1166,22 +1140,51 @@ function renderWorldsMenu() {
     fill.classList.add("world-progress-fill");
     bar.appendChild(fill);
     entry.appendChild(bar);
-    const btn = document.createElement("button");
+    const claimBtn = document.createElement("button");
     if (data.bossDefeated && !data.rewardClaimed) {
-      btn.textContent = "Claim Reward";
-      btn.addEventListener("click", () => {
+      claimBtn.textContent = "Claim Reward";
+      claimBtn.addEventListener("click", () => {
         awardJokerCardByWorld(parseInt(id));
         data.rewardClaimed = true;
         renderWorldsMenu();
+        updateWorldTabNotification();
       });
     } else {
-      btn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
-      btn.disabled = true;
+      claimBtn.textContent = data.rewardClaimed ? "Reward Claimed" : "";
+      claimBtn.disabled = true;
     }
-    entry.appendChild(btn);
+    entry.appendChild(claimBtn);
+
+    const visitBtn = document.createElement("button");
+    if (parseInt(id) === stageData.world) {
+      visitBtn.textContent = "Current";
+      visitBtn.disabled = true;
+    } else {
+      visitBtn.textContent = `Go To World ${id}`;
+      visitBtn.addEventListener("click", () => {
+        goToWorld(parseInt(id));
+      });
+    }
+    entry.appendChild(visitBtn);
     container.appendChild(entry);
     updateWorldProgressUI(id);
   });
+  updateWorldTabNotification();
+}
+
+// Highlight the Worlds tab when rewards can be claimed or a new world is unlocked
+function updateWorldTabNotification() {
+  if (!worldTabButton) return;
+  let highestUnlocked = 0;
+  let rewardAvailable = false;
+  Object.entries(worldProgress).forEach(([id, data]) => {
+    const num = parseInt(id);
+    if (data.unlocked && num > highestUnlocked) highestUnlocked = num;
+    if (data.bossDefeated && !data.rewardClaimed) rewardAvailable = true;
+  });
+  const newWorldAvailable = highestUnlocked > stageData.world;
+  const shouldGlow = rewardAvailable || newWorldAvailable;
+  worldTabButton.classList.toggle("glow-notify", shouldGlow);
 }
 
 // ===== Stage and world management =====
@@ -1223,6 +1226,30 @@ function nextWorld() {
   lastCashOutPoints = stats.points;
 }
 
+// Travel to a specific world when selected in the Worlds tab
+function goToWorld(id) {
+  if (!worldProgress[id] || !worldProgress[id].unlocked) return;
+  playerStats.stageKills[stageData.stage] = stageData.kills;
+  stageData.world = parseInt(id);
+  stageData.stage = 1;
+  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  resetStageCashStats();
+  worldProgressTimer = 0;
+  worldProgressRateTracker.reset(computeWorldProgress(stageData.world) * 100);
+  if (worldProgressPerSecDisplay) {
+    worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
+  }
+  killsDisplay.textContent = `Kills: ${stageData.kills}`;
+  renderGlobalStats();
+  nextStageChecker();
+  renderStageInfo();
+  checkUpgradeUnlocks();
+  lastCashOutPoints = stats.points;
+  respawnDealerStage();
+  renderWorldsMenu();
+  updateWorldTabNotification();
+}
+
 // Reset tracking for average cash when a new stage begins
 function resetStageCashStats() {
   cashTimer = 0;
@@ -1240,38 +1267,7 @@ function nextStageChecker() {
 
 //dealer
 
-// Spawn a regular enemy for the current stage
-function spawnDealer() {
-  const stage = stageData.stage;
-  const world = stageData.world;
-  const maxHp = calculateEnemyHp(stage, world);
-
-  currentEnemy = new Enemy(stage, world, {
-    maxHp,
-    onAttack: Enemy => {
-      const {
-        minDamage, maxDamage
-      } = calculateEnemyBasicDamage(
-        stage,
-        world
-      );
-      const damage =
-      Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
-      minDamage;
-      cDealerDamage(damage, null, Enemy.name);
-    },
-    onDefeat: () => {
-      onDealerDefeat();
-    }
-  });
-
-  // carry over any attack progress from the last enemy
-  currentEnemy.attackTimer = currentEnemy.attackInterval * enemyAttackProgress;
-
-  updateDealerLifeDisplay();
-  renderEnemyAttackBar();
-  dealerDeathAnimation();
-}
+// Spawn logic moved to enemySpawning.js
 
 // Adjust the width of the dealer's HP bar
 function updateDealerLifeBar(enemy) {
@@ -1295,10 +1291,31 @@ function removeDealerLifeBar() {
 function respawnDealerStage() {
   removeDealerLifeBar();
   if (stageData.stage === 10) {
-    spawnBoss();
+    currentEnemy = spawnBoss(
+      stageData,
+      enemyAttackProgress,
+      boss => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+        cDealerDamage(dmg, null, boss.name);
+      },
+      () => onBossDefeat(currentEnemy)
+    );
   } else {
-    spawnDealer();
+    currentEnemy = spawnDealer(
+      stageData,
+      enemyAttackProgress,
+      Enemy => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+        cDealerDamage(dmg, null, Enemy.name);
+      },
+      onDealerDefeat
+    );
   }
+  updateDealerLifeDisplay();
+  enemyAttackFill = renderEnemyAttackBar();
+  dealerDeathAnimation();
 }
 
 // What happens after defeating a regular dealer
@@ -1348,92 +1365,44 @@ function onBossDefeat(boss) {
   renderPurchasedUpgrades();
   updateActiveEffects();
   shuffleArray(deck);
-  nextWorld();
+  // Unlock the next world but require the player to travel manually
+  updateWorldTabNotification();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
-  respawnDealerStage();
+  dealerDeathAnimation();
+  dealerBarDeathAnimation(() => {
+    nextStageChecker();
+    currentEnemy = spawnDealer(
+      stageData,
+      enemyAttackProgress,
+      Enemy => {
+        const { minDamage, maxDamage } = calculateEnemyBasicDamage(
+          stageData.stage,
+          stageData.world
+        );
+        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
+          minDamage;
+        cDealerDamage(dmg, null, Enemy.name);
+      },
+      onDealerDefeat
+    );
+    updateDealerLifeDisplay();
+    enemyAttackFill = renderEnemyAttackBar();
+  });
 }
 
 // Spawn the boss that appears every 10 stages
-function spawnBoss() {
-  const stage = stageData.stage;
-  const world = stageData.world;
-  const template = BossTemplates[world];
-
-  const abilities = template.abilityKeys.map(key => {
-    const [group, fn] = key.split(".");
-    return AbilityRegistry[group][fn]();
-  });
-
-  currentEnemy = new Boss(stage, world, {
-    maxHp: calculateEnemyHp(stage, world, true), // true for boss
-    name: template.name,
-    icon: template.icon,
-    iconColor: template.iconColor,
-    xp: Math.pow(stage, 1.5) * world,
-    abilities,
-    onAttack: boss => {
-      const {
-        minDamage, maxDamage
-      } = calculateEnemyBasicDamage(
-        stage,
-        world
-      );
-      const damage =
-      Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
-      minDamage;
-      cDealerDamage(damage, null, boss.name);
-    },
-    onDefeat: () => {
-      onBossDefeat(currentEnemy);
-    }
-  });
-
-  // carry over any attack progress from the last enemy
-  currentEnemy.attackTimer = currentEnemy.attackInterval * enemyAttackProgress;
-
-  updateDealerLifeDisplay();
-  renderEnemyAttackBar();
-  dealerDeathAnimation();
-}
+// Spawn logic moved to enemySpawning.js
 
 // Update text and bar UI for the current enemy's health
 function updateDealerLifeDisplay() {
   dealerLifeDisplay.textContent = `Life: ${currentEnemy.currentHp}/${currentEnemy.maxHp}`;
-  renderDealerLifeBar();
-  renderDealerLifeBarFill();
+  renderDealerLifeBar(dealerLifeDisplay, currentEnemy);
+  renderDealerLifeBarFill(currentEnemy);
 }
 
 // Determine how much health an enemy or boss should have
-function calculateEnemyHp(stage, world, isBoss = false) {
-  const baseHp = 10 + stage;
-  const effectiveStage = stage + 10 * (world - 1);
-  let hp = baseHp * Math.pow(effectiveStage, 1.1);
-  if (isBoss) hp *= 5;
-  return Math.floor(hp);
-}
-
-// Base damage output scaled by stage and world
-function calculateEnemyBasicDamage(stage, world) {
-  let baseDamage;
-
-  if (stage === 10) {
-    baseDamage = stage * 2;
-  } else if (stage <= 10) {
-    baseDamage = stage;
-  } else {
-    baseDamage = Math.floor(0.1 * stage * stage);
-  }
-
-  const scaledDamage = baseDamage * world ** 2;
-  const maxDamage = Math.max(scaledDamage, 1);
-  const minDamage = Math.floor(0.5 * maxDamage) + 1;
-
-  return {
-    minDamage,
-    maxDamage
-  };
-}
+// enemy scaling moved to enemySpawning.js
 
 // Apply damage from the enemy to the first card in the player's hand
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
@@ -1566,41 +1535,7 @@ function cardXp(xpAmount) {
 * Returns the drawn card, or null if the deck was empty.
 */
 // Draw the next card from the deck into the player's hand
-function drawCard() {
-  // 1) Nothing to draw?
-  if (deck.length === 0) return null;
-
-  // 2) Take the *same* object out of deck…
-  const card = deck.shift();
-
-  // Upgrade cards apply immediately and are not kept in hand
-  if (card.upgradeId) {
-    showUpgradePopup(card.upgradeId);
-    applyCardUpgrade(card.upgradeId, { stats, pDeck });
-    renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
-      stats,
-      cash,
-      onPurchase: purchaseCardUpgrade
-    });
-    renderPurchasedUpgrades();
-    updateActiveEffects();
-    updatePlayerStats(stats);
-    return null;
-  }
-
-  // 3) …put it into your hand…
-  drawnCards.push(card);
-
-  // 4) render just that one card in the hand…
-  renderCard(card);
-
-  // 5) refresh any other UI that shows the deck
-  updateDeckDisplay();
-
-  // 6) return the drawn card
-
-  return card;
-}
+// drawing logic moved to cardManagement.js
 
 // Enable or disable the draw button depending on hand size
 function updateDrawButton() {
@@ -1624,56 +1559,7 @@ function updateHandDisplay() {
 }
 
 // Create DOM elements for a card in the player's hand
-function renderCard(card) {
-  // 1) Wrapper
-  const wrapper = document.createElement("div");
-  wrapper.classList.add("card-wrapper");
-
-  // 2) Card pane (value / suite / HP)
-  const cardPane = document.createElement("div");
-  cardPane.classList.add("card");
-  cardPane.innerHTML = `
-  <div class="card-value" style="color: ${card.color}">${card.value}</div>
-  <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
-  <div class="card-hp">HP: ${Math.round(card.currentHp)}/${Math.round(card.maxHp)}</div>
-  `;
-
-  // 3) XP bar
-  const xpBar = document.createElement("div");
-  const xpBarFill = document.createElement("div");
-  const xpLabel = document.createElement("div");
-  xpBar.classList.add("xpBar");
-  xpBarFill.classList.add("xpBarFill");
-  xpLabel.classList.add("xpBarLabel");
-  xpLabel.textContent = `LV: ${card.currentLevel}`;
-  xpBar.append(xpBarFill,
-    xpLabel);
-
-  // 4) Nest and append
-  wrapper.append(cardPane,
-    xpBar);
-  handContainer.appendChild(wrapper);
-
-  // 5) Save references for later updates
-  card.wrapperElement = wrapper;
-  card.cardElement = cardPane;
-  card.hpDisplay = cardPane.querySelector(".card-hp");
-  card.xpBar = xpBar;
-  card.xpBarFill = xpBarFill;
-  card.xpLabel = xpLabel;
-}
-
-// Display the top of the discard pile
-function renderDiscardCard(card) {
-  discardContainer.innerHTML = "";
-  const img = document.createElement("img");
-  img.alt = "Card Back";
-  img.src = cardBackImages[card.backType] || cardBackImages["basic-red"];
-  img.classList.add("card-back",
-    card.backType);
-  discardContainer.appendChild(img);
-  card.discardElement = img;
-}
+// card rendering moved to rendering.js
 
 // Move a card to the discard pile and update the UI
 function discardCard(card) {
@@ -1921,7 +1807,7 @@ const awardJokerCard = () => awardJokerCardByWorld(stageData.world);
 
 function spawnPlayer() {
   while (drawnCards.length < stats.cardSlots && deck.length > 0) {
-    drawCard();
+    drawCard(getCardState());
   }
 }
 
@@ -2012,23 +1898,7 @@ location.reload();
 }
 
 // Shuffle all current cards back into the deck and draw a new hand
-function redrawHand() {
-deck.push(...drawnCards);
-drawnCards = [];
-handContainer.innerHTML = "";
-shuffleArray(deck);
- if (stats.healOnRedraw > 0) {
-   pDeck.forEach(c => {
-     c.currentHp = Math.min(c.maxHp, c.currentHp + stats.healOnRedraw);
-   });
- }
- while (drawnCards.length < stats.cardSlots && deck.length > 0) {
-   drawCard();
- }
-updateDrawButton();
-updateDeckDisplay();
-updatePlayerStats(stats);
-}
+// redraw logic moved to cardManagement.js
 
 // Player auto-attack; deals combined damage to the current enemy
 function attack() {
@@ -2041,11 +1911,11 @@ stageData.dealerLifeCurrent = currentEnemy.currentHp;
 if (currentEnemy.isDefeated()) {
 currentEnemy.onDefeat?.();
 } else {
-dealerLifeDisplay.textContent = `Life: ${Math.floor(
-currentEnemy.currentHp
-)}/${currentEnemy.maxHp}`;
-renderDealerLifeBarFill();
-}
+  dealerLifeDisplay.textContent = `Life: ${Math.floor(
+    currentEnemy.currentHp
+  )}/${currentEnemy.maxHp}`;
+  renderDealerLifeBarFill(currentEnemy);
+  }
 }
 
 /*if (currentEnemy instanceof Boss) {
@@ -2105,15 +1975,16 @@ function updatePlayerStats() {
   stats.pDamage = 0;
   stats.damageMultiplier =
     stats.upgradeDamageMultiplier * barUpgrades.damage.multiplier;
-stats.pRegen = 0;
-stats.cashMulti = 1;
-stats.points = 0;
+  stats.pRegen = 0;
+  stats.cashMulti = 1;
+  stats.points = 0;
 
-for (const card of drawnCards) {
-if (!card) continue;
+  for (const card of drawnCards) {
+    if (!card) continue;
+    recalcCardHp(card);
 
-if (card.suit === "Spades")
-stats.damageMultiplier += 0.1 * card.currentLevel;
+    if (card.suit === "Spades")
+      stats.damageMultiplier += 0.1 * card.currentLevel;
 if (card.suit === "Hearts") stats.pRegen += card.currentLevel;
 if (card.suit === "Diamonds")
 stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
@@ -2256,7 +2127,7 @@ if (
   unlockManaSystem();
 }
 
-Object.values(upgrades).forEach(u => u.effect(stats));
+Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
 
 cashDisplay.textContent = `Cash: $${cash}`;
 cardPointsDisplay.textContent = `Card Points: ${cardPoints}`;
@@ -2286,6 +2157,8 @@ updateUpgradeButtons();
   updateActiveEffects();
   applyWorldTheme();
 
+  updateWorldTabNotification();
+
 addLog("Game loaded!",
 "info");
 } catch (e) {
@@ -2294,37 +2167,6 @@ e);
 }
 }
 
-//=========game start===========
-
-// Spawn the player's cards before the enemy so the initial
-// first strike doesn't trigger a full respawn
-spawnPlayer();
-spawnDealer();
-resetStageCashStats();
-renderStageInfo();
-nextStageChecker();
-renderWorldsMenu();
-rollNewCardUpgrades();
-renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
-  stats,
-  cash,
-  onPurchase: purchaseCardUpgrade
-});
-renderPurchasedUpgrades();
-updateActiveEffects();
-shuffleArray(deck);
-checkUpgradeUnlocks();
-
-btn.addEventListener("click", drawCard);
-redrawBtn.addEventListener("click", redrawHand);
-nextStageBtn.addEventListener("click", nextStage);
-fightBossBtn.addEventListener("click", () => {
-  fightBossBtn.style.display = "none";
-  stageData.stage = 10;
-  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
-  renderStageInfo();
-  spawnBoss();
-});
 
 /*function retry() {
   points =0

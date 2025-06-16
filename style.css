@@ -41,18 +41,20 @@ body {
     display: flex;
     gap: 12px;
     padding: 10px;
-    background: radial-gradient(circle, #3b1a1a 0%, #1a0000 100%);
+    background: radial-gradient(circle, #00451b 0%, #001a0a 100%);
     box-shadow: 0 0 20px #d4af37;
     border-bottom: 3px solid #d4af37;
 }
 
 .tabsContainer button {
-    background: #220000;
+    background: rgba(0, 0, 0, 0.4);
     color: #d4af37;
-    border: 1px solid #d4af37;
+    border: 3px solid #d4af37;
     padding: 8px 14px;
     border-radius: 8px;
     font-weight: bold;
+    text-shadow: 0 0 6px #000;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
     transition: all 0.2s;
     display: inline-flex;
     align-items: center;
@@ -60,8 +62,13 @@ body {
     text-align: center;
 }
 .tabsContainer button:hover {
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+    color: #fff4b3;
+}
+.tabsContainer button.active {
     background: #d4af37;
     color: #220000;
+    box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #d4af37;
 }
 
 /* tabs container */
@@ -173,15 +180,17 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 20px;
+    height: 30px;
+    width: 80%;
 }
 
 .manaBarInner {
     position: relative;
     width: 100%;
     height: 100%;
-    background: black;
-    border: 1px solid #333;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #3498db;
+    box-shadow: inset 0 0 6px #3498db;
 }
 
 .manaFill {
@@ -190,7 +199,7 @@ body {
     left: 0;
     height: 100%;
     width: 0%;
-    background: #351691;
+    background: #3498db;
 }
 
 .manaText {
@@ -301,8 +310,9 @@ body {
 #dealerBarFill {
     height: 30px;
     width: 100%;
-    background: red;
-    border: 2px solid grey;
+    background: #e74c3c;
+    border: 2px solid #e74c3c;
+    box-shadow: inset 0 0 6px #e74c3c;
     transition: width 0.3s;
 }
 
@@ -310,9 +320,11 @@ body {
     height: 30px;
     width: 80%;
     justify-self: center;
-    background: #090b09;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #e74c3c;
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: inset 0 0 6px #e74c3c;
 }
 
 .dealerLifeContainer.bar-dead {
@@ -479,13 +491,12 @@ body {
 /* buttons container */
 
 .buttonsContainer {
-    padding: 5px;
+    padding: 8px;
     gap: 5px;
     display: flex;
     flex-wrap: wrap; /* allow the attack bar to sit above the buttons */
     justify-content: center;
     align-items: center;
-    padding: 0 8px;
 }
 
 .buttonsContainer > button {
@@ -513,14 +524,15 @@ body {
 /* auto attack progress bars */
 .playerAttackBar {
     width: 50%;
-    height: 6px;
-    background: #090b09;
-    border: 1px solid grey;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #d4af37;
     border-radius: 8px;
     overflow: hidden;
     margin: 0 auto 4px; /* center above the buttons */
     position: relative;
     flex-basis: 100%; /* occupy its own row within the flex wrapper */
+    box-shadow: inset 0 0 6px #d4af37;
 }
 
 .playerAttackFill {
@@ -529,18 +541,19 @@ body {
     left: 0;
     height: 100%;
     width: 0;
-    background: grey;
+    background: #d4af37;
 }
 
 .enemyAttackBar {
     width: 50%;
     height: 4px;
-    background: #090b09;
-    border: 1px solid grey;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #d4af37;
     border-radius: 8px;
     overflow: hidden;
     margin: 4px auto 0;
     position: relative;
+    box-shadow: inset 0 0 6px #d4af37;
 }
 
 .enemyAttackFill {
@@ -549,7 +562,7 @@ body {
     left: 0;
     height: 100%;
     width: 0;
-    background: grey;
+    background: #d4af37;
 }
 
 .buttonsContainer > button:hover {
@@ -590,6 +603,16 @@ body {
     width: 100%;
     max-width: 120px;
     max-height: 120px;
+}
+
+@media (min-width: 1024px) {
+    .card-wrapper {
+        max-width: 140px;
+        max-height: none;
+    }
+    .handContainer {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
 }
 
 .card {
@@ -708,12 +731,14 @@ body {
 .xpBarLabel {
     position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    width: 100%;
     line-height: 1em;
     font-size: 0.6em;
     color: white;
     pointer-events: none; /* clicks pass through */
+    text-align: center;
+    white-space: nowrap;
 }
 
 @keyframes card-heal {
@@ -818,8 +843,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background-color: #5c5c5c;
-    padding: 5px;
+    background: radial-gradient(circle, #00451b 0%, #001a0a 100%);
+    padding: 8px;
 }
 
 .upgrade-subtabs {
@@ -829,6 +854,33 @@ body {
 
 .upgrade-subtabs button {
     flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    color: #d4af37;
+    border: 3px solid #d4af37;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-shadow: 0 0 6px #000;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+    transition: all 0.2s;
+}
+.upgrade-subtabs button:hover {
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+    color: #fff4b3;
+}
+.upgrade-subtabs button.active {
+    background: #d4af37;
+    color: #220000;
+    box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #d4af37;
+}
+
+.upgradesTab h3 {
+    margin: 4px 0;
+    padding-bottom: 2px;
+    color: #d4af37;
+    text-shadow: 0 0 8px #d4af37;
+    text-align: center;
+    border-bottom: 1px solid #d4af37;
 }
 
 .bar-upgrades-panel,
@@ -926,23 +978,32 @@ body {
     font-size: 0.5rem; /* Match side panel text size */
     line-height: 1;
     padding: 2px 4px;
-    background: linear-gradient(135deg, #e8ffe8, #c8facc);
-    border: 1px solid #4caf50;
+    background: #000;
+    border: 1px solid #d4af37;
     border-radius: 4px;
     cursor: pointer;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #080707;
+    color: #d4af37;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
     transition:
         background 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        color 0.2s ease;
 }
 
 .upgrade-item button:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.upgrade-item button:not(:disabled):hover {
+    background: #d4af37;
+    color: #220000;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
 }
 
 .upgrade-item.affordable {
@@ -975,19 +1036,22 @@ body {
 .bar {
     width: 100%;
     height: 8px;
-    background: #444;
+    background: rgba(0, 0, 0, 0.8);
     border-radius: 4px;
+    border: 1px solid #d4af37;
+    box-shadow: inset 0 0 6px #d4af37;
     overflow: hidden;
 }
 
 .bar-label {
     width: 60px;
     font-size: 0.7rem;
+    color: #d4af37;
 }
 .bar-fill {
     height: 100%;
     width: 0%;
-    background: #4caf50;
+    background: #d4af37;
 }
 .bar-info {
     font-size: 0.6rem;
@@ -1026,27 +1090,45 @@ body {
 }
 
 .upgrade-card {
-    background: #fff;
+    background: #000;
     padding: 4px;
     margin-bottom: 4px;
-    color: #000;
+    color: #fff;
     font-size: 0.6rem;
-    border-radius: 4px;
+    border-radius: 8px;
+    border: 2px solid #d4af37;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    transform: rotate(5deg);
+    transform: rotate(0deg);
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.upgrade-card:hover {
+    transform: rotate(-3deg) translateY(-2px);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
 }
 .upgrade-card button {
     width: 100%;
     padding: 2px 4px;
     font-size: 0.6rem;
-    background: linear-gradient(135deg, #e8ffe8, #c8facc);
-    border: 1px solid #4caf50;
+    background: #000;
+    border: 1px solid #d4af37;
     border-radius: 4px;
     cursor: pointer;
-    color: #000;
+    color: #d4af37;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.upgrade-card button:not(:disabled):hover {
+    background: #d4af37;
+    color: #220000;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+}
+.upgrade-card button:disabled {
+    opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .upgrade-popup {
@@ -1139,4 +1221,22 @@ body {
 
 .card-upgrade-entry.active {
     font-weight: bold;
+}
+
+@keyframes glow-pulse {
+    from { box-shadow: 0 0 5px 2px gold; }
+    to { box-shadow: 0 0 12px 4px gold; }
+}
+
+.glow-notify {
+    animation: glow-pulse 1s infinite alternate;
+}
+
+@keyframes purchase-fade {
+    from { opacity: 1; transform: scale(1) rotate(0deg); }
+    to { opacity: 0; transform: scale(0.5) rotate(0deg); }
+}
+
+.card-wrapper.purchasing {
+    animation: purchase-fade 0.3s forwards;
 }

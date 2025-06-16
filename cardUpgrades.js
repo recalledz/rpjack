@@ -82,8 +82,9 @@ export const cardUpgradeDefinitions = {
     name: 'Heart HP Multiplier +5%',
     rarity: 'rare',
     prestige: true,
-    effect: ({ stats }) => {
+    effect: ({ stats, updateAllCardHp }) => {
       stats.heartHpMultiplier = (stats.heartHpMultiplier || 1) + 0.05;
+      if (typeof updateAllCardHp === 'function') updateAllCardHp();
     }
   },
   clubsPlaceholder: {
@@ -103,6 +104,95 @@ export const cardUpgradeDefinitions = {
     }
   }
 };
+
+export const upgrades = {
+  // Unlocked from start
+  globalDamage: {
+    name: 'Global Damage Multiplier',
+    level: 0,
+    baseValue: 1.0,
+    unlocked: true,
+    costFormula: level => 100 * level ** 1.2,
+    effect: ({ stats }) => {
+      stats.upgradeDamageMultiplier =
+        upgrades.globalDamage.baseValue + 0.15 * upgrades.globalDamage.level;
+    }
+  },
+  cardHpPerKill: {
+    name: 'Card HP per Kill',
+    level: 0,
+    baseValue: 1,
+    unlocked: true,
+    costFormula: level => 150 * level ** 2,
+    effect: ({ stats, pDeck }) => {
+      stats.hpPerKill =
+        upgrades.cardHpPerKill.baseValue + upgrades.cardHpPerKill.level;
+      if (pDeck) pDeck.forEach(card => (card.hpPerKill = stats.hpPerKill));
+    }
+  },
+  baseCardHp: {
+    name: 'Base Card HP Boost',
+    level: 0,
+    baseValue: 0,
+    unlocked: true,
+    costFormula: level => 100 * level ** 1.2,
+    effect: ({ stats, pDeck }) => {
+      const prev = stats.baseCardHpBoost || 0;
+      const newBoost = 3 * upgrades.baseCardHp.level;
+      const diff = newBoost - prev;
+      stats.baseCardHpBoost = newBoost;
+      if (pDeck) {
+        pDeck.forEach(card => {
+          card.baseHpBoost = (card.baseHpBoost || 0) + diff;
+          card.maxHp = Math.round(card.maxHp + diff);
+          card.currentHp = Math.round(card.currentHp + diff);
+        });
+      }
+    }
+  },
+
+  // Locked at start
+  autoAttackSpeed: {
+    name: 'Auto-Attack Speed',
+    level: 0,
+    baseValue: 5000,
+    unlocked: false,
+    unlockCondition: ({ stageData }) => stageData.stage >= 10,
+    costFormula: level => Math.floor(300 * level ** 2),
+    effect: ({ stats }) => {
+      const lvl = upgrades.autoAttackSpeed.level;
+      const base = upgrades.autoAttackSpeed.baseValue;
+      const fastReduction = 500 * Math.min(lvl, 4);
+      const diminishing = 250 * Math.max(lvl - 4, 0);
+      stats.attackSpeed = Math.max(2000, base - fastReduction - diminishing);
+    }
+  },
+  /* maxMana and manaRegen upgrades were previously implemented as card
+     upgrades. Removing duplicates to avoid conflicting behavior. */
+  abilityCooldownReduction: {
+    name: 'Ability Cooldown Reduction',
+    level: 0,
+    baseValue: 0,
+    unlocked: false,
+    unlockCondition: ({ stageData }) => stageData.stage >= 10,
+    costFormula: level => 200 * level ** 2,
+    effect: ({ stats }) => {
+      stats.abilityCooldownReduction = upgrades.abilityCooldownReduction.level * 0.05;
+    }
+  },
+  jokerCooldownReduction: {
+    name: 'Joker Cooldown Reduction',
+    level: 0,
+    baseValue: 0,
+    unlocked: false,
+    unlockCondition: ({ stageData }) => stageData.stage >= 12,
+    costFormula: level => 200 * level ** 2,
+    effect: ({ stats }) => {
+      stats.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
+    }
+  },
+  // redrawCooldownReduction upgrade handled via card upgrades
+}; 
 
 const rarityCostMultiplier = {
   common: 1,
@@ -209,7 +299,11 @@ export function renderCardUpgrades(container, options = {}) {
     const btn = document.createElement('button');
     btn.textContent = `Buy $${cost}`;
     btn.disabled = cash < cost || !onPurchase;
-    btn.addEventListener('click', () => onPurchase && onPurchase(id, cost));
+    btn.addEventListener('click', () => {
+      if (!onPurchase) return;
+      wrapper.classList.add('purchasing');
+      setTimeout(() => onPurchase(id, cost), 300);
+    });
     wrapper.appendChild(btn);
     container.appendChild(wrapper);
   });
