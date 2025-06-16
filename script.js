@@ -108,6 +108,21 @@ const barUpgrades = {
   maxHp: { level: 0, progress: 0, points: 0, multiplier: 1 }
 };
 
+// Recompute a card's HP using all current multipliers
+function recalcCardHp(card) {
+  const baseMul = 1 + (card.value - 1) / 12;
+  const baseHp = 5 * baseMul + 5 * (card.currentLevel - 1) + card.baseHpBoost;
+  const suitMult = card.suit === 'Hearts' ? stats.heartHpMultiplier : 1;
+  const hp = Math.round(baseHp * barUpgrades.maxHp.multiplier * suitMult);
+  const ratio = card.maxHp > 0 ? card.currentHp / card.maxHp : 1;
+  card.maxHp = hp;
+  card.currentHp = Math.round(Math.min(hp, ratio * hp));
+}
+
+function updateAllCardHp() {
+  pDeck.forEach(recalcCardHp);
+}
+
 function computeBarMultiplier(level) {
   return 1 + (level / (level + 20)) * 9;
 }
@@ -201,6 +216,7 @@ const upgrades = {
         card.maxHp = Math.round(card.maxHp + diff);
         card.currentHp = Math.round(card.currentHp + diff);
       });
+      updateAllCardHp();
     }
   },
 
@@ -321,6 +337,7 @@ function getCardState() {
     cash,
     renderPurchasedUpgrades,
     updateActiveEffects,
+    updateAllCardHp,
     pDeck,
     shuffleArray,
     updateDrawButton,
@@ -698,6 +715,9 @@ function tickBarProgress(delta) {
       bar.progress -= req;
       bar.level += 1;
       bar.multiplier = computeBarMultiplier(bar.level);
+      if (key === 'maxHp') {
+        updateAllCardHp();
+      }
       updatePlayerStats();
     }
     updateBarUI(key);
@@ -1978,15 +1998,16 @@ function updatePlayerStats() {
   stats.pDamage = 0;
   stats.damageMultiplier =
     stats.upgradeDamageMultiplier * barUpgrades.damage.multiplier;
-stats.pRegen = 0;
-stats.cashMulti = 1;
-stats.points = 0;
+  stats.pRegen = 0;
+  stats.cashMulti = 1;
+  stats.points = 0;
 
-for (const card of drawnCards) {
-if (!card) continue;
+  for (const card of drawnCards) {
+    if (!card) continue;
+    recalcCardHp(card);
 
-if (card.suit === "Spades")
-stats.damageMultiplier += 0.1 * card.currentLevel;
+    if (card.suit === "Spades")
+      stats.damageMultiplier += 0.1 * card.currentLevel;
 if (card.suit === "Hearts") stats.pRegen += card.currentLevel;
 if (card.suit === "Diamonds")
 stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
