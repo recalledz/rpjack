@@ -138,26 +138,50 @@ export function renderJobCarousel(container) {
     ctx.scale(dpr, dpr);
   }
 
-  function drawCard(job, x, y, scale, alpha) {
+  function drawCard(job, x, y, scale, alpha, focused) {
     const cardW = 100;
     const cardH = 140;
+    const radius = 8;
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
+    ctx.beginPath();
+    ctx.moveTo(-cardW / 2 + radius, -cardH / 2);
+    ctx.lineTo(cardW / 2 - radius, -cardH / 2);
+    ctx.quadraticCurveTo(cardW / 2, -cardH / 2, cardW / 2, -cardH / 2 + radius);
+    ctx.lineTo(cardW / 2, cardH / 2 - radius);
+    ctx.quadraticCurveTo(cardW / 2, cardH / 2, cardW / 2 - radius, cardH / 2);
+    ctx.lineTo(-cardW / 2 + radius, cardH / 2);
+    ctx.quadraticCurveTo(-cardW / 2, cardH / 2, -cardW / 2, cardH / 2 - radius);
+    ctx.lineTo(-cardW / 2, -cardH / 2 + radius);
+    ctx.quadraticCurveTo(-cardW / 2, -cardH / 2, -cardW / 2 + radius, -cardH / 2);
+    ctx.closePath();
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#888';
+    ctx.stroke();
 
     if (!job.unlocked) {
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
+      ctx.fill();
       ctx.fillStyle = '#fff';
       ctx.font = '20px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('🔒', 0, 8);
     }
 
-    ctx.fillStyle = '#fff';
+    if (focused) {
+      ctx.shadowColor = 'rgba(255,215,0,0.7)';
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = 'gold';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = '#000';
     ctx.font = '16px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(job.name, 0, cardH / 2 - 20);
@@ -177,7 +201,8 @@ export function renderJobCarousel(container) {
       const scale = 1 - Math.min(Math.abs(diff) * 0.2, 0.6);
       const y = centerY + Math.abs(diff) * 10;
       const alpha = 1 - Math.min(Math.abs(diff) / 3, 0.8);
-      drawCard(job, x, y, scale, alpha);
+      const focused = Math.abs(diff) < 0.1;
+      drawCard(job, x, y, scale, alpha, focused);
     });
     const idx = Math.round(position) % jobs.length;
     const j = jobs[((idx % jobs.length) + jobs.length) % jobs.length];
