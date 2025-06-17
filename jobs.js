@@ -107,16 +107,20 @@ export function renderJobCarousel(container) {
   wrapper.classList.add('job-carousel-wrapper');
   const left = document.createElement('button');
   left.textContent = '<';
-  left.addEventListener('click', () => {
+  const prev = () => {
     carouselIndex = (carouselIndex - 1 + jobs.length) % jobs.length;
     renderJobCarousel(container);
-  });
+  };
+  left.addEventListener('click', prev);
+  left.addEventListener('touchstart', prev);
   const right = document.createElement('button');
   right.textContent = '>';
-  right.addEventListener('click', () => {
+  const next = () => {
     carouselIndex = (carouselIndex + 1) % jobs.length;
     renderJobCarousel(container);
-  });
+  };
+  right.addEventListener('click', next);
+  right.addEventListener('touchstart', next);
   const track = document.createElement('div');
   track.classList.add('job-carousel');
   jobs.forEach((job, idx) => {
@@ -132,6 +136,12 @@ export function renderJobCarousel(container) {
     desc.textContent = job.description;
     desc.classList.add('passive-desc');
     card.append(name, desc);
+    const selectCard = () => {
+      carouselIndex = idx;
+      renderJobCarousel(container);
+    };
+    card.addEventListener('click', selectCard);
+    card.addEventListener('touchstart', selectCard);
     track.appendChild(card);
   });
   const info = document.createElement('div');
