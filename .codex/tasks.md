@@ -23,6 +23,7 @@
 
 ## 🚧 Upcoming Goals
 - Fix dev tools: spawn boss does not update stage stats properly
+- Add Alternate Progression System (Player Life Tab)
 
 ## fixes
 
