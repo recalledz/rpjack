@@ -24,6 +24,7 @@ import { initPlayerLife, refreshPlayerLife } from "./playerLife.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
+import { initCore, refreshCore } from './core.js';
 import {
   rollNewCardUpgrades,
   applyCardUpgrade,
@@ -304,6 +305,10 @@ let activeEffectsContainer;
 let tooltip;
 let deckViewBtn;
 let jokerViewBtn;
+let playerLifeSubTabButton;
+let playerCoreSubTabButton;
+let playerLifePanel;
+let playerCorePanel;
 let jobsViewBtn;
 let jobsCarouselBtn;
 
@@ -398,6 +403,10 @@ function initTabs() {
   jokerViewBtn = document.querySelector('.jokerViewBtn');
   jobsViewBtn = document.querySelector('.jobsViewBtn');
   jobsCarouselBtn = document.querySelector('.jobsCarouselBtn');
+  playerLifeSubTabButton = document.querySelector(".playerLifeSubTabButton");
+  playerCoreSubTabButton = document.querySelector(".playerCoreSubTabButton");
+  playerLifePanel = document.querySelector(".player-life-panel");
+  playerCorePanel = document.querySelector(".player-core-panel");
   if (mainTabButton)
     mainTabButton.addEventListener("click", () => {
       showTab(mainTab);
@@ -438,6 +447,7 @@ function initTabs() {
   if (playerTabButton) {
     playerTabButton.addEventListener('click', () => {
       refreshPlayerLife();
+      refreshCore();
       showTab(playerTab);
       setActiveTabButton(playerTabButton);
     });
@@ -470,6 +480,20 @@ function initTabs() {
     barSubTabButton.addEventListener("click", showBarUpgradesPanel);
   if (cardSubTabButton)
     cardSubTabButton.addEventListener("click", showCardUpgradesPanel);
+  if (playerLifeSubTabButton)
+    playerLifeSubTabButton.addEventListener("click", () => {
+      if (playerLifePanel) playerLifePanel.style.display = "flex";
+      if (playerCorePanel) playerCorePanel.style.display = "none";
+      playerLifeSubTabButton.classList.add("active");
+      if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove("active");
+    });
+  if (playerCoreSubTabButton)
+    playerCoreSubTabButton.addEventListener("click", () => {
+      if (playerLifePanel) playerLifePanel.style.display = "none";
+      if (playerCorePanel) playerCorePanel.style.display = "flex";
+      playerCoreSubTabButton.classList.add("active");
+      if (playerLifeSubTabButton) playerLifeSubTabButton.classList.remove("active");
+    });
 
   showTab(mainTab); // Start with main tab visible
   setActiveTabButton(mainTabButton);
@@ -877,6 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadGame();
   initVignetteToggles();
   initPlayerLife({ getGameCash: () => cash, spendGameCash: spendCash });
+  initCore();
   showDeckListView();
   Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   renderUpgrades();

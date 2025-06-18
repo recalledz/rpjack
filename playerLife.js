@@ -1,3 +1,4 @@
+import { addCoreXP, getMindLevel } from "./core.js";
 export const lifeResources = {
   focus: 0,
   cleanliness: 0,
@@ -22,6 +23,7 @@ const ACTION_DURATION = 10; // seconds per resource tick
 const actions = [
   {
     id: 'meditate',
+    taskType: "mental",
     label: 'Meditate',
     skill: 'focus',
     resource: 'focus',
@@ -33,6 +35,7 @@ const actions = [
   },
   {
     id: 'cleanRoom',
+    taskType: "physical",
     label: 'Clean Room',
     skill: 'cleanliness',
     resource: 'cleanliness',
@@ -44,6 +47,7 @@ const actions = [
   },
   {
     id: 'readBook',
+    taskType: "mental",
     label: 'Read Book',
     skill: 'knowledge',
     resource: 'knowledge',
@@ -55,6 +59,7 @@ const actions = [
   },
   {
     id: 'writeJournal',
+    taskType: "soul",
     label: 'Write Journal',
     skill: 'mentalHealth',
     resource: 'mentalHealth',
@@ -66,6 +71,7 @@ const actions = [
   },
   {
     id: 'jobSearch',
+    taskType: "physical",
     label: 'Job Search',
     skill: 'preparedness',
     resource: 'preparedness',
@@ -93,12 +99,16 @@ function addResource(key, amt) {
 function startAction(action) {
   const state = actionStates[action.id] || { active: false, elapsed: 0 };
   if (state.active) return;
+  const activeIds = Object.keys(actionStates).filter(id => actionStates[id].active);
+  const activePhysical = activeIds.filter(id => (actions.find(a => a.id === id) || {}).taskType === "physical").length;
+  const activeMental = activeIds.filter(id => (actions.find(a => a.id === id) || {}).taskType === "mental").length;
+  if (action.taskType === "physical" && activePhysical >= 1) return;
+  if (action.taskType === "mental" && activeMental >= getMindLevel()) return;
   state.active = true;
   state.elapsed = 0;
   actionStates[action.id] = state;
   renderActions();
 }
-
 function cancelAction(id) {
   const state = actionStates[id];
   if (state) state.active = false;
@@ -116,6 +126,7 @@ function tickActions(delta) {
       state.elapsed -= action.duration;
       addResource(action.resource, action.resGain);
       skills[action.skill].xp += action.xpGain;
+      addCoreXP(action.taskType, action.xpGain);
       refreshed = true;
     }
   });
