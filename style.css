@@ -1429,3 +1429,53 @@ body {
     display: flex;
     justify-content: space-between;
 }
+
+/* life cards */
+.life-card {
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #d4af37;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.life-card.fade-in {
+    animation: life-fade-in 0.4s ease-out;
+}
+
+.life-card.active {
+    animation: glow-pulse 1s infinite alternate;
+}
+
+.life-card-title {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.life-card-desc {
+    font-size: 0.8rem;
+}
+
+.life-card-action {
+    text-align: center;
+}
+
+.life-card-progress {
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+.life-card-timer {
+    margin-bottom: 4px;
+}
+
+@keyframes life-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
