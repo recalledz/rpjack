@@ -20,6 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
+import { initPlayerLife, refreshPlayerLife } from "./playerLife.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -79,6 +80,15 @@ let cardPoints = 0;
 // Track how many card points have already been converted to cash
 let lastCashOutPoints = 0;
 let currentEnemy = null;
+
+function spendCash(amount) {
+  const amt = Math.min(amount, cash);
+  cash -= amt;
+  if (cashDisplay) cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
+  cashRateTracker.record(cash);
+  updateUpgradeButtons();
+  return amt;
+}
 
 // track how many upgrade power points have been bought total
 let upgradePowerPurchased = 0;
@@ -277,12 +287,14 @@ let starChartTabButton;
 let playerStatsTabButton;
 let worldTabButton;
 let upgradesTabButton;
+let playerTabButton;
 let mainTab;
 let deckTab;
 let starChartTab;
 let playerStatsTab;
 let worldsTab;
 let upgradesTab;
+let playerTab;
 let barSubTabButton;
 let cardSubTabButton;
 let barUpgradesPanel;
@@ -326,6 +338,7 @@ function hideTab() {
   if (playerStatsTab) playerStatsTab.style.display = "none";
   if (worldsTab) worldsTab.style.display = "none";
   if (upgradesTab) upgradesTab.style.display = "none";
+  if (playerTab) playerTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -366,12 +379,14 @@ function initTabs() {
   playerStatsTabButton = document.querySelector('.playerStatsTabButton');
   worldTabButton = document.querySelector('.worldTabButton');
   upgradesTabButton = document.querySelector('.upgradesTabButton');
+  playerTabButton = document.querySelector('.playerTabButton');
   mainTab = document.querySelector('.mainTab');
   deckTab = document.querySelector('.deckTab');
   starChartTab = document.querySelector('.starChartTab');
   playerStatsTab = document.querySelector('.playerStatsTab');
   worldsTab = document.querySelector('.worldsTab');
   upgradesTab = document.querySelector('.upgradesTab');
+  playerTab = document.querySelector('.playerTab');
   barSubTabButton = document.querySelector('.barSubTabButton');
   cardSubTabButton = document.querySelector('.cardSubTabButton');
   barUpgradesPanel = document.querySelector('.bar-upgrades-panel');
@@ -417,6 +432,14 @@ function initTabs() {
       renderWorldsMenu();
       showTab(worldsTab);
       setActiveTabButton(worldTabButton);
+    });
+  }
+
+  if (playerTabButton) {
+    playerTabButton.addEventListener('click', () => {
+      refreshPlayerLife();
+      showTab(playerTab);
+      setActiveTabButton(playerTabButton);
     });
   }
 
@@ -853,6 +876,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   loadGame();
   initVignetteToggles();
+  initPlayerLife({ getGameCash: () => cash, spendGameCash: spendCash });
   showDeckListView();
   Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
   renderUpgrades();
