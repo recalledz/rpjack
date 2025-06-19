@@ -53,6 +53,7 @@ function renderSkillsList(container) {
   if (!container) return;
   container.innerHTML = '';
   Object.entries(skills).forEach(([key, data]) => {
+    if (["strength", "dexterity", "focus"].includes(key)) return;
     const level = Math.floor(data.xp / 10) + 1;
     const progress = data.xp % 10;
     const row = document.createElement('div');
