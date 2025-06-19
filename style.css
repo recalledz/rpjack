@@ -918,6 +918,31 @@ body {
     white-space: nowrap;
 }
 
+.mini-card-wrapper {
+    width: 40px;
+    display: inline-flex;
+    justify-content: center;
+}
+
+.mini-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border: 1px solid grey;
+    border-radius: 4px;
+    background: white;
+    padding: 2px;
+    box-sizing: border-box;
+    font-size: 0.6rem;
+}
+
+.mini-card-level {
+    font-size: 0.6rem;
+}
+
 .job-entry {
     display: flex;
     align-items: center;

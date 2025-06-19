@@ -394,6 +394,7 @@ function initTabs() {
     deckTabButton.addEventListener("click", () => {
       showTab(deckTab);
       setActiveTabButton(deckTabButton);
+      showDeckListView();
     });
 
   if (starChartTabButton) {
@@ -775,27 +776,41 @@ function renderTabCard(card) {
   });
 }
 
-for (let i = 0; i < deck.length; i++) {
-  renderTabCard(deck[i]);
+function renderMiniCard(card) {
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('mini-card-wrapper');
+
+  const cardPane = document.createElement('div');
+  cardPane.classList.add('mini-card');
+  cardPane.innerHTML = `
+    <div class="card-value" style="color: ${card.color}">${card.value}</div>
+    <div class="card-suit" style="color: ${card.color}">${card.symbol}</div>
+    <div class="mini-card-level">Lv ${card.currentLevel}</div>
+  `;
+
+  card.deckLevelDisplay = cardPane.querySelector('.mini-card-level');
+  wrapper.appendChild(cardPane);
+  deckTabContainer.appendChild(wrapper);
 }
 
 // Synchronize XP bars and HP values for cards shown in the Deck tab
 function updateDeckDisplay() {
   // Update ALL cards in the original deck, including those that have been drawn
   pDeck.forEach(card => {
-    // Skip if card doesn't have deck tab elements
-    if (!card.deckXpBarFill || !card.deckXpLabel) return;
+    // Mini card level label
+    if (card.deckLevelDisplay) {
+      card.deckLevelDisplay.textContent = `Lv ${card.currentLevel}`;
+    }
 
-    // 1) XP bar for deck tab
-    const pct = (card.XpCurrent / card.XpReq) * 100;
-    card.deckXpBarFill.style.width = `${Math.min(pct, 100)}%`;
+    // Full deck card elements
+    if (card.deckXpBarFill && card.deckXpLabel) {
+      const pct = (card.XpCurrent / card.XpReq) * 100;
+      card.deckXpBarFill.style.width = `${Math.min(pct, 100)}%`;
+      card.deckXpLabel.textContent =
+        `LV: ${card.currentLevel} ` +
+        `XP: ${formatNumber(card.XpCurrent)}/${formatNumber(Math.floor(card.XpReq))}`;
+    }
 
-    // 2) XP/Level/Damage label for deck tab
-    card.deckXpLabel.textContent =
-    `LV: ${card.currentLevel} ` +
-    `XP: ${formatNumber(card.XpCurrent)}/${formatNumber(Math.floor(card.XpReq))}`;
-
-    // 3) Update HP in deck tab
     if (card.deckHpDisplay) {
       card.deckHpDisplay.textContent = `HP: ${formatNumber(Math.round(card.currentHp))}/${formatNumber(Math.round(card.maxHp))}`;
     }
@@ -824,7 +839,7 @@ function updateMasteryBars() {
 }
 
 function hideDeckViews() {
-  // keep the deck list visible so mastery progress remains on screen
+  if (deckListContainer) deckListContainer.style.display = 'none';
   if (deckTabContainer) deckTabContainer.style.display = 'none';
   if (jokerViewContainer) jokerViewContainer.style.display = 'none';
   if (deckJobsContainer) deckJobsContainer.style.display = 'none';
@@ -845,7 +860,7 @@ function showDeckCardsView(id) {
   if (!deckTabContainer) return;
   deckTabContainer.innerHTML = '';
   const cards = deckConfigs[id]?.cards || [];
-  cards.forEach(c => renderTabCard(c));
+  cards.forEach(c => renderMiniCard(c));
   deckTabContainer.style.display = 'flex';
 }
 
@@ -1992,7 +2007,6 @@ function respawnPlayer() {
   handContainer.innerHTML = "";
   discardContainer.innerHTML = "";
   deckTabContainer.innerHTML = "";
-  deck.forEach(card => renderTabCard(card));
 
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
   cashRateTracker.reset(cash);
