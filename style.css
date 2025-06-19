@@ -1391,6 +1391,11 @@ body {
     to { box-shadow: 0 0 12px 4px gold; }
 }
 
+@keyframes galactic-bg {
+    from { background-position: 0 0; }
+    to { background-position: 200% 0; }
+}
+
 .glow-notify {
     animation: glow-pulse 1s infinite alternate;
 }
@@ -1495,11 +1500,20 @@ body {
 .player-actions button {
     padding: 6px;
     border: 2px solid #b76eff;
-    background: rgba(70, 0, 100, 0.4);
+    background: linear-gradient(60deg, #b76eff, #4b0082, #b76eff);
+    background-size: 200% 100%;
     color: #e0d0ff;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
+    text-shadow: 0 0 6px #000;
+    box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
+    transition: all 0.2s;
+    animation: galactic-bg 6s linear infinite;
+}
+.player-actions button:hover {
+    box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
+    color: #fff4b3;
 }
 
 .player-resources {
@@ -1572,17 +1586,27 @@ body {
 }
 .player-subtabs button {
     width: 100%;
-    background: rgba(70, 0, 100, 0.4);
+    background: linear-gradient(60deg, #b76eff, #4b0082, #b76eff);
+    background-size: 200% 100%;
     color: #e0d0ff;
     border: 2px solid #b76eff;
     padding: 6px 10px;
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: bold;
+    text-shadow: 0 0 6px #000;
+    box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
+    transition: all 0.2s;
+    animation: galactic-bg 6s linear infinite;
 }
 .player-subtabs button.active {
     background: #b76eff;
     color: #220000;
+    box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #b76eff;
+}
+.player-subtabs button:hover {
+    box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
+    color: #fff4b3;
 }
 .player-life-panel {
     display: flex;
