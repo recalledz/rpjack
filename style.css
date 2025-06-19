@@ -1548,18 +1548,15 @@ body {
 }
 .player-subtabs button {
     width: 100%;
-    background: linear-gradient(60deg, #b76eff, #4b0082, #b76eff);
-    background-size: 200% 100%;
-    color: #e0d0ff;
     border: 2px solid #b76eff;
     padding: 6px 10px;
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: bold;
     text-shadow: 0 0 6px #000;
-    box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
     transition: all 0.2s;
-    animation: galactic-bg 6s linear infinite;
+    color: #e0d0ff;
+    background: #4b0082;
 }
 .player-subtabs button.active {
     background: #b76eff;
@@ -1569,6 +1566,29 @@ body {
 .player-subtabs button:hover {
     box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
     color: #fff4b3;
+}
+
+.playerCoreSubTabButton {
+    background: linear-gradient(60deg, #b76eff, #4b0082, #b76eff);
+    background-size: 200% 100%;
+    box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
+    animation: galactic-bg 6s linear infinite;
+}
+.playerCoreSubTabButton.active {
+    background: #b76eff;
+}
+
+.playerSkillsSubTabButton {
+    background: linear-gradient(60deg, #a86b32, #5c3317, #a86b32);
+    background-size: 200% 100%;
+    border-color: #a86b32;
+    box-shadow: 0 0 8px rgba(168, 107, 50, 0.5);
+    color: #fff8e1;
+}
+.playerSkillsSubTabButton.active {
+    background: #a86b32;
+    box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #a86b32;
+    color: #220000;
 }
 .player-skills-panel {
     display: flex;
@@ -1628,8 +1648,7 @@ body {
 .core-actions button {
     padding: 6px;
     border: 2px solid #b76eff;
-    background: linear-gradient(60deg, #b76eff, #4b0082, #b76eff);
-    background-size: 200% 100%;
+    background: #4b0082;
     color: #e0d0ff;
     border-radius: 6px;
     cursor: pointer;
@@ -1637,7 +1656,6 @@ body {
     text-shadow: 0 0 6px #000;
     box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
     transition: all 0.2s;
-    animation: galactic-bg 6s linear infinite;
 }
 .core-actions button:hover {
     box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
@@ -1653,6 +1671,7 @@ body {
     flex-direction: column;
     gap: 4px;
     font-size: 0.8rem;
+    margin-left: auto;
 }
 .core-resources .resource-entry {
     display: flex;
@@ -1665,14 +1684,11 @@ body {
 }
 
 .core-button-wrapper {
-    position: absolute;
-    top: 40px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
 #meditateCoreBtn {
