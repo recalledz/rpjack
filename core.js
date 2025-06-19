@@ -11,7 +11,6 @@ let container;
 let meditateBtn;
 let levelDisplay;
 let progressText;
-let soulTimer;
 let meditationTimer;
 
 export function initCore() {
@@ -62,9 +61,6 @@ const bodyPath = `M200 140
   const mindOrb = container.querySelector('#mindOrb');
   mindOrb.addEventListener('click', onMindOrbClick);
   meditateBtn.addEventListener('click', startMeditation);
-  if (!soulTimer) {
-    soulTimer = setInterval(() => addCoreXP('soul', 0.5), 1000);
-  }
   renderCore();
 }
 
