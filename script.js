@@ -127,7 +127,10 @@ const stats = {
   redrawCooldownReduction: 0,
   hpMultiplier: 1,
   extraDamageMultiplier: 1,
-  drawPoints: 0
+  drawPoints: 0,
+  drawPointsMult: 1,
+  damageBuffMultiplier: 1,
+  damageBuffExpiration: 0
 };
 
 const systems = {
@@ -618,6 +621,12 @@ function updateActiveEffects() {
       activeEffectsContainer.appendChild(div);
     }
   });
+  if (stats.damageBuffMultiplier > 1 && stats.damageBuffExpiration) {
+    const remain = Math.max(0, Math.ceil((stats.damageBuffExpiration - Date.now()) / 1000));
+    const div = document.createElement('div');
+    div.textContent = `Damage Buff x${stats.damageBuffMultiplier.toFixed(1)} (${remain}s)`;
+    activeEffectsContainer.appendChild(div);
+  }
 }
 
 function updateUpgradePowerDisplay() {
@@ -1715,8 +1724,8 @@ let redrawCost = 10;
 function handleRedraw() {
   if (cash < redrawCost) return;
   spendCash(redrawCost);
-  stats.drawPoints = (stats.drawPoints || 0) + 1;
-  redrawCost = Math.floor(redrawCost * 1.2 + 1);
+  stats.drawPoints = (stats.drawPoints || 0) + stats.drawPointsMult;
+  redrawCost = redrawCost * 2;
   redrawHand(getCardState());
   updateRedrawButton();
   renderPlayerStats(stats);
@@ -2163,6 +2172,10 @@ function updatePlayerStats() {
   stats.cashMulti = 1;
   stats.points = 0;
 
+  if (stats.damageBuffExpiration && Date.now() > stats.damageBuffExpiration) {
+    stats.damageBuffMultiplier = 1;
+  }
+
   for (const card of drawnCards) {
     if (!card) continue;
     recalcCardHp(card, stats, barUpgrades);
@@ -2178,7 +2191,7 @@ stats.pDamage += card.damage;
 stats.points += card.value;
 }
 
-stats.pDamage *= stats.damageMultiplier;
+stats.pDamage *= stats.damageMultiplier * stats.damageBuffMultiplier;
 renderPlayerStats(stats);
 }
 
