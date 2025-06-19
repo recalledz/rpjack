@@ -259,6 +259,7 @@ const jokerViewContainer = document.querySelector('.jokerViewContainer');
 const deckJobsContainer = document.querySelector('.deckJobsContainer');
 const jobCarouselContainer = document.querySelector('.jobCarouselContainer');
 const dCardContainer = document.getElementsByClassName("dCardContainer")[0];
+const dealerContainer = document.querySelector('.dealerContainer');
 const jokerContainers = document.querySelectorAll(".jokerContainer");
 const manaBar = document.getElementById("manaBar");
 const manaFill = document.getElementById("manaFill");
@@ -1708,6 +1709,7 @@ function heartHeal() {
 
 let gamePaused = false;
 let upgradeSelectionOpen = false;
+let upgradeOverlay = null;
 let redrawCost = 10;
 
 function handleRedraw() {
@@ -1726,6 +1728,9 @@ function openCardUpgradeSelection() {
   upgradeSelectionOpen = true;
   gamePaused = true;
   dCardContainer.innerHTML = '';
+  upgradeOverlay = document.createElement('div');
+  upgradeOverlay.classList.add('upgrade-selection-overlay');
+  dealerContainer.appendChild(upgradeOverlay);
   const ids = rollNewCardUpgrades(3);
   ids.forEach(id => {
     const def = cardUpgradeDefinitions[id];
@@ -1740,7 +1745,7 @@ function openCardUpgradeSelection() {
       purchaseCardUpgrade(id, cost);
       closeCardUpgradeSelection();
     });
-    dCardContainer.appendChild(wrap);
+    upgradeOverlay.appendChild(wrap);
   });
   lucide.createIcons();
 }
@@ -1749,6 +1754,10 @@ function closeCardUpgradeSelection() {
   if (!upgradeSelectionOpen) return;
   upgradeSelectionOpen = false;
   dCardContainer.innerHTML = '';
+  if (upgradeOverlay) {
+    upgradeOverlay.remove();
+    upgradeOverlay = null;
+  }
   renderDealerCard();
   gamePaused = false;
 }
