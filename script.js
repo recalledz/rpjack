@@ -309,9 +309,9 @@ let jokerViewBtn;
 let deckUpgradesViewBtn;
 let deckUpgradesContainer;
 let redrawCostDisplay;
-let playerLifeSubTabButton;
+let playerSkillsSubTabButton;
 let playerCoreSubTabButton;
-let playerLifePanel;
+let playerSkillsPanel;
 let playerCorePanel;
 let jobsViewBtn;
 let jobsCarouselBtn;
@@ -384,9 +384,9 @@ function initTabs() {
   redrawCostDisplay = document.getElementById('redrawCostDisplay');
   jobsViewBtn = document.querySelector('.jobsViewBtn');
   jobsCarouselBtn = document.querySelector('.jobsCarouselBtn');
-  playerLifeSubTabButton = document.querySelector(".playerLifeSubTabButton");
+  playerSkillsSubTabButton = document.querySelector(".playerSkillsSubTabButton");
   playerCoreSubTabButton = document.querySelector(".playerCoreSubTabButton");
-  playerLifePanel = document.querySelector(".player-life-panel");
+  playerSkillsPanel = document.querySelector(".player-skills-panel");
   playerCorePanel = document.querySelector(".player-core-panel");
   if (mainTabButton)
     mainTabButton.addEventListener("click", () => {
@@ -458,19 +458,19 @@ function initTabs() {
         deckUpgradesContainer.style.display = 'flex';
       }
     });
-  if (playerLifeSubTabButton)
-    playerLifeSubTabButton.addEventListener("click", () => {
-      if (playerLifePanel) playerLifePanel.style.display = "flex";
+  if (playerSkillsSubTabButton)
+    playerSkillsSubTabButton.addEventListener("click", () => {
+      if (playerSkillsPanel) playerSkillsPanel.style.display = "flex";
       if (playerCorePanel) playerCorePanel.style.display = "none";
-      playerLifeSubTabButton.classList.add("active");
+      playerSkillsSubTabButton.classList.add("active");
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove("active");
     });
   if (playerCoreSubTabButton)
     playerCoreSubTabButton.addEventListener("click", () => {
-      if (playerLifePanel) playerLifePanel.style.display = "none";
+      if (playerSkillsPanel) playerSkillsPanel.style.display = "none";
       if (playerCorePanel) playerCorePanel.style.display = "flex";
       playerCoreSubTabButton.classList.add("active");
-      if (playerLifeSubTabButton) playerLifeSubTabButton.classList.remove("active");
+      if (playerSkillsSubTabButton) playerSkillsSubTabButton.classList.remove("active");
     });
 
   showTab(mainTab); // Start with main tab visible
