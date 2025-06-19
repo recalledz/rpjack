@@ -870,6 +870,13 @@ body {
     width: 100%;
 }
 
+.deckUpgradesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
 .deckListContainer, .deckTabContainer, .jokerViewContainer {
     display: flex;
     flex-wrap: wrap;
