@@ -57,8 +57,20 @@ function renderSkillsList(container) {
     const progress = data.xp % 10;
     const row = document.createElement('div');
     row.classList.add('skill-entry');
+
+    const nameEl = document.createElement('div');
     const name = key.replace(/([A-Z])/g, ' $1');
-    row.textContent = `${name.charAt(0).toUpperCase()+name.slice(1)}: Lv ${level} (${progress}/10)`;
+    nameEl.textContent = `${name.charAt(0).toUpperCase()+name.slice(1)}: Lv ${level} (${progress}/10)`;
+    row.appendChild(nameEl);
+
+    const bar = document.createElement('div');
+    bar.classList.add('skill-progress');
+    const fill = document.createElement('div');
+    fill.classList.add('skill-progress-fill');
+    fill.style.width = `${(progress / 10) * 100}%`;
+    bar.appendChild(fill);
+    row.appendChild(bar);
+
     container.appendChild(row);
   });
 }
