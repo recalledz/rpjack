@@ -166,15 +166,12 @@ function renderActions() {
     });
     actionsContainer.appendChild(btn);
   });
-  const transfer = document.createElement('button');
-  transfer.textContent = 'Transfer Cash';
-  transfer.addEventListener('click', transferCashFromGame);
-  actionsContainer.appendChild(transfer);
   renderActivity();
 }
 
 function renderResources() {
   if (!resourcesContainer) return;
+  lifeResources.cash = getGameCash();
   resourcesContainer.innerHTML = '';
   ['inspiration','knowledge','endurance','ore','food','mana','influence','components','discovery','cash']
     .forEach(k => {
@@ -186,10 +183,7 @@ function renderResources() {
 }
 
 export function transferCashFromGame() {
-  const available = Math.min(getGameCash(), CASH_CAP - lifeResources.cash);
-  if (available <= 0) return;
-  spendGameCash(available);
-  addResource('cash', available);
+  lifeResources.cash = getGameCash();
   renderResources();
 }
 
