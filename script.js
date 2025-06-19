@@ -24,7 +24,7 @@ import { initPlayerLife, refreshPlayerLife } from "./playerLife.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
-import { initCore, refreshCore, addCoreXP } from './core.js';
+import { initCore, refreshCore } from './core.js';
 import {
   rollNewCardUpgrades,
   applyCardUpgrade,
@@ -1704,12 +1704,9 @@ function heartHeal() {
 
   drawnCards.forEach(card => {
     if (card.suit === "Hearts") {
-      const before = target.currentHp;
       target.currentHp = Math.round(
         Math.min(target.currentHp + card.currentLevel, target.maxHp)
       );
-      const gained = target.currentHp - before;
-      if (gained > 0) addCoreXP('physical', gained);
       animateCardHeal(target);
     }
   });
@@ -1839,10 +1836,7 @@ function animateCardDeath(card, callback) {
 function healCardsOnKill() {
   drawnCards.forEach(card => {
     if (!card) return;
-    const before = card.currentHp;
     card.healFromKill();
-    const gained = card.currentHp - before;
-    if (gained > 0) addCoreXP('physical', gained);
   });
   updateHandDisplay();
   updateDeckDisplay();
@@ -1920,14 +1914,9 @@ function useJoker(joker) {
       const healAmt = joker.getScaledPower();
       drawnCards.forEach(card => {
         if (!card) return;
-        const before = card.currentHp;
         card.currentHp = Math.round(Math.min(card.maxHp, card.currentHp + healAmt));
-        const gained = card.currentHp - before;
-        if (gained > 0) {
-          addCoreXP('physical', gained);
-          card.hpDisplay.textContent = `HP: ${formatNumber(Math.round(card.currentHp))}/${formatNumber(Math.round(card.maxHp))}`;
-          animateCardHeal(card);
-        }
+        card.hpDisplay.textContent = `HP: ${formatNumber(Math.round(card.currentHp))}/${formatNumber(Math.round(card.maxHp))}`;
+        animateCardHeal(card);
       });
       addLog(`Healed ${healAmt} HP`,
         "heal");
@@ -2461,8 +2450,7 @@ stats.mana = Math.min(
 stats.maxMana,
 stats.mana + (stats.manaRegen * deltaTime) / 1000
 );
-updateManaBar();
- addCoreXP('mental', (stats.manaRegen * deltaTime) / 1000);
+ updateManaBar();
 }
 
   // passive progress for bar upgrades
