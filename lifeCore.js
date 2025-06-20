@@ -82,10 +82,19 @@ export class LifeGame {
   tick(delta = 1, addCoreXP = () => {}) {
     const act = this.activities[this.current];
     if (!act) return;
-    if (act.stamina < 0 && this.resources.stamina.amount <= 0) return;
+    if (act.stamina < 0 && this.resources.stamina.amount <= 0) {
+      this.stop();
+      if (this.activities.ponder) this.start('ponder');
+      return;
+    }
 
     if (act.stamina !== 0) {
       this.resources.stamina.amount = Math.max(0, Math.min(this.staminaMax, this.resources.stamina.amount + act.stamina * delta));
+      if (act.stamina < 0 && this.resources.stamina.amount <= 0) {
+        this.stop();
+        if (this.activities.ponder) this.start('ponder');
+        return;
+      }
     }
     if (act.resource) this.resources[act.resource].add(act.rate * delta);
     if (act.skill) this.skills[act.skill].addXP(act.xpRate * delta);
