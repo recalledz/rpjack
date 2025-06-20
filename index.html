@@ -41,22 +41,18 @@
 
     <!---tabs container--->
     <div class=tabsContainer>
-      <button class="mainTabButton">imaginary</button>
+      <button class="mainTabButton">main</button>
       <button class="deckTabButton">deck</button>
       <button class="starChartTabButton">star chart</button>
       <button class="playerStatsTabButton">stats</button>
       <!-- upgrades tabs removed -->
-      <button class="playerTabButton" style="display:none;">real</button>
+      <button class="worldTabButton">worlds</button>
+      <button class="playerTabButton">player</button>
     </div>
 
     <!--------------main tab panel----------------->
     <div class="mainTab">
 
-  <div class="imaginary-subtabs">
-    <button class="cardSubTabButton active">cards</button>
-    <button class="worldSubTabButton">worlds</button>
-  </div>
-      <div class="cardSubTab">
       <div class="dealerContainer casino-section">
         <div id="stage">
           Stage 1
@@ -144,12 +140,6 @@
         </div>
       </div>
     </div>
-    </div>
-    <div class="worldsTab" style="display:none;">
-      <span id="worldProgressPerSecDisplay">Avg World Progress/sec: 0%</span>
-      <div class="worldsContainer casino-section"></div>
-    </div>
-    </div>
     <!-- close mainTab -->
     <!--------------deck tab----------------->
     <div class="deckTab">
@@ -178,6 +168,12 @@
     <div class="playerStatsTab">
       <div id="playerStatsContainer" class="casino-section"></div>
     </div>
+    <div class="worldsTab">
+      <span id="worldProgressPerSecDisplay">Avg World Progress/sec: 0%</span>
+      <div class="worldsContainer casino-section"></div>
+    </div>
+    <div class="playerTab">
+      <div class="playerSidePanel casino-section">
         <button class="playerCoreSubTabButton">Core</button>
         <button class="playerSkillsSubTabButton active">Skills</button>
       </div>
