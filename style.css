@@ -159,13 +159,11 @@ body {
 .cardSubTab {
     flex: 1 1 auto;
     display: grid;
-    grid-template-rows: 30% auto auto 1fr;
+    grid-template-rows: auto 1fr;
     grid-template-columns: 1fr 20%;
     grid-template-areas:
         "dealer sidePanel"
-        "gameColumn sidePanel"
-        "gameColumn sidePanel"
-        "gameColumn discard";
+        "gameColumn sidePanel";
     gap: 10px;
 }
 
@@ -327,7 +325,7 @@ body {
     justify-content: flex-start;
     align-items: center;
     gap: 4px;
-    height: 100%;
+    height: auto;
 }
 
 .dealerContainer > .dealerLifeDisplay {
@@ -640,7 +638,7 @@ body {
 .redraw-cost {
     font-size: 0.8rem;
     color: #fff;
-    width: 100%;
+    width: auto;
     text-align: center;
 }
 
