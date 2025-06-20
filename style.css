@@ -76,6 +76,7 @@ body {
     display: flex;
     gap: 12px;
     padding: 10px;
+
 }
 .imaginary-subtabs button {
     background: rgba(0,0,0,0.4);
@@ -90,6 +91,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
 }
 .imaginary-subtabs button:hover {
     box-shadow: 0 0 12px rgba(212,175,55,0.8);
@@ -1716,8 +1718,8 @@ body {
     width: 100%;
 }
 #coreTabContent svg {
-    max-width: 360px;
-    transform: scale(1.2);
+    max-width: 280px;
+    transform: scale(1);
 }
 .core-level-text {
     margin-top: 4px;
