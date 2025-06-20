@@ -147,9 +147,10 @@ body {
 .mainTab {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     padding: 8px;
     gap: 10px;
+    overflow-y: auto;
 }
 
 .mainTab.world-2-theme {
@@ -1416,7 +1417,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background-color: #556b7a;
+    background: transparent;
     padding: 5px;
 }
 .world-entry {
@@ -1467,6 +1468,31 @@ body {
 
 .glow-notify {
     animation: glow-pulse 1s infinite alternate;
+}
+
+/* Distinct look for the Worlds menu container */
+.worldsContainer.casino-section {
+    background: radial-gradient(circle, #033b23 0%, #01170d 100%);
+    box-shadow: 0 0 12px #d4af37;
+}
+
+/* Styled buttons inside the Worlds menu */
+.world-entry button {
+    background: rgba(0, 0, 0, 0.6);
+    color: #d4af37;
+    border: 2px solid #d4af37;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-left: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+    transition: box-shadow 0.2s;
+}
+
+.world-entry button:hover {
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+    color: #fff4b3;
 }
 
 @keyframes purchase-fade {
