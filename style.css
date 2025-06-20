@@ -1649,8 +1649,8 @@ body {
     width: 100%;
 }
 #coreTabContent svg {
-    max-width: 360px;
-    transform: scale(1.2);
+    max-width: 280px;
+    transform: scale(1);
 }
 .core-level-text {
     margin-top: 4px;
