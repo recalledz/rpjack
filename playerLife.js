@@ -9,6 +9,50 @@ let staminaFill;
 let staminaText;
 let tickTimer;
 
+const skillInfo = {
+  mentalAcuity: {
+    effect:
+      'Activities with the "mental" tag generate 2% more per level of Mental Acuity',
+    flavor: 'Focus sharpens the mind.'
+  },
+  literacy: {
+    effect:
+      'Each level grants +1 reading mastery, +2% knowledge generation and +3% all skill XP gain',
+    flavor: 'Words reveal worlds.'
+  },
+  physicalCondition: {
+    effect: 'Improves your stamina and unlocks strenuous tasks as you train',
+    flavor: 'A sound body fuels a sound mind.'
+  },
+  mining: {
+    effect: 'Higher levels yield more copper when mining',
+    flavor: 'Chipping away at the earth.'
+  },
+  craftsmanship: {
+    effect:
+      'Each level grants +1 crafting mastery, +5% component gain and -1% crafting cost',
+    flavor: 'Skill transforms raw materials.'
+  }
+};
+
+const activityInfo = {
+  ponder: {
+    effect: '+1 thought/sec, +1 stamina/sec, +Mental Acuity XP',
+    flavor: 'Let your mind wander.',
+    tags: ['mind']
+  },
+  walk: {
+    effect: '+1 discovery/sec, -3 stamina/sec, +Physical Condition XP',
+    flavor: 'A brisk stroll invigorates the body.',
+    tags: ['physical', 'body']
+  },
+  read: {
+    effect: '+0.2 knowledge/sec, -1 stamina/sec, +Literacy XP 0.1/sec',
+    flavor: 'Lose yourself in stories.',
+    tags: ['mental']
+  }
+};
+
 function initActivities() {
   game.addActivity(new Activity('ponder', {
     label: 'Ponder',
@@ -16,7 +60,9 @@ function initActivities() {
     resource: 'thought',
     rate: 1,
     tags: ['mental'],
-    stamina: 1
+    stamina: 1,
+    description: activityInfo.ponder.effect,
+    flavor: activityInfo.ponder.flavor
   }));
   game.addActivity(new Activity('walk', {
     label: 'Walk',
@@ -25,7 +71,9 @@ function initActivities() {
     rate: 1,
     xpRate: 0.01,
     tags: ['physical', 'body'],
-    stamina: -3
+    stamina: -3,
+    description: activityInfo.walk.effect,
+    flavor: activityInfo.walk.flavor
   }));
   game.addActivity(new Activity('read', {
     label: 'Read',
@@ -35,7 +83,9 @@ function initActivities() {
     xpRate: 0.1,
     tags: ['mental'],
     stamina: -1,
-    unlock: g => g.skills.mentalAcuity.level >= 1
+    unlock: g => g.skills.mentalAcuity.level >= 1,
+    description: activityInfo.read.effect,
+    flavor: activityInfo.read.flavor
   }));
 }
 
@@ -51,6 +101,26 @@ function renderActions() {
       if (game.current === act.id) game.stop(); else game.start(act.id);
       renderActions();
       renderActivity();
+    });
+    btn.addEventListener('mouseover', e => {
+      const tip = document.getElementById('tooltip');
+      if (!tip) return;
+      const tagLine = act.tags.length ? `Tags: ${act.tags.join(', ')}` : '';
+      tip.innerHTML = `<strong>${act.label}</strong><br>${act.description}${tagLine ? '<br>' + tagLine : ''}<br><em>${act.flavor}</em>`;
+      tip.style.display = 'block';
+      tip.style.left = e.pageX + 10 + 'px';
+      tip.style.top = e.pageY + 10 + 'px';
+    });
+    btn.addEventListener('mousemove', e => {
+      const tip = document.getElementById('tooltip');
+      if (tip && tip.style.display === 'block') {
+        tip.style.left = e.pageX + 10 + 'px';
+        tip.style.top = e.pageY + 10 + 'px';
+      }
+    });
+    btn.addEventListener('mouseout', () => {
+      const tip = document.getElementById('tooltip');
+      if (tip) tip.style.display = 'none';
     });
     actionsContainer.appendChild(btn);
   });
@@ -78,7 +148,36 @@ function renderSkillsList(container) {
   Object.values(game.skills).forEach(s => {
     const row = document.createElement('div');
     row.classList.add('skill-entry');
-    row.textContent = `${s.displayName}: Lv ${s.level} (${s.xp.toFixed(1)}/${s.threshold})`;
+    const label = document.createElement('div');
+    label.textContent = `${s.displayName} Lv ${s.level}`;
+    const bar = document.createElement('div');
+    bar.classList.add('skill-progress');
+    const fill = document.createElement('div');
+    fill.classList.add('skill-progress-fill');
+    fill.style.width = `${Math.min(1, s.xp / s.threshold) * 100}%`;
+    bar.appendChild(fill);
+    row.append(label, bar);
+
+    row.addEventListener('mouseover', e => {
+      const tip = document.getElementById('tooltip');
+      if (!tip) return;
+      const info = skillInfo[s.name] || { effect: '', flavor: '' };
+      tip.innerHTML = `<strong>${s.displayName}</strong><br>${info.effect}<br><em>${info.flavor}</em>`;
+      tip.style.display = 'block';
+      tip.style.left = e.pageX + 10 + 'px';
+      tip.style.top = e.pageY + 10 + 'px';
+    });
+    row.addEventListener('mousemove', e => {
+      const tip = document.getElementById('tooltip');
+      if (tip && tip.style.display === 'block') {
+        tip.style.left = e.pageX + 10 + 'px';
+        tip.style.top = e.pageY + 10 + 'px';
+      }
+    });
+    row.addEventListener('mouseout', () => {
+      const tip = document.getElementById('tooltip');
+      if (tip) tip.style.display = 'none';
+    });
     container.appendChild(row);
   });
 }
