@@ -6,6 +6,7 @@ let actionsContainer;
 let resourcesContainer;
 let activityDisplay;
 let staminaFill;
+let staminaText;
 let tickTimer;
 
 function initActivities() {
@@ -66,6 +67,9 @@ function renderResources() {
     resourcesContainer.appendChild(row);
   });
   staminaFill.style.width = `${(game.resources.stamina.amount / game.staminaMax) * 100}%`;
+  if (staminaText) {
+    staminaText.textContent = `${Math.floor(game.resources.stamina.amount)}/${game.staminaMax}`;
+  }
 }
 
 function renderSkillsList(container) {
@@ -130,6 +134,7 @@ export function initPlayerLife() {
   resourcesContainer = document.querySelector('.core-resources');
   activityDisplay = document.getElementById('coreActivityText');
   staminaFill = document.getElementById('staminaFill');
+  staminaText = document.getElementById('staminaText');
   initActivities();
   loadState();
   renderActions();

@@ -1798,21 +1798,33 @@ body {
 
 .core-activity-text {
     font-size: 0.9rem;
-    height: 1rem;
+    font-family: "Trebuchet MS", sans-serif;
+    height: auto;
+    text-align: center;
+    margin-top: 4px;
 }
 
+
 .stamina-bar {
-    width: 100%;
+    width: 15%;
     height: 8px;
     background: #222;
     border: 1px solid #555;
-    margin-bottom: 4px;
+    margin: 2px auto 0;
 }
 
 .stamina-fill {
     height: 100%;
-    background: #33cc33;
+    background: #ffeb3b;
     width: 100%;
+    transition: width 0.3s ease;
+}
+
+.stamina-text {
+    text-align: center;
+    font-size: 0.8rem;
+    font-family: "Trebuchet MS", sans-serif;
+    margin-bottom: 4px;
 }
 
 .core-button-wrapper {
