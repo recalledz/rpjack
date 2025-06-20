@@ -30,7 +30,21 @@ export class Skill {
 }
 
 export class Activity {
-  constructor(id, { label, skill, resource, rate = 0, xpRate = null, tags = [], stamina = 0, unlock = () => true }) {
+  constructor(
+    id,
+    {
+      label,
+      skill,
+      resource,
+      rate = 0,
+      xpRate = null,
+      tags = [],
+      stamina = 0,
+      unlock = () => true,
+      description = '',
+      flavor = ''
+    }
+  ) {
     this.id = id;
     this.label = label || id;
     this.skill = skill;
@@ -40,6 +54,8 @@ export class Activity {
     this.tags = tags;
     this.stamina = stamina; // negative to consume, positive to restore
     this.unlock = unlock;
+    this.description = description;
+    this.flavor = flavor;
   }
 }
 
