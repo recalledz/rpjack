@@ -2021,13 +2021,6 @@ function openCardUpgradeSelection(onCloseCallback = null) {
     <div>Cash: $${formatNumber(cash)}</div>`;
   box.appendChild(statsRow);
 
-  const handRow = document.createElement('div');
-  handRow.classList.add('overlay-hand');
-  drawnCards.forEach(c => {
-    if (!c || !c.wrapperElement) return;
-    handRow.appendChild(c.wrapperElement.cloneNode(true));
-  });
-  box.appendChild(handRow);
 
   const cardsContainer = document.createElement('div');
   cardsContainer.classList.add('upgrade-cards');
@@ -2058,6 +2051,15 @@ function openCardUpgradeSelection(onCloseCallback = null) {
     cardsContainer.appendChild(wrap);
   });
   upgradeOverlay.appendButton('Skip', () => closeCardUpgradeSelection());
+
+  const handRow = document.createElement('div');
+  handRow.classList.add('overlay-hand');
+  drawnCards.forEach(c => {
+    if (!c || !c.wrapperElement) return;
+    handRow.appendChild(c.wrapperElement.cloneNode(true));
+  });
+  box.appendChild(handRow);
+
   lucide.createIcons();
 }
 
@@ -2111,13 +2113,6 @@ function openCamp(onCloseCallback = null) {
     <div>Cash: $${formatNumber(cash)}</div>`;
   box.appendChild(statsRow);
 
-  const handRow = document.createElement('div');
-  handRow.classList.add('overlay-hand');
-  drawnCards.forEach(c => {
-    if (!c || !c.wrapperElement) return;
-    handRow.appendChild(c.wrapperElement.cloneNode(true));
-  });
-  box.appendChild(handRow);
 
   const btnRow = document.createElement('div');
   btnRow.classList.add('camp-buttons');
@@ -2155,6 +2150,14 @@ function openCamp(onCloseCallback = null) {
     closeCamp();
   });
   updateRedrawButton();
+
+  const handRow = document.createElement('div');
+  handRow.classList.add('overlay-hand');
+  drawnCards.forEach(c => {
+    if (!c || !c.wrapperElement) return;
+    handRow.appendChild(c.wrapperElement.cloneNode(true));
+  });
+  box.appendChild(handRow);
 }
 
 function closeCamp() {
