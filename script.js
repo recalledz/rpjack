@@ -89,7 +89,7 @@ function spendCash(amount) {
   const amt = Math.min(amount, cash);
   cash -= amt;
   if (cashDisplay) cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-  cashRateTracker.record(cash);
+  recordCashRates(cash);
   updateUpgradeButtons();
   return amt;
 }
@@ -166,7 +166,7 @@ let stageData = {
   playerXp: 1,
   attackspeed: 10000, //10 sec at start
   progress: 0,
-  progressTarget: 100
+  progressTarget: 10
 }; 
 
 let speakerEncounterPending = false;
@@ -261,7 +261,6 @@ function getCardState() {
   };
 }
 
-const btn = document.getElementById("clickalipse");
 const nextStageBtn = document.getElementById("nextStageBtn");
 const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
@@ -273,7 +272,6 @@ const discardContainer = document.getElementsByClassName("discardContainer")[0];
 const dealerLifeDisplay =
 document.getElementsByClassName("dealerLifeDisplay")[0];
 const killsDisplay = document.getElementById("kills");
-const cashPerSecDisplay = document.getElementById("cashPerSecDisplay");
 const worldProgressPerSecDisplay = document.getElementById("worldProgressPerSecDisplay");
 const deckListContainer = document.querySelector('.deckListContainer');
 const deckTabContainer = document.querySelector('.deckTabContainer');
@@ -290,6 +288,16 @@ const manaFill = document.getElementById("manaFill");
 const manaText = document.getElementById("manaText");
 const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 const dpsDisplay = document.getElementById("dpsDisplay");
+
+function showPlayerAttackBar() {
+  const bar = document.getElementById('playerAttackBar');
+  if (bar) bar.style.display = 'block';
+}
+
+function hidePlayerAttackBar() {
+  const bar = document.getElementById('playerAttackBar');
+  if (bar) bar.style.display = 'none';
+}
 
 function hideStageProgressBar() {
   if (stageProgressBar) stageProgressBar.style.display = "none";
@@ -309,7 +317,21 @@ let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
 let cashTimer = 0;
 let worldProgressTimer = 0;
 const cashRateTracker = new RateTracker(10000);
+const cashRateTracker1h = new RateTracker(3600000);
+const cashRateTracker24h = new RateTracker(86400000);
 const worldProgressRateTracker = new RateTracker(30000);
+
+function recordCashRates(value) {
+  cashRateTracker.record(value);
+  cashRateTracker1h.record(value);
+  cashRateTracker24h.record(value);
+}
+
+function resetCashRates(value = 0) {
+  cashRateTracker.reset(value);
+  cashRateTracker1h.reset(value);
+  cashRateTracker24h.reset(value);
+}
 // Chance to trigger a random event each step of movement
 // Reduced from 30% to 10% so encounters feel more like rare discoveries
 const EVENT_CHANCE = 0.1;
@@ -346,6 +368,10 @@ let playerSkillsSubTabButton;
 let playerCoreSubTabButton;
 let playerSkillsPanel;
 let playerCorePanel;
+let statsOverviewSubTabButton;
+let statsEconomySubTabButton;
+let statsOverviewContainer;
+let statsEconomyContainer;
 let jobsViewBtn;
 let jobsCarouselBtn;
 
@@ -472,6 +498,10 @@ function initTabs() {
   playerCoreSubTabButton = document.querySelector(".playerCoreSubTabButton");
   playerSkillsPanel = document.querySelector(".player-skills-panel");
   playerCorePanel = document.querySelector(".player-core-panel");
+  statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
+  statsEconomySubTabButton = document.querySelector('.statsEconomySubTabButton');
+  statsOverviewContainer = document.getElementById('statsOverviewContainer');
+  statsEconomyContainer = document.getElementById('statsEconomyContainer');
   setupTabHandlers();
 
 
@@ -530,6 +560,21 @@ function initTabs() {
       if (playerCorePanel) playerCorePanel.style.display = "flex";
       playerCoreSubTabButton.classList.add("active");
       if (playerSkillsSubTabButton) playerSkillsSubTabButton.classList.remove("active");
+    });
+  if (statsOverviewSubTabButton)
+    statsOverviewSubTabButton.addEventListener('click', () => {
+      if (statsOverviewContainer) statsOverviewContainer.style.display = '';
+      if (statsEconomyContainer) statsEconomyContainer.style.display = 'none';
+      statsOverviewSubTabButton.classList.add('active');
+      if (statsEconomySubTabButton) statsEconomySubTabButton.classList.remove('active');
+    });
+  if (statsEconomySubTabButton)
+    statsEconomySubTabButton.addEventListener('click', () => {
+      if (statsOverviewContainer) statsOverviewContainer.style.display = 'none';
+      if (statsEconomyContainer) statsEconomyContainer.style.display = '';
+      statsEconomySubTabButton.classList.add('active');
+      if (statsOverviewSubTabButton) statsOverviewSubTabButton.classList.remove('active');
+      renderEconomyStats();
     });
 
   showTab(mainTab); // Start with main tab visible
@@ -627,7 +672,7 @@ function purchaseUpgrade(key) {
   if (cash < cost) return;
   cash -= cost;
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-  cashRateTracker.record(cash);
+  recordCashRates(cash);
   up.level += 1;
   up.effect({ stats, pDeck, stageData, systems });
   updateDrawButton();
@@ -638,7 +683,7 @@ function purchaseCardUpgrade(id, cost) {
   if (cash < cost) return;
   cash -= cost;
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-  cashRateTracker.record(cash);
+  recordCashRates(cash);
   applyCardUpgrade(id, { stats, pDeck, updateAllCardHp: recalcAllCardHp });
   removeActiveUpgrade(id);
   renderCardUpgrades(document.querySelector('.card-upgrade-list'), {
@@ -970,7 +1015,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start or resume the game after loading
   spawnPlayer();
   stageData.progress = 0;
-  stageData.progressTarget = 100;
+  stageData.progressTarget = 10;
   updateStageProgressDisplay();
   renderDealerCard();
   resetStageCashStats();
@@ -985,7 +1030,6 @@ document.addEventListener("DOMContentLoaded", () => {
   nextStageBtn.style.display = 'none';
   moveForwardBtn.style.display = 'inline-block';
 
-  btn.addEventListener("click", () => drawCard(getCardState()));
   moveForwardBtn.addEventListener("click", moveForward);
   if (stageProgressBar) stageProgressBar.addEventListener("click", moveForward);
   nextStageBtn.addEventListener("click", nextStage);
@@ -1016,6 +1060,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderJokers();
   const buttons = document.querySelector('.buttonsContainer');
   playerAttackFill = renderPlayerAttackBar(buttons);
+  hidePlayerAttackBar();
   requestAnimationFrame(gameLoop);
 });
 
@@ -1089,7 +1134,7 @@ function renderPlayerStats(stats) {
 }
 
 function renderGlobalStats() {
-  const container = document.getElementById("playerStatsContainer");
+  const container = document.getElementById("statsOverviewContainer");
   if (!container) return;
   container.innerHTML = "";
 
@@ -1116,6 +1161,18 @@ function renderGlobalStats() {
   restartBtn.textContent = "Start New Run";
   restartBtn.addEventListener("click", startNewGame);
   container.appendChild(restartBtn);
+}
+
+function renderEconomyStats() {
+  if (!statsEconomyContainer) return;
+  statsEconomyContainer.innerHTML = '';
+  const hourRate = cashRateTracker1h.getRate();
+  const dayRate = cashRateTracker24h.getRate();
+  const hRow = document.createElement('div');
+  hRow.textContent = `Avg Cash/sec (1h): ${hourRate.toFixed(2)}`;
+  const dRow = document.createElement('div');
+  dRow.textContent = `Avg Cash/sec (24h): ${dayRate.toFixed(2)}`;
+  statsEconomyContainer.append(hRow, dRow);
 }
 
 function renderAbilityIcons(abilities, showCooldown = false) {
@@ -1345,7 +1402,7 @@ function nextStage() {
   // start the next stage without double-counting points
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
-  stageData.progressTarget = 100;
+  stageData.progressTarget = 10;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1377,7 +1434,7 @@ function nextWorld() {
   // entering a new world resets cash-out tracking
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
-  stageData.progressTarget = 100;
+  stageData.progressTarget = 10;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1408,7 +1465,7 @@ function goToWorld(id) {
   checkUpgradeUnlocks();
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
-  stageData.progressTarget = 100;
+  stageData.progressTarget = 10;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1422,10 +1479,7 @@ function goToWorld(id) {
 // Reset tracking for average cash when a new stage begins
 function resetStageCashStats() {
   cashTimer = 0;
-  cashRateTracker.reset(cash);
-  if (cashPerSecDisplay) {
-    cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
-  }
+  resetCashRates(cash);
 }
 
 // Enable the next stage button when kill requirements met
@@ -1466,6 +1520,7 @@ function spawnDealerEvent(powerMult = 1) {
   currentEnemy = spawnEnemy('dealer', temp, enemyAttackProgress, onDealerDefeat);
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
+  showPlayerAttackBar();
   dealerDeathAnimation();
 }
 
@@ -1477,6 +1532,7 @@ function spawnBossEvent() {
   currentEnemy = spawnEnemy('boss', stageData, enemyAttackProgress, () => onBossDefeat(currentEnemy));
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
+  showPlayerAttackBar();
   dealerDeathAnimation();
 }
 
@@ -1564,6 +1620,7 @@ function respawnDealerStage() {
   }
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
+  showPlayerAttackBar();
   dealerDeathAnimation();
 }
 
@@ -1584,6 +1641,7 @@ function onDealerDefeat() {
     inCombat = false;
     currentEnemy = null;
     updateDealerLifeDisplay();
+    hidePlayerAttackBar();
     showStageProgressBar();
     if (progressButtonActive) startStageProgress();
   });
@@ -1608,6 +1666,7 @@ function onSpeakerDefeat() {
     inCombat = false;
     currentEnemy = null;
     updateDealerLifeDisplay();
+    hidePlayerAttackBar();
     showStageProgressBar();
     if (progressButtonActive) startStageProgress();
   });
@@ -1643,6 +1702,7 @@ function onBossDefeat(boss) {
   dealerBarDeathAnimation(() => {
     inCombat = false;
     currentEnemy = null;
+    hidePlayerAttackBar();
     showStageProgressBar();
     nextWorld();
     if (progressButtonActive) startStageProgress();
@@ -1784,12 +1844,14 @@ function cardXp(xpAmount) {
 
 // Enable or disable the draw button depending on hand size
 function updateDrawButton() {
+  const drawBtn = document.getElementById('clickalipse');
+  if (!drawBtn) return;
   if (stats.cardSlots === drawnCards.length) {
-    btn.disabled = true;
-    btn.style.background = "grey";
+    drawBtn.disabled = true;
+    drawBtn.style.background = "grey";
   } else {
-    btn.disabled = false;
-    btn.style.background = "green";
+    drawBtn.disabled = false;
+    drawBtn.style.background = "green";
   }
 }
 
@@ -1900,6 +1962,7 @@ function openCamp(withUpgrade = false) {
   redrawAllowed = true;
   gamePaused = true;
   stopStageProgress();
+  hidePlayerAttackBar();
   campOverlay = createOverlay({ className: 'camp-overlay' });
   campOverlay.onClose(() => {
     campOverlayOpen = false;
@@ -1925,14 +1988,14 @@ function openCamp(withUpgrade = false) {
     updateHandDisplay();
     closeCamp();
   });
+  campOverlay.appendButton('Draw Card', () => {
+    drawCard(getCardState());
+    updateDrawButton();
+  });
   if (withUpgrade) {
     campOverlay.appendButton('Upgrade Card', () => {
       closeCamp();
       openCardUpgradeSelection();
-    });
-    campOverlay.appendButton('Next Stage', () => {
-      closeCamp();
-      nextStage();
     });
   }
   updateRedrawButton();
@@ -2145,7 +2208,7 @@ function respawnPlayer() {
   enemyAttackProgress = 0;
   playerStats.hasDied = false;
   cash = 0;
-  cashRateTracker.reset(cash);
+  resetCashRates(cash);
 
   deck = [...pDeck];
   drawnCards = [];
@@ -2167,7 +2230,7 @@ function respawnPlayer() {
   deckTabContainer.innerHTML = "";
 
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-  cashRateTracker.reset(cash);
+  resetCashRates(cash);
   updateUpgradeButtons();
   renderStageInfo();
 
@@ -2317,7 +2380,7 @@ function cashOut() {
 
   cash += reward;
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-  cashRateTracker.record(cash);
+  recordCashRates(cash);
   updateUpgradeButtons();
   return cash;
 }
@@ -2499,11 +2562,10 @@ updateUpgradeButtons();
   renderStageInfo();
   renderGlobalStats();
   renderWorldsMenu();
-  cashRateTracker.reset(cash);
+  resetCashRates(cash);
   worldProgressRateTracker.reset(
     computeWorldProgress(stageData.world) * 100
   );
-  if (cashPerSecDisplay) cashPerSecDisplay.textContent = "Avg Cash/sec: 0";
   if (worldProgressPerSecDisplay)
     worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
 
@@ -2594,10 +2656,9 @@ if (currentEnemy) {
   cashTimer += deltaTime;
   worldProgressTimer += deltaTime;
   if (cashTimer >= 1000) {
-    cashRateTracker.record(cash);
-    if (cashPerSecDisplay) {
-      const rate = cashRateTracker.getRate();
-      cashPerSecDisplay.textContent = `Avg Cash/sec: ${rate.toFixed(2)}`;
+    recordCashRates(cash);
+    if (statsEconomyContainer && statsEconomyContainer.style.display !== 'none') {
+      renderEconomyStats();
     }
     cashTimer = 0;
   }
@@ -2680,7 +2741,7 @@ const amount =
 parseInt(document.getElementById("debugCash").value) || 0;
 cash += amount;
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
-cashRateTracker.record(cash);
+recordCashRates(cash);
 updateUpgradeButtons();
 },
 
