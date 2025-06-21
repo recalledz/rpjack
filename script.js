@@ -122,8 +122,6 @@ const stats = {
   healOnRedraw: 0,
   abilityPower: 1,
   spadeDamageMultiplier: 1,
-  heartHpMultiplier: 1,
-  diamondCashMultiplier: 1,
   playerShield: 0,
   abilityCooldownReduction: 0,
   jokerCooldownReduction: 0,
@@ -1582,8 +1580,8 @@ function stepStageProgress() {
   if (stageData.progress >= stageData.progressTarget) {
     stopStageProgress();
     moveForwardBtn.style.display = 'none';
-    nextStageBtn.style.display = 'inline-block';
-    nextStageChecker();
+    stageEndEnemyActive = true;
+    spawnDealerEvent(1.3);
   }
 }
 
@@ -1637,14 +1635,19 @@ function onDealerDefeat() {
   renderGlobalStats();
   recordWorldKill(stageData.world, stageData.stage);
   dealerDeathAnimation();
-  dealerBarDeathAnimation(() => {
-    inCombat = false;
-    currentEnemy = null;
-    updateDealerLifeDisplay();
-    hidePlayerAttackBar();
-    showStageProgressBar();
-    if (progressButtonActive) startStageProgress();
-  });
+    dealerBarDeathAnimation(() => {
+      inCombat = false;
+      currentEnemy = null;
+      updateDealerLifeDisplay();
+      hidePlayerAttackBar();
+      if (stageEndEnemyActive) {
+        stageEndEnemyActive = false;
+        openCamp(false, nextStage);
+      } else {
+        showStageProgressBar();
+        if (progressButtonActive) startStageProgress();
+      }
+    });
 } // need to define xp formula
 
 function onSpeakerDefeat() {
@@ -1878,23 +1881,6 @@ function discardCard(card) {
   renderDiscardCard(card);
 }
 
-// Passive healing based on Hearts in your hand
-function heartHeal() {
-  if (drawnCards.length === 0) return;
-
-  const target = drawnCards[0];
-  if (target.currentHp === target.maxHp) return;
-
-  drawnCards.forEach(card => {
-    if (card.suit === "Hearts") {
-      target.currentHp = Math.round(
-        Math.min(target.currentHp + card.currentLevel, target.maxHp)
-      );
-      animateCardHeal(target);
-    }
-  });
-  target.hpDisplay.textContent = `HP: ${formatNumber(Math.round(target.currentHp))}/${formatNumber(Math.round(target.maxHp))}`;
-}
 
 let gamePaused = false;
 let campOverlayOpen = false;
@@ -1907,6 +1893,7 @@ let redrawCost = 10;
 let stageProgressing = false;
 let stageProgressInterval = null;
 let progressButtonActive = false;
+let stageEndEnemyActive = false;
 
 function handleRedraw() {
   if (!redrawAllowed) return;
@@ -1956,7 +1943,7 @@ function closeCardUpgradeSelection() {
   upgradeOverlay.close();
 }
 
-function openCamp(withUpgrade = false) {
+function openCamp(withUpgrade = false, onCloseCallback = null) {
   if (campOverlayOpen) return;
   campOverlayOpen = true;
   redrawAllowed = true;
@@ -1970,6 +1957,7 @@ function openCamp(withUpgrade = false) {
     gamePaused = false;
     updateRedrawButton();
     if (progressButtonActive) startStageProgress();
+    onCloseCallback?.();
   });
 
   campOverlay.appendButton('Continue', () => {
@@ -2403,16 +2391,12 @@ function updatePlayerStats() {
     if (!card) continue;
     recalcCardHp(card, stats, barUpgrades);
 
-    if (card.suit === "Spades")
-      stats.damageMultiplier += 0.1 * card.currentLevel;
-if (card.suit === "Hearts") stats.pRegen += card.currentLevel;
-if (card.suit === "Diamonds")
-stats.cashMulti += Math.floor(Math.pow(card.currentLevel, 0.5));
-
-card.damage = card.baseDamage + 5 * (card.currentLevel - 1);
-stats.pDamage += card.damage;
-stats.points += card.value;
-}
+    const suitMult =
+      card.suit === "Spades" ? stats.spadeDamageMultiplier || 1 : 1;
+    card.damage = (card.baseDamage + 5 * (card.currentLevel - 1)) * suitMult;
+    stats.pDamage += card.damage;
+    stats.points += card.value;
+  }
 
 stats.pDamage *= stats.damageMultiplier * stats.damageBuffMultiplier;
 renderPlayerStats(stats);
@@ -2600,10 +2584,6 @@ e);
 
 /*setInterval(updateUi(), 1000);*/
 
-setInterval(() => {
-//healerinterval
-heartHeal();
-}, 20000);
 
 let lastFrameTime = performance.now();
 
