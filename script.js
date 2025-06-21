@@ -957,9 +957,6 @@ document.addEventListener("DOMContentLoaded", () => {
   shuffleArray(deck);
   checkUpgradeUnlocks();
 
-  nextStageBtn.style.display = 'none';
-  openCamp();
-
   btn.addEventListener("click", () => drawCard(getCardState()));
   redrawBtn.addEventListener("click", handleRedraw);
   nextStageBtn.addEventListener("click", nextStage);
@@ -1925,11 +1922,7 @@ function openCamp(withUpgrade = false) {
   redrawAllowed = true;
   gamePaused = true;
   campOverlay = document.createElement('div');
-  campOverlay.classList.add('upgrade-selection-  const continueBtn = document.createElement('button');
-  continueBtn.textContent = 'Continue';
-  continueBtn.addEventListener('click', () => {
-    closeCamp();
-  });
+  campOverlay.classList.add('upgrade-selection-overlay', 'camp-overlay');
   const redrawBtn = document.createElement('button');
   redrawBtn.textContent = 'Redraw & Cash Out';
   redrawBtn.addEventListener('click', () => {
@@ -1947,7 +1940,6 @@ function openCamp(withUpgrade = false) {
     updateHandDisplay();
     closeCamp();
   });
-  campOverlay.appendChild(continueBtn);
   campOverlay.appendChild(redrawBtn);
   campOverlay.appendChild(healBtn);
   if (withUpgrade) {
@@ -1966,6 +1958,7 @@ function openCamp(withUpgrade = false) {
       nextStage();
     });
     campOverlay.appendChild(nextBtn);
+
   }
   dealerContainer.appendChild(campOverlay);
   updateRedrawButton();
