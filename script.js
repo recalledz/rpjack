@@ -138,10 +138,9 @@ const stats = {
   redrawCooldownReduction: 0,
   hpMultiplier: 1,
   extraDamageMultiplier: 1,
-  drawPoints: 0,
-  drawPointsMult: 1,
   damageBuffMultiplier: 1,
-  damageBuffExpiration: 0
+  damageBuffExpiration: 0,
+  cashOutWithoutRedraw: false
 };
 
 const systems = {
@@ -1128,8 +1127,6 @@ function renderPlayerStats(stats) {
   cashMultiDisplay.textContent = `Cash Multi: ${formatNumber(Math.floor(stats.cashMulti))}`;
   pointsDisplay.textContent = `Points: ${formatNumber(stats.points)}`;
   cardPointsDisplay.textContent = `Card Points: ${formatNumber(cardPoints)}`;
-  const dpDisp = document.getElementById('drawPointsDisplay');
-  if (dpDisp) dpDisp.textContent = `DP: ${formatNumber(stats.drawPoints)}`;
   attackSpeedDisplay.textContent = `Attack Speed: ${Math.floor(stats.attackSpeed / 1000)}s`;
   if (manaRegenDisplay) {
     manaRegenDisplay.textContent = `Mana Regen: ${stats.manaRegen.toFixed(2)}/s`;
@@ -1930,7 +1927,6 @@ function handleRedraw() {
   if (!redrawAllowed) return;
   if (cash < redrawCost) return;
   spendCash(redrawCost);
-  stats.drawPoints = (stats.drawPoints || 0) + stats.drawPointsMult;
   redrawCost = redrawCost * 2;
   redrawHand(getCardState());
   renderPlayerStats(stats);
@@ -2011,6 +2007,12 @@ function openCamp(onCloseCallback = null) {
   campOverlay.appendButton('Continue', () => {
     closeCamp();
   });
+  if (stats.cashOutWithoutRedraw) {
+    campOverlay.appendButton('Cash Out', () => {
+      cashOut();
+      closeCamp();
+    });
+  }
   campOverlay.appendButton('Redraw & Cash Out', () => {
     cashOut();
     handleRedraw();
@@ -2482,7 +2484,6 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     lastCashOutPoints,
     cardPoints,
     redrawCost,
-    drawPoints: stats.drawPoints,
     deck: deckData,
     upgrades: upgradeLevels,
     unlockedJokers: unlockedJokers.map(j => j.id),
@@ -2511,7 +2512,6 @@ const state = JSON.parse(json);
   chips = state.chips || 0;
   cardPoints = state.cardPoints || 0;
   redrawCost = state.redrawCost || 10;
-  stats.drawPoints = state.drawPoints || 0;
   upgradePowerPurchased = state.upgradePowerPurchased || 0;
   lastCashOutPoints = state.lastCashOutPoints || 0;
   Object.assign(stats, state.stats || {});
