@@ -24,14 +24,6 @@ export const cardUpgradeDefinitions = {
       stats.attackSpeed = Math.max(1000, stats.attackSpeed - 100);
     }
   },
-  redrawCooldownReduction: {
-    id: 'redrawCooldownReduction',
-    name: 'Redraw Cooldown Reduction',
-    rarity: 'rare',
-    effect: ({ stats }) => {
-      stats.redrawCooldownReduction += 0.1;
-    }
-  },
   extraCardSlot: {
     id: 'extraCardSlot',
     name: 'Extra Card Slot',
@@ -57,31 +49,12 @@ export const cardUpgradeDefinitions = {
       stats.extraDamageMultiplier = (stats.extraDamageMultiplier || 1) * 1.1;
     }
   },
-  drawPointsIncrease: {
-    id: 'drawPointsIncrease',
-    name: 'Draw Points +10%',
-    rarity: 'common',
+  cashOutNoRedraw: {
+    id: 'cashOutNoRedraw',
+    name: 'Cash Out w/out Redraw',
+    rarity: 'rare',
     effect: ({ stats }) => {
-      stats.drawPointsMult = (stats.drawPointsMult || 1) * 1.1;
-    }
-  },
-  damageBuff30s: {
-    id: 'damageBuff30s',
-    name: 'Damage Buff 30s',
-    rarity: 'uncommon',
-    noLevel: true,
-    effect: ({ stats, updateActiveEffects }) => {
-      const now = Date.now();
-      const expiry = now + 30000;
-      stats.damageBuffMultiplier = 1.3;
-      stats.damageBuffExpiration = Math.max(stats.damageBuffExpiration || 0, expiry);
-      updateActiveEffects?.();
-      setTimeout(() => {
-        if (Date.now() >= stats.damageBuffExpiration) {
-          stats.damageBuffMultiplier = 1;
-          updateActiveEffects?.();
-        }
-      }, expiry - now);
+      stats.cashOutWithoutRedraw = true;
     }
   },
   spadeDamage15: {
@@ -223,9 +196,8 @@ export const upgrades = {
     effect: ({ stats }) => {
       stats.jokerCooldownReduction = upgrades.jokerCooldownReduction.level * 0.05;
     }
-  },
-  // redrawCooldownReduction upgrade handled via card upgrades
-}; 
+  }
+};
 
 const rarityCostMultiplier = {
   common: 1,
@@ -245,11 +217,11 @@ export const unlockedCardUpgrades = [
   'healOnRedraw',
   'hpPerKill',
   'attackSpeedReduction',
-  'redrawCooldownReduction',
   'extraCardSlot',
-  'drawPointsIncrease',
-  'damageBuff30s',
-  'spadeDamage15'
+  'damageMultiplier',
+  'hpMultiplier',
+  'spadeDamage15',
+  'cashOutNoRedraw'
 ];
 
 export const upgradeLevels = {};
