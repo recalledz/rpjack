@@ -166,10 +166,8 @@ let stageData = {
   playerXp: 1,
   attackspeed: 10000, //10 sec at start
   progress: 0,
-  progressTarget: 100,
-  event50: false,
-  event75: false
-};
+  progressTarget: 100
+}; 
 
 let speakerEncounterPending = false;
 
@@ -312,8 +310,9 @@ let cashTimer = 0;
 let worldProgressTimer = 0;
 const cashRateTracker = new RateTracker(10000);
 const worldProgressRateTracker = new RateTracker(30000);
-// Chance to trigger an event every tick of stage progress
-const EVENT_CHANCE = 0.3;
+// Chance to trigger a random event each step of movement
+// Reduced from 30% to 10% so encounters feel more like rare discoveries
+const EVENT_CHANCE = 0.1;
 
 // Load saved state when DOM is ready
 window.addEventListener("beforeunload", saveGame);
@@ -972,8 +971,6 @@ document.addEventListener("DOMContentLoaded", () => {
   spawnPlayer();
   stageData.progress = 0;
   stageData.progressTarget = 100;
-  stageData.event50 = false;
-  stageData.event75 = false;
   updateStageProgressDisplay();
   renderDealerCard();
   resetStageCashStats();
@@ -1349,8 +1346,6 @@ function nextStage() {
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
   stageData.progressTarget = 100;
-  stageData.event50 = false;
-  stageData.event75 = false;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1382,8 +1377,6 @@ function nextWorld() {
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
   stageData.progressTarget = 100;
-  stageData.event50 = false;
-  stageData.event75 = false;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1414,8 +1407,6 @@ function goToWorld(id) {
   lastCashOutPoints = stats.points;
   stageData.progress = 0;
   stageData.progressTarget = 100;
-  stageData.event50 = false;
-  stageData.event75 = false;
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
@@ -1489,11 +1480,11 @@ function spawnBossEvent() {
 
 function triggerRandomEvent() {
   const roll = Math.random();
-  if (roll < 0.5) {
+  if (roll < 0.7) {
     spawnDealerEvent(1);
-  } else if (roll < 0.65) {
-    spawnDealerEvent(1.3);
   } else if (roll < 0.85) {
+    spawnDealerEvent(1.3);
+  } else if (roll < 0.95) {
     openCamp();
   } else {
     // Optional upgrade camp when implemented
@@ -1530,14 +1521,6 @@ function stepStageProgress() {
   maybeTriggerEvent();
   stageData.progress = Math.min(stageData.progress + 1, stageData.progressTarget);
   updateStageProgressDisplay();
-  if (!stageData.event50 && stageData.progress >= stageData.progressTarget * 0.5) {
-    stageData.event50 = true;
-    maybeTriggerEvent();
-  }
-  if (!stageData.event75 && stageData.progress >= stageData.progressTarget * 0.75) {
-    stageData.event75 = true;
-    maybeTriggerEvent();
-  }
   if (stageData.progress >= stageData.progressTarget) {
     stopStageProgress();
     moveForwardBtn.style.display = 'none';
