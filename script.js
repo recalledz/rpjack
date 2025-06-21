@@ -264,7 +264,6 @@ function getCardState() {
 }
 
 const btn = document.getElementById("clickalipse");
-const redrawBtn = document.getElementById("redrawBtn");
 const nextStageBtn = document.getElementById("nextStageBtn");
 const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
@@ -336,7 +335,6 @@ let deckViewBtn;
 let jokerViewBtn;
 let deckUpgradesViewBtn;
 let deckUpgradesContainer;
-let redrawCostDisplay;
 let playerSkillsSubTabButton;
 let playerCoreSubTabButton;
 let playerSkillsPanel;
@@ -461,7 +459,6 @@ function initTabs() {
   jokerViewBtn = document.querySelector('.jokerViewBtn');
   deckUpgradesViewBtn = document.querySelector('.deckUpgradesViewBtn');
   deckUpgradesContainer = document.querySelector('.deckUpgradesContainer');
-  redrawCostDisplay = document.getElementById('redrawCostDisplay');
   jobsViewBtn = document.querySelector('.jobsViewBtn');
   jobsCarouselBtn = document.querySelector('.jobsCarouselBtn');
   playerSkillsSubTabButton = document.querySelector(".playerSkillsSubTabButton");
@@ -984,7 +981,6 @@ document.addEventListener("DOMContentLoaded", () => {
   moveForwardBtn.style.display = 'inline-block';
 
   btn.addEventListener("click", () => drawCard(getCardState()));
-  redrawBtn.addEventListener("click", handleRedraw);
   moveForwardBtn.addEventListener("click", moveForward);
   if (stageProgressBar) stageProgressBar.addEventListener("click", moveForward);
   nextStageBtn.addEventListener("click", nextStage);
@@ -1787,11 +1783,7 @@ function updateDrawButton() {
 }
 
 function updateRedrawButton() {
-  if (!redrawBtn) return;
-  redrawBtn.textContent = `🔄`;
-  if (redrawCostDisplay)
-    redrawCostDisplay.textContent = `Cost: $${redrawCost}`;
-  redrawBtn.disabled = cash < redrawCost;
+  // removed redraw button UI
 }
 
 // Refresh the cards currently shown in the player's hand
@@ -1849,9 +1841,7 @@ function handleRedraw() {
   stats.drawPoints = (stats.drawPoints || 0) + stats.drawPointsMult;
   redrawCost = redrawCost * 2;
   redrawHand(getCardState());
-  updateRedrawButton();
   renderPlayerStats(stats);
-  openCardUpgradeSelection();
 }
 
 function openCardUpgradeSelection() {
