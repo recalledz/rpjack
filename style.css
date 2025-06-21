@@ -472,6 +472,8 @@ body {
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
+    width: 100%;
+    max-width: 600px;
 }
 
 .overlay-box button {
@@ -577,6 +579,7 @@ body {
     justify-items: center;
     gap: 4px;
     padding: 2px 8px;
+    width: 100%;
 }
 .overlay-hand .card-wrapper {
     transform: scale(0.8);
