@@ -256,6 +256,11 @@ export const upgradeLevels = {};
 
 let activeCardUpgrades = [];
 
+export function resetCardUpgrades() {
+  Object.keys(upgradeLevels).forEach(k => delete upgradeLevels[k]);
+  activeCardUpgrades.length = 0;
+}
+
 export function removeActiveUpgrade(id) {
   activeCardUpgrades = activeCardUpgrades.filter(a => a !== id);
 }
@@ -295,10 +300,10 @@ export function getCardUpgradeCost(id, stats = {}, stageData = {}) {
   const def = cardUpgradeDefinitions[id];
   if (!def) return 0;
   const rarityMult = rarityCostMultiplier[def.rarity] || 1;
-  const kills = Math.floor(Math.random() * 6) + 10; // 10-15 kills
-  const points = stats.points || 30;
-  const baseReward = Math.floor(points * (1 + Math.sqrt(stageData.stage || 1)));
-  return Math.floor(baseReward * kills * rarityMult);
+  const stage = stageData.stage || 1;
+  const world = stageData.world || 1;
+  const base = 100 * stage * world;
+  return Math.floor(base * rarityMult);
 }
 
 export function addActiveUpgradeCardsToDeck(deck) {

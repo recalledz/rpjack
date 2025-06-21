@@ -37,7 +37,8 @@ import {
   cardUpgradeDefinitions,
   upgrades,
   upgradeLevels as cardUpgradeLevels,
-  removeActiveUpgrade
+  removeActiveUpgrade,
+  resetCardUpgrades
 } from "./cardUpgrades.js";
 import {
   calculateEnemyHp,
@@ -1953,6 +1954,10 @@ function openCardUpgradeSelection(onCloseCallback = null) {
   const header = document.createElement('h2');
   header.textContent = 'Upgrades';
   upgradeOverlay.element.prepend(header);
+  const info = document.createElement('p');
+  info.classList.add('upgrade-text');
+  info.textContent = 'Choose an upgrade';
+  upgradeOverlay.append(info);
   const ids = rollNewCardUpgrades(3);
   ids.forEach(id => {
     const def = cardUpgradeDefinitions[id];
@@ -1963,12 +1968,17 @@ function openCardUpgradeSelection(onCloseCallback = null) {
     card.classList.add('card', 'upgrade-card');
     card.innerHTML = `<div class="card-suit"><i data-lucide="sword"></i></div><div class="card-desc">${def.name} - $${cost}</div>`;
     wrap.appendChild(card);
-    wrap.addEventListener('click', () => {
-      purchaseCardUpgrade(id, cost);
-      closeCardUpgradeSelection();
-    });
+    if (cash >= cost) {
+      wrap.addEventListener('click', () => {
+        purchaseCardUpgrade(id, cost);
+        closeCardUpgradeSelection();
+      });
+    } else {
+      card.classList.add('unaffordable');
+    }
     upgradeOverlay.append(wrap);
   });
+  upgradeOverlay.appendButton('Skip', () => closeCardUpgradeSelection());
   lucide.createIcons();
 }
 
@@ -2227,6 +2237,9 @@ function respawnPlayer() {
   chips = 0;
   resetCashRates(cash);
 
+  resetCardUpgrades();
+  pDeck = generateDeck();
+
   deck = [...pDeck];
   drawnCards = [];
   discardPile = [];
@@ -2250,6 +2263,9 @@ function respawnPlayer() {
   updateChipsDisplay();
   resetCashRates(cash);
   updateUpgradeButtons();
+  stageData.world = 1;
+  stageData.stage = 1;
+  stageData.kills = playerStats.stageKills[stageData.stage] || 0;
   renderStageInfo();
 
   spawnPlayer();
