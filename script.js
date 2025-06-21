@@ -27,6 +27,7 @@ import { formatNumber } from "./utils/numberFormat.js";
 import { runAnimation } from "./utils/animation.js";
 import { initCore, refreshCore } from './core.js';
 import { createOverlay } from './ui/overlay.js';
+import { showRestartScreen } from './ui/restartOverlay.js';
 import {
   rollNewCardUpgrades,
   applyCardUpgrade,
@@ -1788,7 +1789,8 @@ function updateDealerLifeDisplay() {
 function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   // If no card is available to take the hit, trigger game over
   if (drawnCards.length === 0) {
-    showRestartScreen();
+    playerStats.hasDied = true;
+    showRestartScreen(respawnPlayer);
     return;
   }
 
@@ -1842,8 +1844,9 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
       updatePlayerStats(stats);
       updateDrawButton();
       updateDeckDisplay();
-      if (drawnCards.length === 0 && deck.length === 0) {
-        showRestartScreen();
+      if (drawnCards.length === 0) {
+        playerStats.hasDied = true;
+        showRestartScreen(respawnPlayer);
       }
     });
   }
@@ -2472,45 +2475,6 @@ function respawnPlayer() {
   checkSpeakerEncounter();
 }
 
-let restartOverlay = null;
-let restartTimer = null;
-
-function showRestartScreen() {
-if (restartOverlay) return;
-playerStats.hasDied = true;
-restartOverlay = document.createElement("div");
-restartOverlay.classList.add("restart-overlay");
-
-const message = document.createElement("div");
-message.classList.add("restart-message");
-message.textContent = "Game Over";
-
-const btn = document.createElement("button");
-btn.textContent = "Restart";
-btn.addEventListener("click", () => {
-respawnPlayer();
-hideRestartScreen();
-});
-
-restartOverlay.append(message, btn);
-document.body.appendChild(restartOverlay);
-
-restartTimer = setTimeout(() => {
-respawnPlayer();
-hideRestartScreen();
-}, 5000);
-}
-
-function hideRestartScreen() {
-if (restartOverlay) {
-restartOverlay.remove();
-restartOverlay = null;
-}
-if (restartTimer) {
-clearTimeout(restartTimer);
-restartTimer = null;
-}
-}
 
 let speakerOverlay = null;
 function showSpeakerQuote(text) {
