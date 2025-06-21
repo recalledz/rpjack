@@ -111,8 +111,8 @@ function upgradePowerCost() {
   return Math.floor(50 * Math.pow(1.5, upgradePowerPurchased));
 }
 
-// Persistent player stats affecting combat and rewards
-const stats = {
+// Base player stats used for resets
+const BASE_STATS = {
   points: 0,
   upgradePower: 0,
   pDamage: 0,
@@ -144,6 +144,9 @@ const stats = {
   damageBuffExpiration: 0,
   cashOutWithoutRedraw: false
 };
+
+// Persistent player stats affecting combat and rewards
+const stats = { ...BASE_STATS };
 
 const systems = {
   manaUnlocked: false
@@ -268,6 +271,7 @@ function getCardState() {
     renderPurchasedUpgrades,
     updateActiveEffects,
     updateAllCardHp: recalcAllCardHp,
+    updateHandDisplay,
     pDeck,
     shuffleArray,
     updateDrawButton,
@@ -1449,6 +1453,7 @@ function nextStage() {
   playerStats.stageKills[stageData.stage] = stageData.kills;
   stageData.stage += 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  const isBossStage = stageData.stage % 10 === 0;
   stats.sanity = stats.maxSanity;
   updateSanityBar();
   resetStageCashStats();
@@ -1464,10 +1469,15 @@ function nextStage() {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  moveForwardBtn.style.display = 'inline-block';
+  moveForwardBtn.style.display = isBossStage ? 'none' : 'inline-block';
   nextStageBtn.style.display = 'none';
   updateStageProgressDisplay();
-  if (progressButtonActive) startStageProgress();
+  if (isBossStage) {
+    progressButtonActive = false;
+    respawnDealerStage();
+  } else if (progressButtonActive) {
+    startStageProgress();
+  }
 }
 
 // Called when a boss is defeated to move to the next world
@@ -1674,7 +1684,7 @@ function respawnDealerStage() {
   if (speakerEncounterPending) {
     speakerEncounterPending = false;
     currentEnemy = spawnEnemy('speaker', stageData, enemyAttackProgress, onSpeakerDefeat);
-  } else if (stageData.stage === 10) {
+  } else if (stageData.stage % 10 === 0) {
     currentEnemy = spawnEnemy('boss', stageData, enemyAttackProgress, () => onBossDefeat(currentEnemy));
   } else {
     currentEnemy = spawnEnemy('dealer', stageData, enemyAttackProgress, onDealerDefeat);
@@ -1777,7 +1787,7 @@ function onBossDefeat(boss) {
     updateChipsDisplay();
     hidePlayerAttackBar();
     showStageProgressBar();
-    nextWorld();
+    nextStage();
     progressButtonActive = true;
     startStageProgress();
   });
@@ -2440,6 +2450,7 @@ function spawnPlayer() {
 function respawnPlayer() {
   enemyAttackProgress = 0;
   playerStats.hasDied = false;
+  Object.assign(stats, BASE_STATS);
   cash = 0;
   chips = 0;
   resetCashRates(cash);
