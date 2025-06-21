@@ -1357,6 +1357,7 @@ function nextStage() {
   moveForwardBtn.style.display = 'inline-block';
   nextStageBtn.style.display = 'none';
   updateStageProgressDisplay();
+  if (progressButtonActive) startStageProgress();
 }
 
 // Called when a boss is defeated to move to the next world
@@ -1390,6 +1391,7 @@ function nextWorld() {
   moveForwardBtn.style.display = 'inline-block';
   nextStageBtn.style.display = 'none';
   updateStageProgressDisplay();
+  if (progressButtonActive) startStageProgress();
 }
 
 // Travel to a specific world when selected in the Worlds tab
@@ -1555,7 +1557,14 @@ function startStageProgress() {
 
 function moveForward() {
   if (currentEnemy || campOverlayOpen || upgradeSelectionOpen) return;
-  startStageProgress();
+  if (stageProgressing) {
+    progressButtonActive = false;
+    stopStageProgress();
+    hideStageProgressBar();
+  } else {
+    progressButtonActive = true;
+    startStageProgress();
+  }
 }
 
 // After a kill, decide whether to spawn a dealer or a boss
@@ -1593,6 +1602,7 @@ function onDealerDefeat() {
     currentEnemy = null;
     updateDealerLifeDisplay();
     showStageProgressBar();
+    if (progressButtonActive) startStageProgress();
   });
 } // need to define xp formula
 
@@ -1616,6 +1626,7 @@ function onSpeakerDefeat() {
     currentEnemy = null;
     updateDealerLifeDisplay();
     showStageProgressBar();
+    if (progressButtonActive) startStageProgress();
   });
 }
 
@@ -1651,6 +1662,7 @@ function onBossDefeat(boss) {
     currentEnemy = null;
     showStageProgressBar();
     nextWorld();
+    if (progressButtonActive) startStageProgress();
   });
 }
 
@@ -1849,6 +1861,7 @@ let upgradeOverlay = null; // overlay instance
 let redrawCost = 10;
 let stageProgressing = false;
 let stageProgressInterval = null;
+let progressButtonActive = false;
 
 function handleRedraw() {
   if (!redrawAllowed) return;
@@ -1872,6 +1885,7 @@ function openCardUpgradeSelection() {
     dCardContainer.innerHTML = '';
     renderDealerCard();
     gamePaused = false;
+    if (progressButtonActive) startStageProgress();
   });
   const ids = rollNewCardUpgrades(3);
   ids.forEach(id => {
@@ -1909,6 +1923,7 @@ function openCamp(withUpgrade = false) {
     redrawAllowed = false;
     gamePaused = false;
     updateRedrawButton();
+    if (progressButtonActive) startStageProgress();
   });
 
   campOverlay.appendButton('Continue', () => {
@@ -2612,7 +2627,7 @@ if (currentEnemy) {
     }
     worldProgressTimer = 0;
   }
-  if (!stageProgressing) {
+  if (!stageProgressing || currentEnemy) {
     playerAttackTimer += deltaTime;
     if (playerAttackFill) {
       const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
