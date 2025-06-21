@@ -1958,6 +1958,7 @@ function openCamp(withUpgrade = false) {
       nextStage();
     });
     campOverlay.appendChild(nextBtn);
+
   }
   dealerContainer.appendChild(campOverlay);
   updateRedrawButton();
