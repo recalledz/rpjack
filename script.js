@@ -1925,8 +1925,7 @@ function openCamp(withUpgrade = false) {
   redrawAllowed = true;
   gamePaused = true;
   campOverlay = document.createElement('div');
-  campOverlay.classList.add('upgrade-selection-overlay', 'camp-overlay');
-  const continueBtn = document.createElement('button');
+  campOverlay.classList.add('upgrade-selection-  const continueBtn = document.createElement('button');
   continueBtn.textContent = 'Continue';
   continueBtn.addEventListener('click', () => {
     closeCamp();
