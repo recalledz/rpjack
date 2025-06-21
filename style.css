@@ -463,6 +463,12 @@ body {
     margin: 4px;
 }
 
+.camp-overlay h2,
+.upgrade-selection-overlay h2 {
+    margin-bottom: 10px;
+    color: #fff;
+}
+
 /* Dealer card base */
 .dCardWrapper {
     display: flex; /* horizontal layout */

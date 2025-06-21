@@ -1556,8 +1556,7 @@ function triggerRandomEvent() {
   } else if (roll < 0.95) {
     openCamp();
   } else {
-    // Optional upgrade camp when implemented
-    openCamp(true);
+    openCamp(() => openCardUpgradeSelection());
   }
 }
 
@@ -1658,7 +1657,7 @@ function onDealerDefeat() {
       hidePlayerAttackBar();
       if (stageEndEnemyActive) {
         stageEndEnemyActive = false;
-        openCamp(false, nextStage);
+        openCamp(() => openCardUpgradeSelection(nextStage));
       } else {
         showStageProgressBar();
         progressButtonActive = true;
@@ -1822,7 +1821,11 @@ globalThis.cDealerDamage = cDealerDamage;
 function dealerDeathAnimation() {
   const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
   const dCardPane = document.querySelector(".dCardPane");
-  if (!dCardWrapper) return;
+  if (!dCardWrapper) {
+    dCardContainer.innerHTML = "";
+    renderDealerCard();
+    return;
+  }
   runAnimation(dCardWrapper, "dealer-dead").then(() => {
     dCardContainer.innerHTML = "";
     renderDealerCard();
@@ -1932,7 +1935,7 @@ function handleRedraw() {
   renderPlayerStats(stats);
 }
 
-function openCardUpgradeSelection() {
+function openCardUpgradeSelection(onCloseCallback = null) {
   if (upgradeSelectionOpen) return;
   upgradeSelectionOpen = true;
   gamePaused = true;
@@ -1945,7 +1948,11 @@ function openCardUpgradeSelection() {
     renderDealerCard();
     gamePaused = false;
     if (progressButtonActive) startStageProgress();
+    onCloseCallback?.();
   });
+  const header = document.createElement('h2');
+  header.textContent = 'Upgrades';
+  upgradeOverlay.element.prepend(header);
   const ids = rollNewCardUpgrades(3);
   ids.forEach(id => {
     const def = cardUpgradeDefinitions[id];
@@ -1970,7 +1977,7 @@ function closeCardUpgradeSelection() {
   upgradeOverlay.close();
 }
 
-function openCamp(withUpgrade = false, onCloseCallback = null) {
+function openCamp(onCloseCallback = null) {
   if (campOverlayOpen) return;
   campOverlayOpen = true;
   redrawAllowed = true;
@@ -1986,6 +1993,10 @@ function openCamp(withUpgrade = false, onCloseCallback = null) {
     if (progressButtonActive) startStageProgress();
     onCloseCallback?.();
   });
+
+  const header = document.createElement('h2');
+  header.textContent = 'Camp';
+  campOverlay.element.prepend(header);
 
   campOverlay.appendButton('Continue', () => {
     closeCamp();
@@ -2003,16 +2014,6 @@ function openCamp(withUpgrade = false, onCloseCallback = null) {
     updateHandDisplay();
     closeCamp();
   });
-  campOverlay.appendButton('Draw Card', () => {
-    drawCard(getCardState());
-    updateDrawButton();
-  });
-  if (withUpgrade) {
-    campOverlay.appendButton('Upgrade Card', () => {
-      closeCamp();
-      openCardUpgradeSelection();
-    });
-  }
   updateRedrawButton();
 }
 
