@@ -1717,6 +1717,10 @@ function onBossDefeat(boss) {
 
 // Update text and bar UI for the current enemy's health
 function updateDealerLifeDisplay() {
+  if (!currentEnemy) {
+    removeDealerLifeBar();
+    return;
+  }
   dealerLifeDisplay.textContent = `Life: ${formatNumber(currentEnemy.currentHp)}/${formatNumber(currentEnemy.maxHp)}`;
   renderDealerLifeBar(dealerLifeDisplay, currentEnemy);
   renderDealerLifeBarFill(currentEnemy);
