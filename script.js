@@ -1241,7 +1241,7 @@ function renderBossCard(enemy) {
   const wrapper = document.createElement('div');
   wrapper.classList.add('dCardWrapper');
   const pane = document.createElement('div');
-  pane.classList.add('dCardPane', 'boss');
+  pane.classList.add('dCardPane', 'boss', `rarity-${enemy.rarity || 'basic'}`);
   const abilityPane = document.createElement('div');
   abilityPane.classList.add('dCardAbilityPane');
   const iconColor = enemy.iconColor || '#a04444';
@@ -1256,7 +1256,7 @@ function renderDealerCardBase(enemy) {
   const wrapper = document.createElement('div');
   wrapper.classList.add('dCardWrapper');
   const pane = document.createElement('div');
-  pane.classList.add('dCardPane', 'dealer');
+  pane.classList.add('dCardPane', 'dealer', `rarity-${enemy.rarity || 'basic'}`);
   const abilityPane = document.createElement('div');
   abilityPane.classList.add('dCardAbilityPane');
   const { color, blur } = getDealerIconStyle(stageData.stage);
