@@ -357,6 +357,7 @@ body {
     color: #d4af37;
     text-shadow: 0 0 5px black;
     z-index: 1;
+    display: block; /* prevent text from jumbling when progress bar appears */
 }
 
 #distanceDisplay {
@@ -365,6 +366,7 @@ body {
     color: #d4af37;
     text-shadow: 0 0 5px black;
     z-index: 1;
+    display: block; /* ensure consistent vertical spacing */
 }
 
 #chipsDisplay {
@@ -653,7 +655,7 @@ body {
 /* auto attack progress bars */
 .playerAttackBar {
     width: 50%;
-    height: 2px;
+    height: 6px; /* larger for better visibility */
     display: none;
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid #d4af37;
@@ -671,12 +673,12 @@ body {
     left: 0;
     height: 100%;
     width: 0;
-    background: #d4af37;
+    background: #ffd700; /* brighter gold for clarity */
 }
 
 .enemyAttackBar {
     width: 50%;
-    height: 2px;
+    height: 6px; /* match player bar */
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid #d4af37;
     border-radius: 8px;
@@ -692,7 +694,7 @@ body {
     left: 0;
     height: 100%;
     width: 0;
-    background: #d4af37;
+    background: #ffd700; /* brighter gold for clarity */
 }
 
 .buttonsContainer > button:hover {
