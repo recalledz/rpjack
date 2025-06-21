@@ -80,6 +80,7 @@ const cardBackImages = {
 };
 // resources and progress trackers
 let cash = 0;
+let chips = 0;
 let cardPoints = 0;
 // Track how many card points have already been converted to cash
 let lastCashOutPoints = 0;
@@ -92,6 +93,14 @@ function spendCash(amount) {
   recordCashRates(cash);
   updateUpgradeButtons();
   return amt;
+}
+
+function updateChipsDisplay() {
+  if (chipsDisplay) chipsDisplay.textContent = `Chips: ${formatNumber(chips)}`;
+}
+
+function computeChipReward() {
+  return Math.floor((1 + Math.pow(stageData.stage, 0.5)) * stats.cashMulti);
 }
 
 // track how many upgrade power points have been bought total
@@ -264,6 +273,7 @@ const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
+const chipsDisplay = document.getElementById("chipsDisplay");
 const cardPointsDisplay = document.getElementById("cardPointsDisplay");
 const handContainer = document.getElementsByClassName("handContainer")[0];
 const discardContainer = document.getElementsByClassName("discardContainer")[0];
@@ -295,6 +305,8 @@ function showPlayerAttackBar() {
 function hidePlayerAttackBar() {
   const bar = document.getElementById('playerAttackBar');
   if (bar) bar.style.display = 'none';
+  if (playerAttackFill) playerAttackFill.style.width = '0%';
+  playerAttackTimer = 0;
 }
 
 function hideStageProgressBar() {
@@ -1059,6 +1071,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const buttons = document.querySelector('.buttonsContainer');
   playerAttackFill = renderPlayerAttackBar(buttons);
   hidePlayerAttackBar();
+  updateChipsDisplay();
   requestAnimationFrame(gameLoop);
 });
 
@@ -1569,6 +1582,7 @@ function stopStageProgress() {
     stageProgressInterval = null;
   }
   stageProgressing = false;
+  moveForwardBtn.classList.remove('active');
 }
 
 function stepStageProgress() {
@@ -1590,6 +1604,7 @@ function startStageProgress() {
   showStageProgressBar();
   stageProgressing = true;
   stageProgressInterval = setInterval(stepStageProgress, 1000);
+  moveForwardBtn.classList.add('active');
 }
 
 function moveForward() {
@@ -1627,7 +1642,8 @@ function onDealerDefeat() {
   // capture remaining attack progress before resetting
   enemyAttackProgress = currentEnemy.attackTimer / currentEnemy.attackInterval;
   cardXp(stageData.stage ** 1.5 * stageData.world);
-  cashOut();
+  chips += computeChipReward();
+  updateChipsDisplay();
   healCardsOnKill();
   stageData.kills += 1;
   playerStats.stageKills[stageData.stage] = stageData.kills;
@@ -1645,7 +1661,8 @@ function onDealerDefeat() {
         openCamp(false, nextStage);
       } else {
         showStageProgressBar();
-        if (progressButtonActive) startStageProgress();
+        progressButtonActive = true;
+        startStageProgress();
       }
     });
 } // need to define xp formula
@@ -1668,10 +1685,13 @@ function onSpeakerDefeat() {
   dealerBarDeathAnimation(() => {
     inCombat = false;
     currentEnemy = null;
+    chips += computeChipReward();
+    updateChipsDisplay();
     updateDealerLifeDisplay();
     hidePlayerAttackBar();
     showStageProgressBar();
-    if (progressButtonActive) startStageProgress();
+    progressButtonActive = true;
+    startStageProgress();
   });
 }
 
@@ -1705,10 +1725,13 @@ function onBossDefeat(boss) {
   dealerBarDeathAnimation(() => {
     inCombat = false;
     currentEnemy = null;
+    chips += computeChipReward();
+    updateChipsDisplay();
     hidePlayerAttackBar();
     showStageProgressBar();
     nextWorld();
-    if (progressButtonActive) startStageProgress();
+    progressButtonActive = true;
+    startStageProgress();
   });
 }
 
@@ -2200,6 +2223,7 @@ function respawnPlayer() {
   enemyAttackProgress = 0;
   playerStats.hasDied = false;
   cash = 0;
+  chips = 0;
   resetCashRates(cash);
 
   deck = [...pDeck];
@@ -2222,6 +2246,7 @@ function respawnPlayer() {
   deckTabContainer.innerHTML = "";
 
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
+  updateChipsDisplay();
   resetCashRates(cash);
   updateUpgradeButtons();
   renderStageInfo();
@@ -2362,16 +2387,12 @@ currentEnemy.onDefeat?.();
 
 // Convert points earned this stage into spendable cash
 function cashOut() {
-  // Reward cash based on current card points and stage multiplier
-  const reward = Math.floor(
-    stats.points *
-    (1 + Math.pow(stageData.stage, 0.5)) *
-    stats.cashMulti
-  );
-  if (reward <= 0) return cash;
-
+  if (chips <= 0) return cash;
+  const reward = chips * stats.points;
   cash += reward;
+  chips = 0;
   cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
+  updateChipsDisplay();
   recordCashRates(cash);
   updateUpgradeButtons();
   return cash;
@@ -2439,6 +2460,7 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     stats,
     stageData,
     cash,
+    chips,
     upgradePowerPurchased,
     lastCashOutPoints,
     cardPoints,
@@ -2469,6 +2491,7 @@ if (!json) return;
 try {
 const state = JSON.parse(json);
   cash = state.cash || 0;
+  chips = state.chips || 0;
   cardPoints = state.cardPoints || 0;
   redrawCost = state.redrawCost || 10;
   stats.drawPoints = state.drawPoints || 0;
@@ -2542,6 +2565,7 @@ if (
 Object.values(upgrades).forEach(u => u.effect({ stats, pDeck, stageData, systems }));
 
 cashDisplay.textContent = `Cash: $${formatNumber(cash)}`;
+updateChipsDisplay();
 cardPointsDisplay.textContent = `Card Points: ${formatNumber(cardPoints)}`;
 
   renderJokers();
@@ -2655,7 +2679,7 @@ if (currentEnemy) {
     }
     worldProgressTimer = 0;
   }
-  if (!stageProgressing || currentEnemy) {
+  if (currentEnemy) {
     playerAttackTimer += deltaTime;
     if (playerAttackFill) {
       const pratio = Math.min(1, playerAttackTimer / stats.attackSpeed);
