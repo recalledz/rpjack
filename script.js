@@ -2925,8 +2925,8 @@ if (btn) btn.addEventListener("click", toggleDebug);
 
 // Developer helpers exposed on the console for testing
 window.devTools = {
-spawnBoss,
-spawnDealer,
+  spawnBoss: () => spawnBossEvent(),
+  spawnDealer: () => spawnDealerEvent(),
 cDealerDamage,
 killEnemy: () => {
 if (!currentEnemy) return;
