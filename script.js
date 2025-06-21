@@ -129,6 +129,8 @@ const stats = {
   maxMana: 0,
   mana: 0,
   manaRegen: 0,
+  maxSanity: 100,
+  sanity: 100,
   healOnRedraw: 0,
   abilityPower: 1,
   spadeDamageMultiplier: 1,
@@ -303,6 +305,8 @@ const jokerContainers = document.querySelectorAll(".jokerContainer");
 const manaBar = document.getElementById("manaBar");
 const manaFill = document.getElementById("manaFill");
 const manaText = document.getElementById("manaText");
+const sanityFill = document.getElementById('sanityFill');
+const sanityText = document.getElementById('sanityText');
 const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 const dpsDisplay = document.getElementById("dpsDisplay");
 
@@ -335,6 +339,7 @@ let playerAttackTimer = 0;
 let enemyAttackProgress = 0; // carryover ratio of enemy attack timer
 let cashTimer = 0;
 let worldProgressTimer = 0;
+let sanityTimer = 0;
 const cashRateTracker = new RateTracker(10000);
 const cashRateTracker1h = new RateTracker(3600000);
 const cashRateTracker24h = new RateTracker(86400000);
@@ -1100,6 +1105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   playerAttackFill = renderPlayerAttackBar(buttons);
   hidePlayerAttackBar();
   updateChipsDisplay();
+  updateSanityBar();
   requestAnimationFrame(gameLoop);
 });
 
@@ -1115,6 +1121,12 @@ function updateManaBar() {
   const ratio = stats.maxMana > 0 ? stats.mana / stats.maxMana: 0;
   if (manaFill) manaFill.style.width = `${Math.min(1, ratio) * 100}%`;
   if (manaText) manaText.textContent = `${Math.floor(stats.mana)}/${Math.floor(stats.maxMana)}`;
+}
+
+function updateSanityBar() {
+  const ratio = stats.maxSanity > 0 ? stats.sanity / stats.maxSanity : 0;
+  if (sanityFill) sanityFill.style.width = `${Math.min(1, ratio) * 100}%`;
+  if (sanityText) sanityText.textContent = `${Math.floor(stats.sanity)}/${Math.floor(stats.maxSanity)}`;
 }
 
 function unlockManaSystem() {
@@ -1437,6 +1449,8 @@ function nextStage() {
   playerStats.stageKills[stageData.stage] = stageData.kills;
   stageData.stage += 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  stats.sanity = stats.maxSanity;
+  updateSanityBar();
   resetStageCashStats();
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
   renderGlobalStats();
@@ -1462,6 +1476,8 @@ function nextWorld() {
   stageData.world += 1;
   stageData.stage = 1;
   stageData.kills = playerStats.stageKills[stageData.stage] || 0;
+  stats.sanity = stats.maxSanity;
+  updateSanityBar();
   redrawCost = 10;
   updateRedrawButton();
   applyWorldTheme();
@@ -2871,6 +2887,7 @@ if (currentEnemy) {
   updatePlayerStats(stats);
   cashTimer += deltaTime;
   worldProgressTimer += deltaTime;
+  sanityTimer += deltaTime;
   if (cashTimer >= 1000) {
     recordCashRates(cash);
     if (statsEconomyContainer && statsEconomyContainer.style.display !== 'none') {
@@ -2886,6 +2903,17 @@ if (currentEnemy) {
       worldProgressPerSecDisplay.textContent = `Avg World Progress/sec: ${rate.toFixed(2)}%`;
     }
     worldProgressTimer = 0;
+  }
+  if (sanityTimer >= 1000) {
+    sanityTimer = 0;
+    if (!campOverlayOpen) {
+      if (stats.sanity > 0) {
+        stats.sanity = Math.max(0, stats.sanity - 1);
+        updateSanityBar();
+      } else {
+        cDealerDamage(1);
+      }
+    }
   }
   if (currentEnemy) {
     playerAttackTimer += deltaTime;
