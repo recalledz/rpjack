@@ -41,7 +41,8 @@ import {
   calculateEnemyHp,
   calculateEnemyBasicDamage,
   spawnDealer,
-  spawnBoss
+  spawnBoss,
+  spawnEnemy
 } from "./enemySpawning.js";
 import {
   renderCard,
@@ -1491,16 +1492,7 @@ function spawnDealerEvent(powerMult = 1) {
   inCombat = true;
   removeDealerLifeBar();
   const temp = { ...stageData, stage: Math.round(stageData.stage * powerMult) };
-  currentEnemy = spawnDealer(
-    temp,
-    enemyAttackProgress,
-    Enemy => {
-      const { minDamage, maxDamage } = calculateEnemyBasicDamage(temp.stage, temp.world);
-      const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-      cDealerDamage(dmg, null, Enemy.name);
-    },
-    onDealerDefeat
-  );
+  currentEnemy = spawnEnemy('dealer', temp, enemyAttackProgress, onDealerDefeat);
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
   dealerDeathAnimation();
@@ -1510,16 +1502,7 @@ function spawnBossEvent() {
   stopStageProgress();
   inCombat = true;
   removeDealerLifeBar();
-  currentEnemy = spawnBoss(
-    stageData,
-    enemyAttackProgress,
-    boss => {
-      const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
-      const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-      cDealerDamage(dmg, null, boss.name);
-    },
-    () => onBossDefeat(currentEnemy)
-  );
+  currentEnemy = spawnEnemy('boss', stageData, enemyAttackProgress, () => onBossDefeat(currentEnemy));
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
   dealerDeathAnimation();
@@ -1600,38 +1583,11 @@ function respawnDealerStage() {
   removeDealerLifeBar();
   if (speakerEncounterPending) {
     speakerEncounterPending = false;
-    currentEnemy = spawnSpeaker(
-      stageData,
-      enemyAttackProgress,
-      e => {
-        const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
-        const dmg = (Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage) * 3;
-        cDealerDamage(dmg, null, e.name);
-      },
-      onSpeakerDefeat
-    );
+    currentEnemy = spawnEnemy('speaker', stageData, enemyAttackProgress, onSpeakerDefeat);
   } else if (stageData.stage === 10) {
-    currentEnemy = spawnBoss(
-      stageData,
-      enemyAttackProgress,
-      boss => {
-        const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
-        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-        cDealerDamage(dmg, null, boss.name);
-      },
-      () => onBossDefeat(currentEnemy)
-    );
+    currentEnemy = spawnEnemy('boss', stageData, enemyAttackProgress, () => onBossDefeat(currentEnemy));
   } else {
-    currentEnemy = spawnDealer(
-      stageData,
-      enemyAttackProgress,
-      Enemy => {
-        const { minDamage, maxDamage } = calculateEnemyBasicDamage(stageData.stage, stageData.world);
-        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-        cDealerDamage(dmg, null, Enemy.name);
-      },
-      onDealerDefeat
-    );
+    currentEnemy = spawnEnemy('dealer', stageData, enemyAttackProgress, onDealerDefeat);
   }
   updateDealerLifeDisplay();
   enemyAttackFill = renderEnemyAttackBar();
@@ -1791,6 +1747,8 @@ function cDealerDamage(damageAmount = null, ability = null, source = "dealer") {
   }
   // Optional ability logic (e.g., healing, fireball
 }
+
+globalThis.cDealerDamage = cDealerDamage;
 
 function dealerDeathAnimation() {
   const dCardWrapper = document.querySelector(".dCardWrapper:last-child");
