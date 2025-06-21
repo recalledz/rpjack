@@ -84,6 +84,14 @@ export const cardUpgradeDefinitions = {
       }, expiry - now);
     }
   },
+  spadeDamage15: {
+    id: 'spadeDamage15',
+    name: 'Spade Damage x1.5',
+    rarity: 'uncommon',
+    effect: ({ stats }) => {
+      stats.spadeDamageMultiplier = (stats.spadeDamageMultiplier || 1) * 1.5;
+    }
+  },
   // Prestige unlocked upgrades
   maxMana: {
     id: 'maxMana',
@@ -121,31 +129,12 @@ export const cardUpgradeDefinitions = {
       stats.spadeDamageMultiplier = (stats.spadeDamageMultiplier || 1) + 0.05;
     }
   },
-  heartHpMultiplier: {
-    id: 'heartHpMultiplier',
-    name: 'Heart HP Multiplier +5%',
-    rarity: 'rare',
-    prestige: true,
-    effect: ({ stats, updateAllCardHp }) => {
-      stats.heartHpMultiplier = (stats.heartHpMultiplier || 1) + 0.05;
-      if (typeof updateAllCardHp === 'function') updateAllCardHp();
-    }
-  },
   clubsPlaceholder: {
     id: 'clubsPlaceholder',
     name: 'Clubs Placeholder',
     rarity: 'uncommon',
     prestige: true,
     effect: () => {}
-  },
-  diamondCashMultiplier: {
-    id: 'diamondCashMultiplier',
-    name: 'Diamond Cash Multiplier +5%',
-    rarity: 'rare',
-    prestige: true,
-    effect: ({ stats }) => {
-      stats.diamondCashMultiplier = (stats.diamondCashMultiplier || 1) + 0.05;
-    }
   }
 };
 
@@ -259,7 +248,8 @@ export const unlockedCardUpgrades = [
   'redrawCooldownReduction',
   'extraCardSlot',
   'drawPointsIncrease',
-  'damageBuff30s'
+  'damageBuff30s',
+  'spadeDamage15'
 ];
 
 export const upgradeLevels = {};
