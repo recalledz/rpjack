@@ -348,6 +348,7 @@ const insanityMessages = [
 ];
 let insanityMsgIndex = 0;
 let lastInsanityMsg = 0;
+let lowSanityOverlayShown = false;
 const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 const dpsDisplay = document.getElementById("dpsDisplay");
 
@@ -1194,9 +1195,14 @@ function updateInsanityOrb(ratio) {
       insanityMsgIndex = (insanityMsgIndex + 1) % insanityMessages.length;
       lastInsanityMsg = now;
     }
+    if (ratio < 0.1 && !lowSanityOverlayShown) {
+      showSpeakerQuote("Reach for the light. before it's too late");
+      lowSanityOverlayShown = true;
+    }
   } else {
     insanityOrb.classList.remove('critical');
     document.body.classList.remove('insanity-low');
+    if (ratio >= 0.1) lowSanityOverlayShown = false;
   }
 }
 
