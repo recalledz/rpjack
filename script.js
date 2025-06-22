@@ -219,12 +219,38 @@ function updateCampButtonGlow(ratio) {
 }
 
 function initCampHalo() {
-  if (!campBtn || typeof PIXI !== 'object') return;
-  campHaloApp = new PIXI.Application({ width: 60, height: 60, transparent: true });
-  campBtn.appendChild(campHaloApp.view);
-  campHaloApp.view.style.position = 'absolute';
-  campHaloApp.view.style.inset = '0';
-  campHaloApp.view.style.pointerEvents = 'none';
+  if (!campBtn || typeof PIXI !== 'object' || typeof PIXI.Application !== 'function') {
+    return;
+  }
+  let app;
+  try {
+    app = new PIXI.Application({ width: 60, height: 60, backgroundAlpha: 0 });
+  } catch (err) {
+    console.error('Failed to create camp halo PIXI app:', err);
+    return;
+  }
+  let view;
+  try {
+    view = app.view;
+  } catch (err) {
+    console.error('Camp halo renderer view unavailable:', err);
+    if (typeof app.destroy === 'function') {
+      app.destroy(true);
+    }
+    return;
+  }
+  if (!view) {
+    console.error('Camp halo view not created');
+    if (typeof app.destroy === 'function') {
+      app.destroy(true);
+    }
+    return;
+  }
+  campHaloApp = app;
+  campBtn.appendChild(view);
+  view.style.position = 'absolute';
+  view.style.inset = '0';
+  view.style.pointerEvents = 'none';
   const halo = new PIXI.Graphics();
   halo.beginFill(0xffffee, 0.15);
   halo.drawCircle(30, 30, 28);
