@@ -284,6 +284,7 @@ function getCardState() {
 const nextStageBtn = document.getElementById("nextStageBtn");
 const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
+const campBtn = document.getElementById("campBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
 const chipsDisplay = document.getElementById("chipsDisplay");
@@ -1105,6 +1106,13 @@ document.addEventListener("DOMContentLoaded", () => {
     enemyAttackFill = renderEnemyAttackBar();
     dealerDeathAnimation();
   });
+  if (campBtn) {
+    campBtn.addEventListener('click', () => {
+      campBtn.style.display = 'none';
+      stageComplete = false;
+      openCamp(() => openCardUpgradeSelection(nextStage));
+    });
+  }
   renderJokers();
   const buttons = document.querySelector('.buttonsContainer');
   playerAttackFill = renderPlayerAttackBar(buttons);
@@ -1654,6 +1662,8 @@ function stepStageProgress() {
     stopStageProgress();
     moveForwardBtn.style.display = 'none';
     stageEndEnemyActive = true;
+    stageComplete = true;
+    if (campBtn) campBtn.style.display = 'inline-block';
     spawnDealerEvent(1.3);
   }
 }
@@ -1717,7 +1727,9 @@ function onDealerDefeat() {
       hidePlayerAttackBar();
       if (stageEndEnemyActive) {
         stageEndEnemyActive = false;
-        openCamp(() => openCardUpgradeSelection(nextStage));
+        respawnDealerStage();
+      } else if (stageComplete) {
+        respawnDealerStage();
       } else {
         showStageProgressBar();
         progressButtonActive = true;
@@ -1988,6 +2000,7 @@ let stageProgressing = false;
 let stageProgressInterval = null;
 let progressButtonActive = false;
 let stageEndEnemyActive = false;
+let stageComplete = false;
 
 function rarityClass(rarity) {
   switch (rarity) {
