@@ -313,6 +313,14 @@ const manaFill = document.getElementById("manaFill");
 const manaText = document.getElementById("manaText");
 const sanityFill = document.getElementById('sanityFill');
 const sanityText = document.getElementById('sanityText');
+const insanityOrb = document.getElementById('insanityOrb');
+const insanityMessages = [
+  "You feel watched.",
+  "The walls bend inward.",
+  "Thoughts scatter like crows..."
+];
+let insanityMsgIndex = 0;
+let lastInsanityMsg = 0;
 const manaRegenDisplay = document.getElementById("manaRegenDisplay");
 const dpsDisplay = document.getElementById("dpsDisplay");
 
@@ -1140,6 +1148,26 @@ function updateSanityBar() {
   const ratio = stats.maxSanity > 0 ? stats.sanity / stats.maxSanity : 0;
   if (sanityFill) sanityFill.style.width = `${Math.min(1, ratio) * 100}%`;
   if (sanityText) sanityText.textContent = `${Math.floor(stats.sanity)}/${Math.floor(stats.maxSanity)}`;
+  updateInsanityOrb(ratio);
+}
+
+function updateInsanityOrb(ratio) {
+  if (!insanityOrb) return;
+  const dur = 3 - 2 * (1 - ratio);
+  insanityOrb.style.setProperty('--pulse-duration', `${dur}s`);
+  if (ratio < 0.3) {
+    insanityOrb.classList.add('critical');
+    document.body.classList.add('insanity-low');
+    const now = Date.now();
+    if (now - lastInsanityMsg > 5000) {
+      addLog(insanityMessages[insanityMsgIndex]);
+      insanityMsgIndex = (insanityMsgIndex + 1) % insanityMessages.length;
+      lastInsanityMsg = now;
+    }
+  } else {
+    insanityOrb.classList.remove('critical');
+    document.body.classList.remove('insanity-low');
+  }
 }
 
 function unlockManaSystem() {
