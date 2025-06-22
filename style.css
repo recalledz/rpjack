@@ -289,18 +289,7 @@ body {
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.6);
 }
 
-body.insanity-low {
-    filter: grayscale(0.4);
-}
 
-body.insanity-low::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background: radial-gradient(circle, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.6) 100%);
-    z-index: 999;
-}
 
 
 
@@ -1723,6 +1712,26 @@ body.insanity-low::after {
     font-style: italic;
     text-shadow: 0 0 8px #fff;
     animation: fogFade 7s ease-in-out;
+}
+
+.camp-message {
+    position: absolute;
+    bottom: -1.2em;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 0.9rem;
+    pointer-events: none;
+    text-shadow: 0 0 4px #000;
+    animation: camp-msg-fade 2s ease-in-out;
+    white-space: nowrap;
+}
+
+@keyframes camp-msg-fade {
+    from { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    to { opacity: 0; }
 }
 @keyframes fogFade {
     from { opacity: 0; filter: blur(4px); }
