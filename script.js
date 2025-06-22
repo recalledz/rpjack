@@ -213,6 +213,31 @@ function checkSpeakerEncounter() {
   }
 }
 
+function updateCampButtonGlow(ratio) {
+  if (!campGlowFilter) return;
+  campGlowFilter.outerStrength = 1 + (1 - ratio) * 3;
+}
+
+function initCampHalo() {
+  if (!campBtn || typeof PIXI !== 'object') return;
+  campHaloApp = new PIXI.Application({ width: 60, height: 60, transparent: true });
+  campBtn.appendChild(campHaloApp.view);
+  campHaloApp.view.style.position = 'absolute';
+  campHaloApp.view.style.inset = '0';
+  campHaloApp.view.style.pointerEvents = 'none';
+  const halo = new PIXI.Graphics();
+  halo.beginFill(0xffffee, 0.15);
+  halo.drawCircle(30, 30, 28);
+  halo.endFill();
+  campGlowFilter = new PIXI.filters.GlowFilter({ distance: 10, outerStrength: 1, color: 0xffffee });
+  halo.filters = [campGlowFilter];
+  campHaloApp.stage.addChild(halo);
+  campHaloApp.ticker.add(() => {
+    halo.alpha = 0.4 + 0.1 * Math.sin(Date.now() / 1000);
+  });
+  updateCampButtonGlow(stats.maxSanity > 0 ? stats.sanity / stats.maxSanity : 1);
+}
+
 const playerStats = {
   timesPrestiged: 0,
   decksUnlocked: 1,
@@ -314,6 +339,8 @@ const manaText = document.getElementById("manaText");
 const sanityFill = document.getElementById('sanityFill');
 const sanityText = document.getElementById('sanityText');
 const insanityOrb = document.getElementById('insanityOrb');
+let campHaloApp = null;
+let campGlowFilter = null;
 const insanityMessages = [
   "You feel watched.",
   "The walls bend inward.",
@@ -1060,6 +1087,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   loadGame();
   initVignetteToggles();
+  initCampHalo();
+  if (window.lucide) lucide.createIcons();
   initPlayerLife({ getGameCash: () => cash, spendGameCash: spendCash });
   initCore();
   window.addEventListener('core-mind-upgrade', () => {
@@ -1149,6 +1178,7 @@ function updateSanityBar() {
   if (sanityFill) sanityFill.style.width = `${Math.min(1, ratio) * 100}%`;
   if (sanityText) sanityText.textContent = `${Math.floor(stats.sanity)}/${Math.floor(stats.maxSanity)}`;
   updateInsanityOrb(ratio);
+  updateCampButtonGlow(ratio);
 }
 
 function updateInsanityOrb(ratio) {
@@ -2160,12 +2190,12 @@ function openCamp(onCloseCallback = null) {
   box.classList.add('camp-box');
 
   const header = document.createElement('h2');
-  header.textContent = 'Sanctuary Found';
+  header.textContent = 'Find the Light';
   box.appendChild(header);
 
   const sub = document.createElement('p');
   sub.classList.add('camp-subheading', 'speaker-quote');
-  sub.textContent = 'You may catch your breath or press on.';
+  sub.textContent = '“Reach for the light. before it\'s too late”';
   box.appendChild(sub);
 
   const canvas = document.createElement('canvas');
