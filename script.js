@@ -218,31 +218,32 @@ function updateCampButtonGlow(ratio) {
   campGlowFilter.outerStrength = 1 + (1 - ratio) * 3;
 }
 
-function initCampHalo() {
+async function initCampHalo() {
   if (!campBtn || typeof PIXI !== 'object' || typeof PIXI.Application !== 'function') {
     return;
   }
   let app;
   try {
-    app = new PIXI.Application({ width: 60, height: 60, backgroundAlpha: 0 });
+    app = new PIXI.Application();
+    await app.init({ width: 60, height: 60, backgroundAlpha: 0 });
   } catch (err) {
     console.error('Failed to create camp halo PIXI app:', err);
     return;
   }
   let view;
   try {
-    view = app.view;
+    view = app.canvas ?? app.view;
   } catch (err) {
     console.error('Camp halo renderer view unavailable:', err);
     if (typeof app.destroy === 'function') {
-      app.destroy(true);
+      try { app.destroy(true); } catch (e) {}
     }
     return;
   }
   if (!view) {
     console.error('Camp halo view not created');
     if (typeof app.destroy === 'function') {
-      app.destroy(true);
+      try { app.destroy(true); } catch (e) {}
     }
     return;
   }
@@ -1114,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   loadGame();
   initVignetteToggles();
-  initCampHalo();
+  initCampHalo().catch(err => console.error('Error initializing camp halo:', err));
   if (window.lucide) lucide.createIcons();
   initPlayerLife({ getGameCash: () => cash, spendGameCash: spendCash });
   initCore();
