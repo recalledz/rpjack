@@ -224,12 +224,22 @@ async function initCampHalo() {
   }
   let app;
   try {
-    app = new PIXI.Application({ width: 60, height: 60, backgroundAlpha: 0 });
+    app = new PIXI.Application();
+    await app.init({ width: 60, height: 60, backgroundAlpha: 0 });
   } catch (err) {
     console.error('Failed to create camp halo PIXI app:', err);
     return;
   }
-  const view = app.view;
+  let view;
+  try {
+    view = app.canvas ?? app.view;
+  } catch (err) {
+    console.error('Camp halo renderer view unavailable:', err);
+    if (typeof app.destroy === 'function') {
+      try { app.destroy(true); } catch (e) {}
+    }
+    return;
+  }
   if (!view) {
     console.error('Camp halo view not created');
     if (typeof app.destroy === 'function') {
@@ -1205,6 +1215,7 @@ function updateInsanityOrb(ratio) {
   insanityOrb.style.setProperty('--pulse-duration', `${dur}s`);
   if (ratio < 0.3) {
     insanityOrb.classList.add('critical');
+    document.body.classList.add('insanity-low');
     const now = Date.now();
     if (now - lastInsanityMsg > 5000) {
       addLog(insanityMessages[insanityMsgIndex]);
@@ -1212,11 +1223,12 @@ function updateInsanityOrb(ratio) {
       lastInsanityMsg = now;
     }
     if (ratio < 0.1 && !lowSanityOverlayShown) {
-      showCampMessage("Reach for the light. before it's too late");
+      showSpeakerQuote("Reach for the light. before it's too late");
       lowSanityOverlayShown = true;
     }
   } else {
     insanityOrb.classList.remove('critical');
+    document.body.classList.remove('insanity-low');
     if (ratio >= 0.1) lowSanityOverlayShown = false;
   }
 }
@@ -2613,20 +2625,6 @@ function hideSpeakerQuote() {
     speakerOverlay.remove();
     speakerOverlay = null;
   }
-}
-
-let campMessageElem = null;
-function showCampMessage(text) {
-  if (!campBtn || campMessageElem) return;
-  const msg = document.createElement('div');
-  msg.classList.add('camp-message');
-  msg.textContent = text;
-  campMessageElem = msg;
-  campBtn.appendChild(msg);
-  setTimeout(() => {
-    msg.remove();
-    if (campMessageElem === msg) campMessageElem = null;
-  }, 2000);
 }
 
 // Fully wipe saved data and reload the page
