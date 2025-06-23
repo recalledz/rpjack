@@ -1072,6 +1072,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPurchasedUpgrades();
   // Start or resume the game after loading
   spawnPlayer();
+  respawnDealerStage();
   renderDealerCard();
   resetStageCashStats();
   renderStageInfo();
