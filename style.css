@@ -856,6 +856,7 @@ body {
 /* auto attack progress bars */
 .playerAttackBar {
     width: 50%;
+    max-width: 50%;
     height: 6px; /* larger for better visibility */
     display: none;
     background: rgba(0, 0, 0, 0.8);
