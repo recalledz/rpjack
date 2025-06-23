@@ -178,7 +178,9 @@ let stageData = {
   cardXp: 1,
   playerXp: 1,
   attackspeed: 10000 //10 sec at start
-}; 
+};
+
+const STAGE_KILL_REQUIREMENT = 10;
 
 let speakerEncounterPending = false;
 
@@ -1165,6 +1167,7 @@ function renderStageInfo() {
   stageData.kills = playerStats.stageKills[stageData.stage] || stageData.kills || 0;
   stageDisplay.textContent = `Stage ${stageData.stage} World ${stageData.world}`;
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageAvailability();
 }
 
 function renderPlayerStats(stats) {
@@ -1462,6 +1465,7 @@ function nextStage() {
   const isBossStage = stageData.stage % 10 === 0;
   resetStageCashStats();
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageAvailability();
   renderGlobalStats();
   renderStageInfo();
   checkUpgradeUnlocks();
@@ -1495,6 +1499,7 @@ function nextWorld() {
     worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
   }
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageAvailability();
   renderGlobalStats();
   renderStageInfo();
   checkUpgradeUnlocks();
@@ -1540,6 +1545,16 @@ function goToWorld(id) {
 function resetStageCashStats() {
   cashTimer = 0;
   resetCashRates(cash);
+}
+
+function updateNextStageAvailability() {
+  if (stageData.kills >= STAGE_KILL_REQUIREMENT) {
+    nextStageBtn.disabled = false;
+    nextStageBtn.style.display = 'inline-block';
+  } else {
+    nextStageBtn.disabled = true;
+    nextStageBtn.style.display = 'none';
+  }
 }
 
 // Enable the next stage button when kill requirements met
@@ -1641,6 +1656,7 @@ function onDealerDefeat() {
   stageData.kills += 1;
   playerStats.stageKills[stageData.stage] = stageData.kills;
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageAvailability();
   renderGlobalStats();
   recordWorldKill(stageData.world, stageData.stage);
   dealerDeathAnimation();
