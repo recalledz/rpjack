@@ -211,57 +211,6 @@ function checkSpeakerEncounter() {
   }
 }
 
-function updateCampButtonGlow(ratio) {
-  if (!campGlowFilter) return;
-  campGlowFilter.outerStrength = 1 + (1 - ratio) * 3;
-}
-
-async function initCampHalo() {
-  if (!campBtn || typeof PIXI !== 'object' || typeof PIXI.Application !== 'function') {
-    return;
-  }
-  let app;
-  try {
-    app = new PIXI.Application();
-    await app.init({ width: 60, height: 60, backgroundAlpha: 0 });
-  } catch (err) {
-    console.error('Failed to create camp halo PIXI app:', err);
-    return;
-  }
-  let view;
-  try {
-    view = app.canvas ?? app.view;
-  } catch (err) {
-    console.error('Camp halo renderer view unavailable:', err);
-    if (typeof app.destroy === 'function') {
-      try { app.destroy(true); } catch (e) {}
-    }
-    return;
-  }
-  if (!view) {
-    console.error('Camp halo view not created');
-    if (typeof app.destroy === 'function') {
-      try { app.destroy(true); } catch (e) {}
-    }
-    return;
-  }
-  campHaloApp = app;
-  campBtn.appendChild(view);
-  view.style.position = 'absolute';
-  view.style.inset = '0';
-  view.style.pointerEvents = 'none';
-  const halo = new PIXI.Graphics();
-  halo.beginFill(0xffffee, 0.15);
-  halo.drawCircle(30, 30, 28);
-  halo.endFill();
-  campGlowFilter = new PIXI.filters.GlowFilter({ distance: 10, outerStrength: 1, color: 0xffffee });
-  halo.filters = [campGlowFilter];
-  campHaloApp.stage.addChild(halo);
-  campHaloApp.ticker.add(() => {
-    halo.alpha = 0.4 + 0.1 * Math.sin(Date.now() / 1000);
-  });
-  updateCampButtonGlow(1);
-}
 
 const playerStats = {
   timesPrestiged: 0,
@@ -364,8 +313,6 @@ const manaText = document.getElementById("manaText");
 const sanityFill = null;
 const sanityText = null;
 const insanityOrb = null;
-let campHaloApp = null;
-let campGlowFilter = null;
 //const insanityMessages = [
 //  "You feel watched.",
 //  "The walls bend inward.",
@@ -1113,7 +1060,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   loadGame();
   initVignetteToggles();
-  initCampHalo().catch(err => console.error('Error initializing camp halo:', err));
   if (window.lucide) lucide.createIcons();
   initPlayerLife({ getGameCash: () => cash, spendGameCash: spendCash });
   initCore();
