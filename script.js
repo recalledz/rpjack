@@ -1088,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
   nextStageBtn.style.display = 'none';
   nextStageBtn.addEventListener("click", () => {
     nextStageBtn.style.display = 'none';
-    openCamp(nextStage);
+    openCamp(() => openCardUpgradeSelection(nextStage));
   });
   fightBossBtn.addEventListener("click", () => {
     fightBossBtn.style.display = "none";
