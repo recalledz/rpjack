@@ -933,28 +933,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   fightBossBtn.addEventListener("click", () => {
     fightBossBtn.style.display = "none";
-    const data = worldProgress[stageData.world];
-    const bossStage = 10 * (data?.level || 1);
-    stageData.stage = bossStage;
-    stageData.kills = playerStats.stageKills[stageData.stage] || 0;
-    renderStageInfo();
-    currentEnemy = spawnBoss(
-      stageData,
-      enemyAttackProgress,
-      boss => {
-        const { minDamage, maxDamage } = calculateEnemyBasicDamage(
-          stageData.stage,
-          stageData.world
-        );
-        const dmg = Math.floor(Math.random() * (maxDamage - minDamage + 1)) +
-          minDamage;
-        cDealerDamage(dmg, null, boss.name);
-      },
-      () => onBossDefeat(currentEnemy)
-    );
-    updateDealerLifeDisplay();
-    enemyAttackFill = renderEnemyAttackBar();
-    dealerDeathAnimation();
+    spawnBossEvent();
   });
   if (campBtn) {
     campBtn.addEventListener('click', () => {
@@ -1534,7 +1513,8 @@ function onBossDefeat(boss) {
   const data = worldProgress[stageData.world];
   data.bossDefeated = true;
   data.rewardClaimed = false;
-  if (data.level === 1 && worldProgress[stageData.world + 1]) {
+  // Unlock the next world upon boss defeat if it exists
+  if (worldProgress[stageData.world + 1]) {
     worldProgress[stageData.world + 1].unlocked = true;
   }
   data.level += 1;
@@ -1556,7 +1536,7 @@ function onBossDefeat(boss) {
   renderPurchasedUpgrades();
   shuffleArray(deck);
   checkSpeakerEncounter();
-  // Unlock the next world but require the player to travel manually
+  // Unlock and immediately travel to the next world
   updateWorldTabNotification();
   renderWorldsMenu();
   fightBossBtn.style.display = "none";
@@ -1567,7 +1547,7 @@ function onBossDefeat(boss) {
     chips += computeChipReward();
     updateChipsDisplay();
     hidePlayerAttackBar();
-    nextStage();
+    nextWorld();
   });
 }
 
