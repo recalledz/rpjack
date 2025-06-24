@@ -411,8 +411,10 @@ let deckUpgradesViewBtn;
 let deckUpgradesContainer;
 let playerSkillsSubTabButton;
 let playerCoreSubTabButton;
+let playerUpgradesSubTabButton;
 let playerSkillsPanel;
 let playerCorePanel;
+let playerUpgradesPanel;
 let statsOverviewSubTabButton;
 let statsEconomySubTabButton;
 let statsOverviewContainer;
@@ -538,8 +540,10 @@ function initTabs() {
   jobsCarouselBtn = document.querySelector('.jobsCarouselBtn');
   playerSkillsSubTabButton = document.querySelector(".playerSkillsSubTabButton");
   playerCoreSubTabButton = document.querySelector(".playerCoreSubTabButton");
+  playerUpgradesSubTabButton = document.querySelector('.playerUpgradesSubTabButton');
   playerSkillsPanel = document.querySelector(".player-skills-panel");
   playerCorePanel = document.querySelector(".player-core-panel");
+  playerUpgradesPanel = document.querySelector('.player-upgrades-panel');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
   statsEconomySubTabButton = document.querySelector('.statsEconomySubTabButton');
   statsOverviewContainer = document.getElementById('statsOverviewContainer');
@@ -593,15 +597,28 @@ function initTabs() {
     playerSkillsSubTabButton.addEventListener("click", () => {
       if (playerSkillsPanel) playerSkillsPanel.style.display = "flex";
       if (playerCorePanel) playerCorePanel.style.display = "none";
+      if (playerUpgradesPanel) playerUpgradesPanel.style.display = "none";
       playerSkillsSubTabButton.classList.add("active");
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove("active");
+      if (playerUpgradesSubTabButton) playerUpgradesSubTabButton.classList.remove('active');
     });
   if (playerCoreSubTabButton)
     playerCoreSubTabButton.addEventListener("click", () => {
       if (playerSkillsPanel) playerSkillsPanel.style.display = "none";
       if (playerCorePanel) playerCorePanel.style.display = "flex";
+      if (playerUpgradesPanel) playerUpgradesPanel.style.display = "none";
       playerCoreSubTabButton.classList.add("active");
       if (playerSkillsSubTabButton) playerSkillsSubTabButton.classList.remove("active");
+      if (playerUpgradesSubTabButton) playerUpgradesSubTabButton.classList.remove('active');
+    });
+  if (playerUpgradesSubTabButton)
+    playerUpgradesSubTabButton.addEventListener('click', () => {
+      if (playerSkillsPanel) playerSkillsPanel.style.display = 'none';
+      if (playerCorePanel) playerCorePanel.style.display = 'none';
+      if (playerUpgradesPanel) playerUpgradesPanel.style.display = 'flex';
+      playerUpgradesSubTabButton.classList.add('active');
+      if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
+      if (playerSkillsSubTabButton) playerSkillsSubTabButton.classList.remove('active');
     });
   if (statsOverviewSubTabButton)
     statsOverviewSubTabButton.addEventListener('click', () => {
