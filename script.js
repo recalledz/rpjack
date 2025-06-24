@@ -185,6 +185,7 @@ let stageData = {
 };
 
 const STAGE_KILL_REQUIREMENT = 10;
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * 22;
 
 const xpEfficiency = XP_EFFICIENCY;
 
@@ -291,8 +292,10 @@ function getCardState() {
 }
 
 const nextStageBtn = document.getElementById("nextStageBtn");
+const nextStageProgress = document.getElementById("nextStageProgress");
 //const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
+const bossProgress = document.getElementById("bossProgress");
 const campBtn = document.getElementById("campBtn");
 const pointsDisplay = document.getElementById("pointsDisplay");
 const cashDisplay = document.getElementById("cashDisplay");
@@ -994,6 +997,7 @@ function renderStageInfo() {
   stageDisplay.textContent = `Stage ${stageData.stage} World ${stageData.world} (Lv ${lvl})`;
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
   updateNextStageAvailability();
+  updateBossProgress();
 }
 
 function renderPlayerStats(stats) {
@@ -1165,6 +1169,7 @@ function recordWorldKill(world, stage) {
   if (data.progress >= data.progressTarget && !data.bossDefeated) return;
   data.progress += stageWeight(stage);
   updateWorldProgressUI(world);
+  if (world === stageData.world) updateBossProgress();
   if (world === stageData.world) {
     worldProgressRateTracker.record(computeWorldProgress(world) * 100);
   }
@@ -1188,6 +1193,7 @@ function updateWorldProgressUI(id) {
     `.world-progress[data-world="${id}"] .world-progress-fill`
   );
   if (fill) fill.style.width = `${pct}%`;
+  if (id == stageData.world) updateBossProgress();
   const textEl = document.querySelector(
     `.world-progress-text[data-world="${id}"]`
   );
@@ -1291,6 +1297,7 @@ function nextStage() {
   const isBossStage = stageData.stage % 10 === 0;
   resetStageCashStats();
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageProgress();
   updateNextStageAvailability();
   renderGlobalStats();
   renderStageInfo();
@@ -1325,6 +1332,8 @@ function nextWorld() {
     worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
   }
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageProgress();
+  updateBossProgress();
   updateNextStageAvailability();
   renderGlobalStats();
   renderStageInfo();
@@ -1354,6 +1363,8 @@ function goToWorld(id) {
     worldProgressPerSecDisplay.textContent = "Avg World Progress/sec: 0%";
   }
   killsDisplay.textContent = `Kills: ${formatNumber(stageData.kills)}`;
+  updateNextStageProgress();
+  updateBossProgress();
   renderGlobalStats();
   renderStageInfo();
   checkUpgradeUnlocks();
@@ -1381,6 +1392,22 @@ function updateNextStageAvailability() {
     nextStageBtn.disabled = true;
     nextStageBtn.style.display = 'none';
   }
+  updateNextStageProgress();
+}
+
+function setProgress(circle, ratio) {
+  if (!circle) return;
+  const clamped = Math.max(0, Math.min(1, ratio));
+  const offset = PROGRESS_CIRCUMFERENCE * (1 - clamped);
+  circle.style.strokeDashoffset = offset;
+}
+
+function updateNextStageProgress() {
+  setProgress(nextStageProgress, stageData.kills / STAGE_KILL_REQUIREMENT);
+}
+
+function updateBossProgress() {
+  setProgress(bossProgress, computeWorldProgress(stageData.world));
 }
 
 // Enable the next stage button when kill requirements met
