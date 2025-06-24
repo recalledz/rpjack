@@ -136,9 +136,21 @@
             </div>
           </div>
           <!--<button id="moveForwardBtn" title="Move Forward">➡️</button>-->
-          <button id="nextStageBtn" style="display:none;" disabled title="Next Stage">🚀</button>
+          <div class="progress-wrapper">
+            <svg class="progress-ring" width="48" height="48">
+              <circle class="progress-ring-bg" cx="24" cy="24" r="22" />
+              <circle id="nextStageProgress" class="progress-ring-fill" cx="24" cy="24" r="22" />
+            </svg>
+            <button id="nextStageBtn" style="display:none;" disabled title="Next Stage">🚀</button>
+          </div>
           <button id="campBtn" style="display:none;" title="Find the Light"><i data-lucide="eye"></i></button>
-          <button id="fightBossBtn" style="display:none;" title="Fight Boss">👑</button>
+          <div class="progress-wrapper boss-progress">
+            <svg class="progress-ring" width="48" height="48">
+              <circle class="progress-ring-bg" cx="24" cy="24" r="22" />
+              <circle id="bossProgress" class="progress-ring-fill boss" cx="24" cy="24" r="22" />
+            </svg>
+            <button id="fightBossBtn" style="display:none;" title="Fight Boss">💀</button>
+          </div>
         </div>
         <div class="handContainer casino-section"></div>
         <div class="jokerContainer casino-section"></div>
