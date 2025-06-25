@@ -291,7 +291,7 @@ function getCardState() {
   };
 }
 
-const nextStageBtn = document.getElementById("nextStageBtn");
+const nextStageArea = document.getElementById("nextStageArea");
 const nextStageProgress = document.getElementById("nextStageProgress");
 //const moveForwardBtn = document.getElementById("moveForwardBtn");
 const fightBossBtn = document.getElementById("fightBossBtn");
@@ -947,11 +947,11 @@ document.addEventListener("DOMContentLoaded", () => {
   shuffleArray(deck);
   checkUpgradeUnlocks();
 
-  if (nextStageBtn) {
-    nextStageBtn.style.display = 'none';
-    nextStageBtn.addEventListener("click", () => {
-      nextStageBtn.style.display = 'none';
-      openCamp(() => openCardUpgradeSelection(nextStage));
+  if (nextStageArea) {
+    nextStageArea.addEventListener("click", () => {
+      if (stageData.kills >= STAGE_KILL_REQUIREMENT) {
+        openCamp(() => openCardUpgradeSelection(nextStage));
+      }
     });
   }
   fightBossBtn.addEventListener("click", () => {
@@ -1328,7 +1328,7 @@ function nextStage() {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  if (nextStageBtn) nextStageBtn.style.display = 'none';
+  if (nextStageArea) nextStageArea.classList.remove('glow-notify');
   if (isBossStage) {
     respawnDealerStage();
   } else {
@@ -1363,7 +1363,7 @@ function nextWorld() {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  if (nextStageBtn) nextStageBtn.style.display = 'none';
+  if (nextStageArea) nextStageArea.classList.remove('glow-notify');
   respawnDealerStage();
 }
 
@@ -1392,7 +1392,7 @@ function goToWorld(id) {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  if (nextStageBtn) nextStageBtn.style.display = 'none';
+  if (nextStageArea) nextStageArea.classList.remove('glow-notify');
   renderWorldsMenu();
   updateWorldTabNotification();
   respawnDealerStage();
@@ -1405,13 +1405,13 @@ function resetStageCashStats() {
 }
 
 function updateNextStageAvailability() {
-  if (!nextStageBtn) return;
+  if (!nextStageArea) return;
   if (stageData.kills >= STAGE_KILL_REQUIREMENT) {
-    nextStageBtn.disabled = false;
-    nextStageBtn.style.display = 'inline-block';
+    nextStageArea.classList.add('glow-notify');
+    nextStageArea.classList.add('clickable');
   } else {
-    nextStageBtn.disabled = true;
-    nextStageBtn.style.display = 'none';
+    nextStageArea.classList.remove('glow-notify');
+    nextStageArea.classList.remove('clickable');
   }
   updateNextStageProgress();
 }
