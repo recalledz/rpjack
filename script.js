@@ -398,6 +398,7 @@ let playerStatsTabButton;
 let worldSubTabButton;
 let cardSubTabButton;
 let playerTabButton;
+let locationTabButton;
 let mainTab;
 let cardSubTab;
 let deckTab;
@@ -405,6 +406,8 @@ let starChartTab;
 let playerStatsTab;
 let worldsTab;
 let playerTab;
+let locationTab;
+let locationListContainer;
 let purchasedUpgradeList;
 let activeEffectsContainer;
 let tooltip;
@@ -424,11 +427,25 @@ let statsOverviewContainer;
 let statsEconomyContainer;
 let jobsViewBtn;
 let jobsCarouselBtn;
+const discoveredLocations = [];
 
 function setActiveTabButton(btn) {
   document.querySelectorAll('.tabsContainer button').forEach(b => {
     b.classList.toggle('active', b === btn);
   });
+}
+
+function addDiscoveredLocation(name) {
+  if (discoveredLocations.includes(name)) return;
+  discoveredLocations.push(name);
+  if (locationListContainer) {
+    const row = document.createElement('div');
+    row.textContent = name;
+    locationListContainer.appendChild(row);
+  }
+  if (locationTabButton && locationTabButton.style.display === 'none') {
+    locationTabButton.style.display = '';
+  }
 }
 
 function setupTabHandlers() {
@@ -472,6 +489,13 @@ function setupTabHandlers() {
         showTab(playerTab);
         setActiveTabButton(playerTabButton);
       }
+    },
+    {
+      buttonSelector: '.locationTabButton',
+      onClick: () => {
+        showTab(locationTab);
+        setActiveTabButton(locationTabButton);
+      }
     }
   ];
 
@@ -506,6 +530,7 @@ function hideTab() {
   if (playerStatsTab) playerStatsTab.style.display = "none";
   if (worldsTab) worldsTab.style.display = "none";
   if (playerTab) playerTab.style.display = "none";
+  if (locationTab) locationTab.style.display = "none";
 }
 
 function showTab(tab) {
@@ -525,6 +550,7 @@ function initTabs() {
   cardSubTabButton = document.querySelector('.cardSubTabButton');
   worldSubTabButton = document.querySelector('.worldSubTabButton');
   playerTabButton = document.querySelector('.playerTabButton');
+  locationTabButton = document.querySelector('.locationTabButton');
   mainTab = document.querySelector('.mainTab');
   cardSubTab = document.querySelector('.cardSubTab');
   deckTab = document.querySelector('.deckTab');
@@ -532,6 +558,8 @@ function initTabs() {
   playerStatsTab = document.querySelector('.playerStatsTab');
   worldsTab = document.querySelector('.worldsTab');
   playerTab = document.querySelector('.playerTab');
+  locationTab = document.querySelector('.locationTab');
+  locationListContainer = document.querySelector('.location-list');
   purchasedUpgradeList = document.querySelector('.purchased-upgrade-list');
   activeEffectsContainer = document.querySelector('.active-effects');
   tooltip = document.getElementById('tooltip');
@@ -922,6 +950,7 @@ function showJobCarouselView() {
 document.addEventListener("DOMContentLoaded", () => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   initTabs();
+  window.addEventListener('location-discovered', e => addDiscoveredLocation(e.detail.name));
   loadGame();
   initVignetteToggles();
   if (window.lucide) lucide.createIcons();
