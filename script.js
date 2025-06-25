@@ -947,11 +947,13 @@ document.addEventListener("DOMContentLoaded", () => {
   shuffleArray(deck);
   checkUpgradeUnlocks();
 
-  nextStageBtn.style.display = 'none';
-  nextStageBtn.addEventListener("click", () => {
+  if (nextStageBtn) {
     nextStageBtn.style.display = 'none';
-    openCamp(() => openCardUpgradeSelection(nextStage));
-  });
+    nextStageBtn.addEventListener("click", () => {
+      nextStageBtn.style.display = 'none';
+      openCamp(() => openCardUpgradeSelection(nextStage));
+    });
+  }
   fightBossBtn.addEventListener("click", () => {
     fightBossBtn.style.display = "none";
     spawnBossEvent();
@@ -1326,7 +1328,7 @@ function nextStage() {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  nextStageBtn.style.display = 'none';
+  if (nextStageBtn) nextStageBtn.style.display = 'none';
   if (isBossStage) {
     respawnDealerStage();
   } else {
@@ -1361,7 +1363,7 @@ function nextWorld() {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  nextStageBtn.style.display = 'none';
+  if (nextStageBtn) nextStageBtn.style.display = 'none';
   respawnDealerStage();
 }
 
@@ -1390,7 +1392,7 @@ function goToWorld(id) {
   inCombat = false;
   currentEnemy = null;
   redrawAllowed = false;
-  nextStageBtn.style.display = 'none';
+  if (nextStageBtn) nextStageBtn.style.display = 'none';
   renderWorldsMenu();
   updateWorldTabNotification();
   respawnDealerStage();
@@ -1403,6 +1405,7 @@ function resetStageCashStats() {
 }
 
 function updateNextStageAvailability() {
+  if (!nextStageBtn) return;
   if (stageData.kills >= STAGE_KILL_REQUIREMENT) {
     nextStageBtn.disabled = false;
     nextStageBtn.style.display = 'inline-block';
