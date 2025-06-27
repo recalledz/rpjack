@@ -67,11 +67,6 @@ export function initSpeech() {
   container.innerHTML = `
     <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
     <div id="speechLevel" class="speech-level"></div>
-    <div class="speech-orbs">
-      <div class="speech-orb" id="orbBody"><div class="orb-fill"></div></div>
-      <div class="speech-orb" id="orbInsight"><div class="orb-fill"></div></div>
-      <div class="speech-orb" id="orbWill"><div class="orb-fill"></div></div>
-    </div>
     <div class="word-list" id="verbList"></div>
     <div class="word-list" id="targetList" style="display:none"></div>
     <div id="capacityDisplay" class="capacity-display"></div>
@@ -104,16 +99,6 @@ export function initSpeech() {
   renderResources();
   renderGains();
   renderUpgrades();
-
-  container.querySelectorAll('.speech-orb').forEach(el => {
-    el.addEventListener('mouseenter', e => {
-      const id = e.currentTarget.id.replace('orb', '').toLowerCase();
-      const orb = speechState.orbs[id];
-      if (!orb) return;
-      window.showTooltip(`${id}: ${Math.floor(orb.current)}/${orb.max}`, e.pageX + 10, e.pageY + 10);
-    });
-    el.addEventListener('mouseleave', window.hideTooltip);
-  });
 }
 
 function onDrag(e) {
@@ -131,6 +116,7 @@ function onDrop(e) {
 }
 
 function renderLists() {
+  if (!container) return;
   const makeTile = (word, type) => {
     const d = document.createElement('div');
     d.className = 'word-tile';
@@ -151,6 +137,7 @@ function renderLists() {
 }
 
 function createSlots() {
+  if (!container) return;
   const slotContainer = container.querySelector('#phraseSlots');
   slotContainer.innerHTML = '';
   speechState.slots.forEach((_, idx) => {
@@ -164,20 +151,24 @@ function createSlots() {
 }
 
 function renderOrbs() {
-  const update = (id, orb) => {
-    const fill = container.querySelector(`#${id} .orb-fill`);
-    if (!fill) return;
-    const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
-    fill.style.height = `${pct}%`;
-    const el = container.querySelector(`#${id}`);
-    if (el) el.title = `${Math.floor(orb.current)}/${orb.max}`;
-  };
-  update('orbBody', speechState.orbs.body);
-  update('orbInsight', speechState.orbs.insight);
-  update('orbWill', speechState.orbs.will);
+  if (container) {
+    const update = (id, orb) => {
+      const fill = container.querySelector(`#${id} .orb-fill`);
+      if (!fill) return;
+      const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
+      fill.style.height = `${pct}%`;
+      const el = container.querySelector(`#${id}`);
+      if (el) el.title = `${Math.floor(orb.current)}/${orb.max}`;
+    };
+    update('orbBody', speechState.orbs.body);
+    update('orbInsight', speechState.orbs.insight);
+    update('orbWill', speechState.orbs.will);
+  }
+  window.dispatchEvent(new CustomEvent('orbs-changed'));
 }
 
 function renderSlots() {
+  if (!container) return;
   createSlots();
   container.querySelectorAll('.phrase-slot').forEach(slot => {
     const idx = Number(slot.dataset.index);
@@ -187,6 +178,7 @@ function renderSlots() {
 }
 
 function renderPhraseInfo() {
+  if (!container) return;
   const info = container.querySelector('#phraseInfo');
   if (!info) return;
   const wordsArr = speechState.slots.filter(Boolean);
@@ -260,8 +252,9 @@ function castPhrase() {
 }
 
 function renderEcho() {
+  if (!container) return;
   const log = container.querySelector('#echoLog');
-  log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
+  if (log) log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
 }
 
 function addSpeechXP(amt) {
@@ -282,6 +275,7 @@ function addSpeechXP(amt) {
 }
 
 function renderXpBar() {
+  if (!container) return;
   const bar = container.querySelector('.speech-xp-bar');
   const fill = bar ? bar.querySelector('.speech-xp-fill') : null;
   if (!bar || !fill) return;
@@ -367,6 +361,7 @@ function renderUpgrades() {
 }
 
 export function tickSpeech(delta) {
+  if (!container) return;
   const dt = delta / 1000;
   ['insight', 'body', 'will'].forEach(k => {
     const orb = speechState.orbs[k];
