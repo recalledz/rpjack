@@ -36,14 +36,15 @@ export function initSpeech() {
   if (!container) return;
   container.innerHTML = `
     <div class="speech-orbs">
-      <div class="speech-orb" id="orbBody"></div>
-      <div class="speech-orb" id="orbInsight"></div>
-      <div class="speech-orb" id="orbWill"></div>
+      <div class="speech-orb" id="orbBody"><div class="orb-fill"></div></div>
+      <div class="speech-orb" id="orbInsight"><div class="orb-fill"></div></div>
+      <div class="speech-orb" id="orbWill"><div class="orb-fill"></div></div>
     </div>
     <div class="word-list" id="verbList"></div>
     <div class="phrase-slots">
       <div class="phrase-slot" data-index="0"></div>
       <button id="castPhraseBtn">Cast</button>
+      <div id="phraseInfo" class="phrase-info"></div>
     </div>
     <div class="echo-log" id="echoLog"></div>
   `;
@@ -93,9 +94,17 @@ function renderLists() {
 }
 
 function renderOrbs() {
-  container.querySelector('#orbBody').textContent = `Body: ${speechState.orbs.body.current}/${speechState.orbs.body.max}`;
-  container.querySelector('#orbInsight').textContent = `Insight: ${speechState.orbs.insight.current}/${speechState.orbs.insight.max}`;
-  container.querySelector('#orbWill').textContent = `Will: ${speechState.orbs.will.current}/${speechState.orbs.will.max}`;
+  const update = (id, orb) => {
+    const fill = container.querySelector(`#${id} .orb-fill`);
+    if (!fill) return;
+    const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
+    fill.style.height = `${pct}%`;
+    const el = container.querySelector(`#${id}`);
+    if (el) el.title = `${Math.floor(orb.current)}/${orb.max}`;
+  };
+  update('orbBody', speechState.orbs.body);
+  update('orbInsight', speechState.orbs.insight);
+  update('orbWill', speechState.orbs.will);
 }
 
 function renderSlots() {
@@ -103,6 +112,33 @@ function renderSlots() {
     const idx = Number(slot.dataset.index);
     slot.textContent = speechState.slots[idx] || '';
   });
+  renderPhraseInfo();
+}
+
+function renderPhraseInfo() {
+  const info = container.querySelector('#phraseInfo');
+  if (!info) return;
+  const wordsArr = speechState.slots.filter(Boolean);
+  if (wordsArr.length < 1) {
+    info.textContent = '';
+    return;
+  }
+  const phrase = wordsArr.join(' ');
+  const def = phraseEffects[phrase];
+  if (!def) {
+    info.textContent = '';
+    return;
+  }
+  const cost = Object.entries(def.cost)
+    .map(([k, v]) => `${v} ${k}`)
+    .join(', ');
+  const effect = def.create
+    ? Object.entries(def.create)
+        .map(([k, v]) => `+${v} ${k}`)
+        .join(', ')
+    : 'None';
+  const cd = def.cd ? def.cd / 1000 + 's' : '0s';
+  info.textContent = `Cost: ${cost} | Effect: ${effect} | CD: ${cd}`;
 }
 
 function castPhrase() {
@@ -130,6 +166,7 @@ function castPhrase() {
   renderOrbs();
   renderResources();
   renderEcho();
+  renderPhraseInfo();
 }
 
 function renderEcho() {
