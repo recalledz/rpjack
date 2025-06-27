@@ -30,13 +30,18 @@ export const speechState = {
 };
 
 const words = {
-  verbs: ['Murmur'],
+  verbs: [],
   targets: []
+};
+
+export const wordState = {
+  verbs: { Murmur: { level: 1, xp: 0 } },
+  targets: {}
 };
 
 const wordData = {
   verbs: {
-    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 3000 }
+    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 0 }
   },
   targets: {
     Form: { capacity: 2 }
@@ -47,7 +52,7 @@ const phraseEffects = {
   Murmur: {
     cost: { insight: 5 },
     create: { thought: 1 },
-    cd: 3000,
+    cd: 0,
     xp: 1,
     capacity: 1,
     complexity: { verb: 1, target: 0 }
@@ -61,6 +66,36 @@ const phraseEffects = {
     complexity: { verb: 1, target: 1 }
   }
 };
+
+function getWordCategory(word) {
+  if (wordData.verbs[word]) return 'verbs';
+  if (wordData.targets[word]) return 'targets';
+  return null;
+}
+
+function getWordPotency(word) {
+  const cat = getWordCategory(word);
+  if (!cat || !wordState[cat][word]) return 1;
+  return Math.pow(1.1, wordState[cat][word].level - 1);
+}
+
+function getWordXpReq(word) {
+  const cat = getWordCategory(word);
+  if (!cat || !wordState[cat][word]) return 5;
+  const lvl = wordState[cat][word].level;
+  return Math.floor(5 * Math.pow(2, lvl - 1));
+}
+
+function addWordXp(word, amt) {
+  const cat = getWordCategory(word);
+  if (!cat || !wordState[cat][word]) return;
+  const ws = wordState[cat][word];
+  ws.xp += amt;
+  while (ws.xp >= getWordXpReq(word)) {
+    ws.xp -= getWordXpReq(word);
+    ws.level += 1;
+  }
+}
 
 let container;
 
@@ -122,7 +157,7 @@ function onDrop(e) {
   const type = e.dataTransfer.getData('text/type');
   const word = e.dataTransfer.getData('text/word');
   const idx = Number(e.currentTarget.dataset.index);
-  if (type !== 'verb') return;
+  if (idx === 0 && type !== 'verb') return;
   speechState.slots[idx] = word;
   renderSlots();
 }
@@ -132,14 +167,24 @@ function renderLists() {
   const makeTile = (word, type) => {
     const d = document.createElement('div');
     d.className = 'word-tile';
+    d.classList.add(type);
     d.textContent = word;
     d.draggable = true;
     d.dataset.type = type;
     d.dataset.word = word;
+    const ws = wordState[type + 's']?.[word];
+    if (ws) {
+      const potency = getWordPotency(word).toFixed(2);
+      const xpReq = getWordXpReq(word);
+      d.title = `Lv.${ws.level} ${ws.xp}/${xpReq} Potency ${potency}x`;
+    }
     return d;
   };
   const verbList = container.querySelector('#verbList');
-  words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
+  if (verbList) {
+    verbList.innerHTML = '';
+    words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
+  }
   const targetList = container.querySelector('#targetList');
   if (targetList) {
     targetList.innerHTML = '';
@@ -184,6 +229,8 @@ function renderSlots() {
   createSlots();
   container.querySelectorAll('.phrase-slot').forEach(slot => {
     const idx = Number(slot.dataset.index);
+    slot.classList.toggle('verb-slot', idx === 0);
+    slot.classList.toggle('target-slot', idx > 0);
     slot.textContent = speechState.slots[idx] || '';
   });
   renderPhraseInfo();
@@ -205,12 +252,13 @@ function renderPhraseInfo() {
     info.textContent = '';
     return;
   }
+  const potMult = wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length;
   const cost = Object.entries(def.cost)
-    .map(([k, v]) => `${v} ${k}`)
+    .map(([k, v]) => `${Math.ceil(v * potMult)} ${k}`)
     .join(', ');
   const effect = def.create
     ? Object.entries(def.create)
-        .map(([k, v]) => `+${v} ${k}`)
+        .map(([k, v]) => `+${(v * potMult).toFixed(1)} ${k}`)
         .join(', ')
     : 'None';
   const cd = def.cd ? def.cd / 1000 + 's' : '0s';
@@ -233,8 +281,9 @@ function castPhrase() {
   if (!def) return;
   if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
   if ((def.capacity || 0) > speechState.capacity) return;
+  const potMult = wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length;
   for (const [orb, cost] of Object.entries(def.cost)) {
-    if (speechState.orbs[orb].current < cost) return;
+    if (speechState.orbs[orb].current < cost * potMult) return;
   }
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level + speechState.masteryBonus;
@@ -242,16 +291,17 @@ function castPhrase() {
   const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2));
   const success = Math.random() <= chance;
   for (const [orb, cost] of Object.entries(def.cost)) {
-    speechState.orbs[orb].current -= cost;
+    speechState.orbs[orb].current -= cost * potMult;
   }
   speechState.cooldowns[phrase] = Date.now() + def.cd;
   if (success) {
     if (def.create) {
       for (const [res, amt] of Object.entries(def.create)) {
         const r = speechState.resources[res];
-        if (r) r.current = Math.min(r.max, r.current + amt);
+        if (r) r.current = Math.min(r.max, r.current + amt * potMult);
       }
     }
+    wordsArr.forEach(w => addWordXp(w, def.xp || 1));
     if (def.xp) addSpeechXP(def.xp);
     showPhraseCloud(phrase);
   } else {
@@ -312,6 +362,9 @@ function addSpeechXP(amt) {
   const oldLevel = speechState.level;
   speechState.level = Math.floor(speechState.xp / 10) + 1;
   if (speechState.level !== oldLevel) {
+    if (!words.verbs.includes('Murmur')) {
+      words.verbs.push('Murmur');
+    }
     if (speechState.level >= 2 && !words.targets.includes('Insight')) {
       words.targets.push('Insight');
     }
@@ -340,7 +393,10 @@ function renderXpBar() {
 function checkUnlocks() {
   if (!speechState.formUnlocked && speechState.resources.thought.current >= 15) {
     speechState.formUnlocked = true;
-    if (!words.targets.includes('Form')) words.targets.push('Form');
+    if (!words.targets.includes('Form')) {
+      words.targets.push('Form');
+      wordState.targets['Form'] = { level: 1, xp: 0 };
+    }
     speechState.resources.structure.unlocked = true;
     if (speechState.slots.length < 2) speechState.slots.push(null);
     addLog('A concept stabilizes… Form is now available.', 'info');
