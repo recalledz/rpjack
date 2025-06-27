@@ -30,7 +30,7 @@ export const speechState = {
 };
 
 const words = {
-  verbs: [],
+  verbs: ['Murmur'],
   targets: []
 };
 
