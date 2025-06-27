@@ -2284,6 +2284,27 @@ body {
     margin-top: 10px;
 }
 
+.speech-xp-bar {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    background: #222;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+.speech-xp-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: #88f;
+}
+
+.capacity-display {
+    font-size: 0.8rem;
+}
+
 .speech-orbs {
     display: flex;
     gap: 10px;

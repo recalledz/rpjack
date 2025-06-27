@@ -1,3 +1,4 @@
+import addLog from './log.js';
 export const speechState = {
   orbs: {
     body: { current: 0, max: 10 },
@@ -5,7 +6,8 @@ export const speechState = {
     will: { current: 0, max: 10 }
   },
   resources: {
-    thought: { current: 0, max: 30 }
+    thought: { current: 0, max: 30 },
+    structure: { current: 0, max: 10, unlocked: false }
   },
   gains: {
     body: 0,
@@ -18,15 +20,43 @@ export const speechState = {
   capacity: 1,
   slots: [null],
   cooldowns: {},
-  echo: []
+  echo: [],
+  xp: 0,
+  level: 1,
+  formUnlocked: false
 };
 
 const words = {
-  verbs: ['Murmur']
+  verbs: ['Murmur'],
+  targets: []
+};
+
+const wordData = {
+  verbs: {
+    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 3000 }
+  },
+  targets: {
+    Form: { capacity: 2 }
+  }
 };
 
 const phraseEffects = {
-  Murmur: { cost: { insight: 2 }, create: { thought: 1 }, cd: 1000 }
+  Murmur: {
+    cost: { insight: 5 },
+    create: { thought: 1 },
+    cd: 3000,
+    xp: 1,
+    capacity: 1,
+    complexity: { verb: 1, target: 0 }
+  },
+  'Murmur Form': {
+    cost: { insight: 5 },
+    create: { thought: -1, structure: 3 },
+    cd: 3000,
+    xp: 1,
+    capacity: 3,
+    complexity: { verb: 1, target: 1 }
+  }
 };
 
 let container;
@@ -35,25 +65,23 @@ export function initSpeech() {
   container = document.getElementById('speechPanel');
   if (!container) return;
   container.innerHTML = `
+    <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
     <div class="speech-orbs">
       <div class="speech-orb" id="orbBody"><div class="orb-fill"></div></div>
       <div class="speech-orb" id="orbInsight"><div class="orb-fill"></div></div>
       <div class="speech-orb" id="orbWill"><div class="orb-fill"></div></div>
     </div>
     <div class="word-list" id="verbList"></div>
-    <div class="phrase-slots">
-      <div class="phrase-slot" data-index="0"></div>
-      <button id="castPhraseBtn">Cast</button>
-      <div id="phraseInfo" class="phrase-info"></div>
-    </div>
+    <div class="word-list" id="targetList" style="display:none"></div>
+    <div id="capacityDisplay" class="capacity-display"></div>
+    <div class="phrase-slots" id="phraseSlots"></div>
+    <button id="castPhraseBtn">Cast</button>
+    <div id="phraseInfo" class="phrase-info"></div>
     <div class="echo-log" id="echoLog"></div>
   `;
   renderLists();
   renderOrbs();
-  container.querySelectorAll('.phrase-slot').forEach(slot => {
-    slot.addEventListener('dragover', e => e.preventDefault());
-    slot.addEventListener('drop', onDrop);
-  });
+  createSlots();
   container.querySelectorAll('.word-tile').forEach(t => {
     t.addEventListener('dragstart', onDrag);
   });
@@ -91,6 +119,25 @@ function renderLists() {
   };
   const verbList = container.querySelector('#verbList');
   words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
+  const targetList = container.querySelector('#targetList');
+  if (targetList) {
+    targetList.innerHTML = '';
+    words.targets.forEach(w => targetList.appendChild(makeTile(w, 'target')));
+    targetList.style.display = words.targets.length ? 'flex' : 'none';
+  }
+}
+
+function createSlots() {
+  const slotContainer = container.querySelector('#phraseSlots');
+  slotContainer.innerHTML = '';
+  speechState.slots.forEach((_, idx) => {
+    const slot = document.createElement('div');
+    slot.className = 'phrase-slot';
+    slot.dataset.index = idx;
+    slot.addEventListener('dragover', e => e.preventDefault());
+    slot.addEventListener('drop', onDrop);
+    slotContainer.appendChild(slot);
+  });
 }
 
 function renderOrbs() {
@@ -108,6 +155,7 @@ function renderOrbs() {
 }
 
 function renderSlots() {
+  createSlots();
   container.querySelectorAll('.phrase-slot').forEach(slot => {
     const idx = Number(slot.dataset.index);
     slot.textContent = speechState.slots[idx] || '';
@@ -139,6 +187,9 @@ function renderPhraseInfo() {
     : 'None';
   const cd = def.cd ? def.cd / 1000 + 's' : '0s';
   info.textContent = `Cost: ${cost} | Effect: ${effect} | CD: ${cd}`;
+  const cap = def.capacity || 0;
+  const capDisplay = container.querySelector('#capacityDisplay');
+  if (capDisplay) capDisplay.textContent = `Capacity: ${cap}/${speechState.capacity}`;
 }
 
 function castPhrase() {
@@ -148,6 +199,16 @@ function castPhrase() {
   const def = phraseEffects[phrase];
   if (!def) return;
   if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
+  if ((def.capacity || 0) > speechState.capacity) return;
+  const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
+  const mastery = speechState.level;
+  const chance = (mastery + 0.5) / (complexity + 100);
+  if (Math.random() > chance) {
+    speechState.echo.unshift(`Failed ${phrase}`);
+    if (speechState.echo.length > 5) speechState.echo.pop();
+    renderEcho();
+    return;
+  }
   for (const [orb, cost] of Object.entries(def.cost)) {
     if (speechState.orbs[orb].current < cost) return;
   }
@@ -160,6 +221,7 @@ function castPhrase() {
       if (r) r.current = Math.min(r.max, r.current + amt);
     }
   }
+  if (def.xp) addSpeechXP(def.xp);
   speechState.cooldowns[phrase] = Date.now() + def.cd;
   speechState.echo.unshift(`Used ${phrase}`);
   if (speechState.echo.length > 5) speechState.echo.pop();
@@ -167,6 +229,7 @@ function castPhrase() {
   renderResources();
   renderEcho();
   renderPhraseInfo();
+  checkUnlocks();
 }
 
 function renderEcho() {
@@ -174,11 +237,52 @@ function renderEcho() {
   log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
 }
 
+function addSpeechXP(amt) {
+  speechState.xp += amt;
+  const oldLevel = speechState.level;
+  speechState.level = Math.floor(speechState.xp / 10) + 1;
+  if (speechState.level !== oldLevel) {
+    if (speechState.level >= 2 && !words.targets.includes('Insight')) {
+      words.targets.push('Insight');
+    }
+    if (speechState.level >= 10 && speechState.slots.length < 3) {
+      speechState.slots.push(null);
+    }
+    renderLists();
+    renderSlots();
+  }
+  renderXpBar();
+}
+
+function renderXpBar() {
+  const bar = container.querySelector('.speech-xp-bar');
+  const fill = bar ? bar.querySelector('.speech-xp-fill') : null;
+  if (!bar || !fill) return;
+  const levelBase = (speechState.level - 1) * 10;
+  const pct = Math.min(1, (speechState.xp - levelBase) / 10);
+  fill.style.width = `${pct * 100}%`;
+  bar.title = `Speech XP ${speechState.xp}/${levelBase + 10}`;
+}
+
+function checkUnlocks() {
+  if (!speechState.formUnlocked && speechState.resources.thought.current >= 15) {
+    speechState.formUnlocked = true;
+    if (!words.targets.includes('Form')) words.targets.push('Form');
+    speechState.resources.structure.unlocked = true;
+    if (speechState.slots.length < 2) speechState.slots.push(null);
+    addLog('A concept stabilizes… Form is now available.', 'info');
+    renderLists();
+    renderResources();
+    renderSlots();
+  }
+}
+
 function renderResources() {
   const panel = document.getElementById('secondaryResources');
   if (!panel) return;
   panel.innerHTML = '';
   Object.entries(speechState.resources).forEach(([key, res]) => {
+    if (res.unlocked === false) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'resource';
     const text = document.createElement('div');
@@ -244,4 +348,6 @@ export function tickSpeech(delta) {
   });
   renderOrbs();
   renderResources();
+  renderXpBar();
+  checkUnlocks();
 }
