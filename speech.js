@@ -15,7 +15,8 @@ export const speechState = {
     will: 0
   },
   upgrades: {
-    cohere: { level: 0, baseCost: 2 }
+    cohere: { level: 0, baseCost: 2 },
+    vocalMaturity: { level: 0, baseCost: 2, unlocked: false }
   },
   capacity: 1,
   slots: [null],
@@ -23,7 +24,9 @@ export const speechState = {
   echo: [],
   xp: 0,
   level: 1,
-  formUnlocked: false
+  formUnlocked: false,
+  failCount: 0,
+  masteryBonus: 0
 };
 
 const words = {
@@ -65,8 +68,11 @@ export function initSpeech() {
   container = document.getElementById('speechPanel');
   if (!container) return;
   container.innerHTML = `
-    <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
-    <div id="speechLevel" class="speech-level"></div>
+    <div class="speech-xp-container">
+      <i data-lucide="mic" class="speech-icon"></i>
+      <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
+      <div id="speechLevel" class="speech-level"></div>
+    </div>
 
     <div class="word-list" id="verbList"></div>
     <div class="word-list" id="targetList" style="display:none"></div>
@@ -95,7 +101,7 @@ export function initSpeech() {
     const def = phraseEffects[phrase];
     if (!def) return;
     const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
-    const mastery = speechState.level;
+    const mastery = speechState.level + speechState.masteryBonus;
     const difficulty = complexity + 100;
     const chance = ((mastery + 0.5) / difficulty) * 100;
     window.showTooltip(`${chance.toFixed(1)}% chance`, e.pageX + 10, e.pageY + 10);
@@ -210,7 +216,7 @@ function renderPhraseInfo() {
     : 'None';
   const cd = def.cd ? def.cd / 1000 + 's' : '0s';
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
-  const mastery = speechState.level;
+  const mastery = speechState.level + speechState.masteryBonus;
   const difficulty = complexity + 100;
   const chance = ((mastery + 0.5) / difficulty) * 100;
   info.textContent =
@@ -229,13 +235,20 @@ function castPhrase() {
   if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
   if ((def.capacity || 0) > speechState.capacity) return;
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
-  const mastery = speechState.level;
+  const mastery = speechState.level + speechState.masteryBonus;
   const difficulty = complexity + 100;
   const chance = (mastery + 0.5) / difficulty;
   if (Math.random() > chance) {
+    speechState.failCount += 1;
+    if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
+      speechState.upgrades.vocalMaturity.unlocked = true;
+      addLog('Vocal Maturity unlocked!', 'info');
+      renderUpgrades();
+    }
     speechState.echo.unshift(`Failed ${phrase}`);
     if (speechState.echo.length > 5) speechState.echo.pop();
     renderEcho();
+    updateCastCooldown();
     return;
   }
   for (const [orb, cost] of Object.entries(def.cost)) {
@@ -344,6 +357,11 @@ function checkUnlocks() {
     renderResources();
     renderSlots();
   }
+  if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
+    speechState.upgrades.vocalMaturity.unlocked = true;
+    addLog('Vocal Maturity unlocked!', 'info');
+    renderUpgrades();
+  }
 }
 
 function renderResources() {
@@ -388,7 +406,11 @@ function purchaseUpgrade(name) {
   if (speechState.orbs.insight.current < cost) return;
   speechState.orbs.insight.current -= cost;
   up.level += 1;
-  speechState.gains.insight += 0.5;
+  if (name === 'cohere') {
+    speechState.gains.insight += 0.5;
+  } else if (name === 'vocalMaturity') {
+    speechState.masteryBonus += 0.5;
+  }
   renderUpgrades();
   renderGains();
   renderOrbs();
@@ -404,6 +426,15 @@ function renderUpgrades() {
   btn.textContent = `Cohere Lv.${up.level} (cost ${cost})`;
   btn.addEventListener('click', () => purchaseUpgrade('cohere'));
   panel.appendChild(btn);
+
+  const vm = speechState.upgrades.vocalMaturity;
+  if (vm.unlocked) {
+    const vmBtn = document.createElement('button');
+    const vmCost = getUpgradeCost('vocalMaturity');
+    vmBtn.textContent = `Vocal Maturity Lv.${vm.level} (cost ${vmCost})`;
+    vmBtn.addEventListener('click', () => purchaseUpgrade('vocalMaturity'));
+    panel.appendChild(vmBtn);
+  }
 }
 
 export function tickSpeech(delta) {
