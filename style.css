@@ -2381,6 +2381,14 @@ body {
     user-select: none;
     font-size: 0.8rem;
 }
+.word-tile.verb {
+    background: #223;
+    border-color: #556;
+}
+.word-tile.target {
+    background: #322;
+    border-color: #755;
+}
 
 .phrase-slots {
     display: flex;
@@ -2403,6 +2411,12 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
+}
+.phrase-slot.verb-slot {
+    background: rgba(34,34,51,0.4);
+}
+.phrase-slot.target-slot {
+    background: rgba(51,34,34,0.4);
 }
 
 .cast-wrapper {
