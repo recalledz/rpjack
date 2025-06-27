@@ -20,7 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { initSpeech } from "./speech.js";
+import { initSpeech, tickSpeech } from "./speech.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -2687,17 +2687,18 @@ if (currentEnemy) {
     }
   }
 
-if (systems.manaUnlocked) {
-stats.mana = Math.min(
-stats.maxMana,
-stats.mana + (stats.manaRegen * deltaTime) / 1000
+  if (systems.manaUnlocked) {
+  stats.mana = Math.min(
+  stats.maxMana,
+  stats.mana + (stats.manaRegen * deltaTime) / 1000
 );
  updateManaBar();
 }
 
   // passive progress for bar upgrades
   tickBarProgress(deltaTime);
-requestAnimationFrame(gameLoop);
+  tickSpeech(deltaTime);
+  requestAnimationFrame(gameLoop);
 }
 
 //devtools

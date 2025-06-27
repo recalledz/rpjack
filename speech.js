@@ -1,26 +1,32 @@
 export const speechState = {
   orbs: {
-    body: { current: 10, max: 10 },
-    insight: { current: 10, max: 10 },
-    will: { current: 10, max: 10 }
+    body: { current: 0, max: 10 },
+    insight: { current: 0, max: 10 },
+    will: { current: 0, max: 10 }
   },
-  xp: 0,
-  capacity: 3,
-  slots: [null, null, null],
+  resources: {
+    thought: { current: 0, max: 30 }
+  },
+  gains: {
+    body: 0,
+    insight: 1,
+    will: 0
+  },
+  upgrades: {
+    cohere: { level: 0, baseCost: 2 }
+  },
+  capacity: 1,
+  slots: [null],
   cooldowns: {},
   echo: []
 };
 
 const words = {
-  verbs: ['Murmur', 'Speak'],
-  targets: ['Form', 'Insight', 'Life'],
-  modifiers: ['Accelerated', 'Inwardly']
+  verbs: ['Murmur']
 };
 
 const phraseEffects = {
-  'Murmur Insight Inwardly': { cost: { insight: 1 }, xp: 1, cd: 2000 },
-  'Speak Form': { cost: { insight: 2 }, xp: 2, cd: 3000 },
-  'Murmur Life Accelerated': { cost: { insight: 1, body: 1 }, xp: 1, cd: 1500 }
+  Murmur: { cost: { insight: 2 }, create: { thought: 1 }, cd: 1000 }
 };
 
 let container;
@@ -35,12 +41,8 @@ export function initSpeech() {
       <div class="speech-orb" id="orbWill"></div>
     </div>
     <div class="word-list" id="verbList"></div>
-    <div class="word-list" id="targetList"></div>
-    <div class="word-list" id="modifierList"></div>
     <div class="phrase-slots">
       <div class="phrase-slot" data-index="0"></div>
-      <div class="phrase-slot" data-index="1"></div>
-      <div class="phrase-slot" data-index="2"></div>
       <button id="castPhraseBtn">Cast</button>
     </div>
     <div class="echo-log" id="echoLog"></div>
@@ -57,6 +59,9 @@ export function initSpeech() {
   const castBtn = container.querySelector('#castPhraseBtn');
   castBtn.addEventListener('click', castPhrase);
   renderSlots();
+  renderResources();
+  renderGains();
+  renderUpgrades();
 }
 
 function onDrag(e) {
@@ -68,8 +73,7 @@ function onDrop(e) {
   const type = e.dataTransfer.getData('text/type');
   const word = e.dataTransfer.getData('text/word');
   const idx = Number(e.currentTarget.dataset.index);
-  const expected = idx === 0 ? 'verb' : idx === 1 ? 'target' : 'modifier';
-  if (type !== expected) return;
+  if (type !== 'verb') return;
   speechState.slots[idx] = word;
   renderSlots();
 }
@@ -86,10 +90,6 @@ function renderLists() {
   };
   const verbList = container.querySelector('#verbList');
   words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
-  const targetList = container.querySelector('#targetList');
-  words.targets.forEach(w => targetList.appendChild(makeTile(w, 'target')));
-  const modList = container.querySelector('#modifierList');
-  words.modifiers.forEach(w => modList.appendChild(makeTile(w, 'modifier')));
 }
 
 function renderOrbs() {
@@ -107,7 +107,7 @@ function renderSlots() {
 
 function castPhrase() {
   const wordsArr = speechState.slots.filter(Boolean);
-  if (wordsArr.length < 2) return;
+  if (wordsArr.length < 1) return;
   const phrase = wordsArr.join(' ');
   const def = phraseEffects[phrase];
   if (!def) return;
@@ -118,15 +118,93 @@ function castPhrase() {
   for (const [orb, cost] of Object.entries(def.cost)) {
     speechState.orbs[orb].current -= cost;
   }
-  speechState.xp += def.xp;
+  if (def.create) {
+    for (const [res, amt] of Object.entries(def.create)) {
+      const r = speechState.resources[res];
+      if (r) r.current = Math.min(r.max, r.current + amt);
+    }
+  }
   speechState.cooldowns[phrase] = Date.now() + def.cd;
-  speechState.echo.unshift(`Used ${phrase} (-${Object.entries(def.cost).map(([k,v])=>v+" "+k).join(', ')})`);
+  speechState.echo.unshift(`Used ${phrase}`);
   if (speechState.echo.length > 5) speechState.echo.pop();
   renderOrbs();
+  renderResources();
   renderEcho();
 }
 
 function renderEcho() {
   const log = container.querySelector('#echoLog');
   log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
+}
+
+function renderResources() {
+  const panel = document.getElementById('secondaryResources');
+  if (!panel) return;
+  panel.innerHTML = '';
+  Object.entries(speechState.resources).forEach(([key, res]) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'resource';
+    const text = document.createElement('div');
+    text.className = 'resource-text';
+    text.textContent = `${key}: ${Math.floor(res.current)}/${res.max}`;
+    const bar = document.createElement('div');
+    bar.className = 'resource-bar';
+    const fill = document.createElement('div');
+    fill.className = 'resource-fill';
+    fill.style.width = `${(res.current / res.max) * 100}%`;
+    bar.appendChild(fill);
+    wrapper.appendChild(text);
+    wrapper.appendChild(bar);
+    panel.appendChild(wrapper);
+  });
+}
+
+function renderGains() {
+  const panel = document.getElementById('speechGains');
+  if (!panel) return;
+  panel.innerHTML = `Insight/sec: ${speechState.gains.insight.toFixed(1)}<br>` +
+    `Body/sec: ${speechState.gains.body.toFixed(1)}<br>` +
+    `Will/sec: ${speechState.gains.will.toFixed(1)}`;
+}
+
+function getUpgradeCost(name) {
+  const up = speechState.upgrades[name];
+  return Math.floor(up.baseCost * Math.pow(2, up.level));
+}
+
+function purchaseUpgrade(name) {
+  const up = speechState.upgrades[name];
+  const cost = getUpgradeCost(name);
+  if (speechState.orbs.insight.current < cost) return;
+  speechState.orbs.insight.current -= cost;
+  up.level += 1;
+  speechState.gains.insight += 0.5;
+  renderUpgrades();
+  renderGains();
+  renderOrbs();
+}
+
+function renderUpgrades() {
+  const panel = document.getElementById('speechUpgrades');
+  if (!panel) return;
+  panel.innerHTML = '';
+  const up = speechState.upgrades.cohere;
+  const btn = document.createElement('button');
+  const cost = getUpgradeCost('cohere');
+  btn.textContent = `Cohere Lv.${up.level} (cost ${cost})`;
+  btn.addEventListener('click', () => purchaseUpgrade('cohere'));
+  panel.appendChild(btn);
+}
+
+export function tickSpeech(delta) {
+  const dt = delta / 1000;
+  ['insight', 'body', 'will'].forEach(k => {
+    const orb = speechState.orbs[k];
+    const rate = speechState.gains[k];
+    if (rate > 0 && orb.current < orb.max) {
+      orb.current = Math.min(orb.max, orb.current + rate * dt);
+    }
+  });
+  renderOrbs();
+  renderResources();
 }
