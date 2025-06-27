@@ -16,12 +16,12 @@ export const speechState = {
   },
   upgrades: {
     cohere: { level: 0, baseCost: 2 },
-    vocalMaturity: { level: 0, baseCost: 2, unlocked: false }
+    vocalMaturity: { level: 0, baseCost: 2, unlocked: false },
+    capacityBoost: { level: 0, baseCost: { insight: 10, thought: 5 }, unlocked: false }
   },
   capacity: 1,
   slots: [null],
   cooldowns: {},
-  echo: [],
   xp: 0,
   level: 1,
   formUnlocked: false,
@@ -83,7 +83,6 @@ export function initSpeech() {
       <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
     </div>
   <div id="phraseInfo" class="phrase-info"></div>
-    <div class="echo-log" id="echoLog"></div>
   `;
   if (window.lucide) lucide.createIcons();
   renderLists();
@@ -254,7 +253,7 @@ function castPhrase() {
       }
     }
     if (def.xp) addSpeechXP(def.xp);
-    speechState.echo.unshift(`Used ${phrase}`);
+    showPhraseCloud(phrase);
   } else {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
@@ -263,22 +262,15 @@ function castPhrase() {
       renderUpgrades();
     }
     if (def.xp) addSpeechXP(def.xp / 2);
-    speechState.echo.unshift(`Failed ${phrase}`);
+    showPhraseCloud('...');
   }
-  if (speechState.echo.length > 5) speechState.echo.pop();
   renderOrbs();
   renderResources();
-  renderEcho();
   renderPhraseInfo();
   updateCastCooldown();
   checkUnlocks();
 }
 
-function renderEcho() {
-  if (!container) return;
-  const log = container.querySelector('#echoLog');
-  if (log) log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
-}
 
 function updateCastCooldown() {
   const castBtn = container.querySelector('#castPhraseBtn');
@@ -355,6 +347,8 @@ function checkUnlocks() {
     renderLists();
     renderResources();
     renderSlots();
+    speechState.upgrades.capacityBoost.unlocked = true;
+    renderUpgrades();
   }
   if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
     speechState.upgrades.vocalMaturity.unlocked = true;
@@ -396,23 +390,41 @@ function renderGains() {
 
 function getUpgradeCost(name) {
   const up = speechState.upgrades[name];
-  return Math.floor(up.baseCost * Math.pow(2, up.level));
+  if (typeof up.baseCost === 'number') {
+    return Math.floor(up.baseCost * Math.pow(2, up.level));
+  }
+  const costs = {};
+  for (const [k, v] of Object.entries(up.baseCost)) {
+    costs[k] = Math.floor(v * Math.pow(2, up.level));
+  }
+  return costs;
 }
 
 function purchaseUpgrade(name) {
   const up = speechState.upgrades[name];
   const cost = getUpgradeCost(name);
-  if (speechState.orbs.insight.current < cost) return;
-  speechState.orbs.insight.current -= cost;
+  if (typeof cost === 'number') {
+    if (speechState.orbs.insight.current < cost) return;
+    speechState.orbs.insight.current -= cost;
+  } else {
+    if (cost.insight && speechState.orbs.insight.current < cost.insight) return;
+    if (cost.thought && speechState.resources.thought.current < cost.thought) return;
+    if (cost.insight) speechState.orbs.insight.current -= cost.insight;
+    if (cost.thought) speechState.resources.thought.current -= cost.thought;
+  }
   up.level += 1;
   if (name === 'cohere') {
     speechState.gains.insight += 0.5;
   } else if (name === 'vocalMaturity') {
     speechState.masteryBonus += 0.5;
+  } else if (name === 'capacityBoost') {
+    speechState.capacity += 2;
   }
   renderUpgrades();
   renderGains();
   renderOrbs();
+  renderResources();
+  renderPhraseInfo();
 }
 
 function renderUpgrades() {
@@ -434,6 +446,20 @@ function renderUpgrades() {
     vmBtn.addEventListener('click', () => purchaseUpgrade('vocalMaturity'));
     panel.appendChild(vmBtn);
   }
+
+  const cb = speechState.upgrades.capacityBoost;
+  if (cb.unlocked) {
+    const cbBtn = document.createElement('button');
+    const cbCost = getUpgradeCost('capacityBoost');
+    const costText = [];
+    if (typeof cbCost === 'object') {
+      if (cbCost.insight) costText.push(`${cbCost.insight} insight`);
+      if (cbCost.thought) costText.push(`${cbCost.thought} thought`);
+    }
+    cbBtn.textContent = `Capacity +2 (cost ${costText.join(', ')})`;
+    cbBtn.addEventListener('click', () => purchaseUpgrade('capacityBoost'));
+    panel.appendChild(cbBtn);
+  }
 }
 
 export function tickSpeech(delta) {
@@ -452,4 +478,13 @@ export function tickSpeech(delta) {
   renderPhraseInfo();
   updateCastCooldown();
   checkUnlocks();
+}
+
+function showPhraseCloud(text) {
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'phrase-cloud';
+  el.textContent = text;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
