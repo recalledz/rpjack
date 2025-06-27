@@ -98,6 +98,13 @@ function addWordXp(word, amt) {
 }
 
 let container;
+function attachWordListeners() {
+  if (!container) return;
+  container.querySelectorAll('.word-tile').forEach(t => {
+    t.removeEventListener('dragstart', onDrag);
+    t.addEventListener('dragstart', onDrag);
+  });
+}
 
 export function initSpeech() {
   container = document.getElementById('speechPanel');
@@ -123,9 +130,7 @@ export function initSpeech() {
   renderLists();
   renderOrbs();
   createSlots();
-  container.querySelectorAll('.word-tile').forEach(t => {
-    t.addEventListener('dragstart', onDrag);
-  });
+  attachWordListeners();
   const castBtn = container.querySelector('#castPhraseBtn');
   castBtn.addEventListener('click', castPhrase);
   castBtn.addEventListener('mouseenter', e => {
@@ -191,6 +196,7 @@ function renderLists() {
     words.targets.forEach(w => targetList.appendChild(makeTile(w, 'target')));
     targetList.style.display = words.targets.length ? 'flex' : 'none';
   }
+  attachWordListeners();
 }
 
 function createSlots() {
