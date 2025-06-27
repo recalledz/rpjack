@@ -102,9 +102,8 @@ export function initSpeech() {
     if (!def) return;
     const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
     const mastery = speechState.level + speechState.masteryBonus;
-    const difficulty = complexity + 100;
-    const ratio = (mastery + 0.5) / difficulty;
-    const chance = 0.95 * (1 - Math.exp(-ratio * 2.2)) * 100;
+    const difficulty = complexity;
+    const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2)) * 100;
     window.showTooltip(`${chance.toFixed(1)}% chance`, e.pageX + 10, e.pageY + 10);
   });
   castBtn.addEventListener('mouseleave', window.hideTooltip);
@@ -218,9 +217,8 @@ function renderPhraseInfo() {
   const cd = def.cd ? def.cd / 1000 + 's' : '0s';
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level + speechState.masteryBonus;
-  const difficulty = complexity + 100;
-  const ratio = (mastery + 0.5) / difficulty;
-  const chance = 0.95 * (1 - Math.exp(-ratio * 2.2)) * 100;
+  const difficulty = complexity;
+  const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2)) * 100;
   info.textContent =
     `Cost: ${cost} | Effect: ${effect} | CD: ${cd} | Diff: ${complexity} | Chance: ${chance.toFixed(1)}%`;
   const cap = def.capacity || 0;
@@ -236,39 +234,37 @@ function castPhrase() {
   if (!def) return;
   if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
   if ((def.capacity || 0) > speechState.capacity) return;
+  for (const [orb, cost] of Object.entries(def.cost)) {
+    if (speechState.orbs[orb].current < cost) return;
+  }
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level + speechState.masteryBonus;
-  const difficulty = complexity + 100;
-  const ratio = (mastery + 0.5) / difficulty;
-  const chance = 0.95 * (1 - Math.exp(-ratio * 2.2));
-  if (Math.random() > chance) {
+  const difficulty = complexity;
+  const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2));
+  const success = Math.random() <= chance;
+  for (const [orb, cost] of Object.entries(def.cost)) {
+    speechState.orbs[orb].current -= cost;
+  }
+  speechState.cooldowns[phrase] = Date.now() + def.cd;
+  if (success) {
+    if (def.create) {
+      for (const [res, amt] of Object.entries(def.create)) {
+        const r = speechState.resources[res];
+        if (r) r.current = Math.min(r.max, r.current + amt);
+      }
+    }
+    if (def.xp) addSpeechXP(def.xp);
+    speechState.echo.unshift(`Used ${phrase}`);
+  } else {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
       speechState.upgrades.vocalMaturity.unlocked = true;
       addLog('Vocal Maturity unlocked!', 'info');
       renderUpgrades();
     }
+    if (def.xp) addSpeechXP(def.xp / 2);
     speechState.echo.unshift(`Failed ${phrase}`);
-    if (speechState.echo.length > 5) speechState.echo.pop();
-    renderEcho();
-    updateCastCooldown();
-    return;
   }
-  for (const [orb, cost] of Object.entries(def.cost)) {
-    if (speechState.orbs[orb].current < cost) return;
-  }
-  for (const [orb, cost] of Object.entries(def.cost)) {
-    speechState.orbs[orb].current -= cost;
-  }
-  if (def.create) {
-    for (const [res, amt] of Object.entries(def.create)) {
-      const r = speechState.resources[res];
-      if (r) r.current = Math.min(r.max, r.current + amt);
-    }
-  }
-  if (def.xp) addSpeechXP(def.xp);
-  speechState.cooldowns[phrase] = Date.now() + def.cd;
-  speechState.echo.unshift(`Used ${phrase}`);
   if (speechState.echo.length > 5) speechState.echo.pop();
   renderOrbs();
   renderResources();
@@ -453,6 +449,7 @@ export function tickSpeech(delta) {
   renderOrbs();
   renderResources();
   renderXpBar();
+  renderPhraseInfo();
   updateCastCooldown();
   checkUnlocks();
 }
