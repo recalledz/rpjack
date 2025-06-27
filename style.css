@@ -2041,7 +2041,6 @@ body {
 
 .player-subtabs {
     display: flex;
-    flex-direction: column;
     gap: 6px;
 }
 .player-subtabs button {
@@ -2064,6 +2063,14 @@ body {
 .player-subtabs button:hover {
     box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
     color: #fff4b3;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 10px;
 }
 
 .stats-subtabs {
