@@ -2330,3 +2330,55 @@ body {
     overflow-y: auto;
     width: 100%;
 }
+
+/* Speech resource panels */
+.speech-gains, .speech-upgrades, .secondary-resources {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+}
+
+.secondary-resources .resource {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resource-bar {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: #222;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.resource-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: #789;
+}
+
+.resource-text {
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+.speech-orb#orbWill {
+    background: rgba(128,0,255,0.3);
+    border-color: #a060ff;
+}
+
+.speech-orb#orbBody {
+    background: rgba(255,0,0,0.3);
+    border-color: #ff8888;
+}
+
+.speech-orb#orbInsight {
+    background: rgba(0,0,255,0.3);
+    border-color: #8888ff;
+}
