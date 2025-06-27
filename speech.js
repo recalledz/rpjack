@@ -17,7 +17,12 @@ export const speechState = {
   upgrades: {
     cohere: { level: 0, baseCost: 2 },
     vocalMaturity: { level: 0, baseCost: 2, unlocked: false },
-    capacityBoost: { level: 0, baseCost: { insight: 10, thought: 5 }, unlocked: false }
+    capacityBoost: { level: 0, baseCost: { insight: 10, thought: 5 }, unlocked: false },
+    expandMind: {
+      level: 0,
+      unlocked: true,
+      costFunc: lvl => ({ structure: 2 * Math.pow(lvl + 1, 2) })
+    }
   },
   capacity: 1,
   slots: [null],
@@ -167,6 +172,13 @@ function onDrop(e) {
   renderSlots();
 }
 
+function onSlotClick(e) {
+  const idx = Number(e.currentTarget.dataset.index);
+  if (!speechState.slots[idx]) return;
+  speechState.slots[idx] = null;
+  renderSlots();
+}
+
 function renderLists() {
   if (!container) return;
   const makeTile = (word, type) => {
@@ -209,6 +221,7 @@ function createSlots() {
     slot.dataset.index = idx;
     slot.addEventListener('dragover', e => e.preventDefault());
     slot.addEventListener('drop', onDrop);
+    slot.addEventListener('click', onSlotClick);
     slotContainer.appendChild(slot);
   });
 }
@@ -237,7 +250,9 @@ function renderSlots() {
     const idx = Number(slot.dataset.index);
     slot.classList.toggle('verb-slot', idx === 0);
     slot.classList.toggle('target-slot', idx > 0);
-    slot.textContent = speechState.slots[idx] || '';
+    const word = speechState.slots[idx];
+    slot.textContent = word || '';
+    slot.classList.toggle('filled', Boolean(word));
   });
   renderPhraseInfo();
   updateCastCooldown();
@@ -285,6 +300,12 @@ function castPhrase() {
   const phrase = wordsArr.join(' ');
   const def = phraseEffects[phrase];
   if (!def) return;
+  for (const orb of Object.values(speechState.orbs)) {
+    if (orb.current < 0) return;
+  }
+  for (const res of Object.values(speechState.resources)) {
+    if (res.current < 0) return;
+  }
   if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
   if ((def.capacity || 0) > speechState.capacity) return;
   const potMult = wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length;
@@ -452,6 +473,9 @@ function renderGains() {
 
 function getUpgradeCost(name) {
   const up = speechState.upgrades[name];
+  if (typeof up.costFunc === 'function') {
+    return up.costFunc(up.level);
+  }
   if (typeof up.baseCost === 'number') {
     return Math.floor(up.baseCost * Math.pow(2, up.level));
   }
@@ -469,10 +493,14 @@ function purchaseUpgrade(name) {
     if (speechState.orbs.insight.current < cost) return;
     speechState.orbs.insight.current -= cost;
   } else {
-    if (cost.insight && speechState.orbs.insight.current < cost.insight) return;
-    if (cost.thought && speechState.resources.thought.current < cost.thought) return;
-    if (cost.insight) speechState.orbs.insight.current -= cost.insight;
-    if (cost.thought) speechState.resources.thought.current -= cost.thought;
+    for (const [k, v] of Object.entries(cost)) {
+      if (speechState.orbs[k] && speechState.orbs[k].current < v) return;
+      if (speechState.resources[k] && speechState.resources[k].current < v) return;
+    }
+    for (const [k, v] of Object.entries(cost)) {
+      if (speechState.orbs[k]) speechState.orbs[k].current -= v;
+      if (speechState.resources[k]) speechState.resources[k].current -= v;
+    }
   }
   up.level += 1;
   if (name === 'cohere') {
@@ -481,6 +509,8 @@ function purchaseUpgrade(name) {
     speechState.masteryBonus += 0.5;
   } else if (name === 'capacityBoost') {
     speechState.capacity += 2;
+  } else if (name === 'expandMind') {
+    speechState.orbs.insight.max += 10;
   }
   renderUpgrades();
   renderGains();
@@ -521,6 +551,19 @@ function renderUpgrades() {
     cbBtn.textContent = `Capacity +2 (cost ${costText.join(', ')})`;
     cbBtn.addEventListener('click', () => purchaseUpgrade('capacityBoost'));
     panel.appendChild(cbBtn);
+  }
+
+  const em = speechState.upgrades.expandMind;
+  if (em.unlocked) {
+    const emBtn = document.createElement('button');
+    const emCost = getUpgradeCost('expandMind');
+    const costText = [];
+    if (typeof emCost === 'object') {
+      if (emCost.structure) costText.push(`${emCost.structure} structure`);
+    }
+    emBtn.textContent = `Expand Mind Lv.${em.level} (cost ${costText.join(', ')})`;
+    emBtn.addEventListener('click', () => purchaseUpgrade('expandMind'));
+    panel.appendChild(emBtn);
   }
 }
 
