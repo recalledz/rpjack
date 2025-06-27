@@ -67,14 +67,19 @@ export function initSpeech() {
   container.innerHTML = `
     <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
     <div id="speechLevel" class="speech-level"></div>
+
     <div class="word-list" id="verbList"></div>
     <div class="word-list" id="targetList" style="display:none"></div>
     <div id="capacityDisplay" class="capacity-display"></div>
     <div class="phrase-slots" id="phraseSlots"></div>
-    <button id="castPhraseBtn">Cast</button>
-    <div id="phraseInfo" class="phrase-info"></div>
+    <div class="cast-wrapper">
+      <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
+      <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
+    </div>
+  <div id="phraseInfo" class="phrase-info"></div>
     <div class="echo-log" id="echoLog"></div>
   `;
+  if (window.lucide) lucide.createIcons();
   renderLists();
   renderOrbs();
   createSlots();
@@ -91,11 +96,13 @@ export function initSpeech() {
     if (!def) return;
     const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
     const mastery = speechState.level;
-    const chance = ((mastery + 0.5) / (complexity + 100)) * 100;
+    const difficulty = complexity + 100;
+    const chance = ((mastery + 0.5) / difficulty) * 100;
     window.showTooltip(`${chance.toFixed(1)}% chance`, e.pageX + 10, e.pageY + 10);
   });
   castBtn.addEventListener('mouseleave', window.hideTooltip);
   renderSlots();
+  updateCastCooldown();
   renderResources();
   renderGains();
   renderUpgrades();
@@ -175,6 +182,7 @@ function renderSlots() {
     slot.textContent = speechState.slots[idx] || '';
   });
   renderPhraseInfo();
+  updateCastCooldown();
 }
 
 function renderPhraseInfo() {
@@ -203,7 +211,8 @@ function renderPhraseInfo() {
   const cd = def.cd ? def.cd / 1000 + 's' : '0s';
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level;
-  const chance = ((mastery + 0.5) / (complexity + 100)) * 100;
+  const difficulty = complexity + 100;
+  const chance = ((mastery + 0.5) / difficulty) * 100;
   info.textContent =
     `Cost: ${cost} | Effect: ${effect} | CD: ${cd} | Diff: ${complexity} | Chance: ${chance.toFixed(1)}%`;
   const cap = def.capacity || 0;
@@ -221,7 +230,8 @@ function castPhrase() {
   if ((def.capacity || 0) > speechState.capacity) return;
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level;
-  const chance = (mastery + 0.5) / (complexity + 100);
+  const difficulty = complexity + 100;
+  const chance = (mastery + 0.5) / difficulty;
   if (Math.random() > chance) {
     speechState.echo.unshift(`Failed ${phrase}`);
     if (speechState.echo.length > 5) speechState.echo.pop();
@@ -248,6 +258,7 @@ function castPhrase() {
   renderResources();
   renderEcho();
   renderPhraseInfo();
+  updateCastCooldown();
   checkUnlocks();
 }
 
@@ -255,6 +266,41 @@ function renderEcho() {
   if (!container) return;
   const log = container.querySelector('#echoLog');
   if (log) log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
+}
+
+function updateCastCooldown() {
+  const castBtn = container.querySelector('#castPhraseBtn');
+  const circle = container.querySelector('#castCooldownCircle');
+  if (!castBtn || !circle) return;
+  const overlay = castBtn.querySelector('.cooldown-overlay');
+  const wordsArr = speechState.slots.filter(Boolean);
+  if (wordsArr.length < 1) {
+    if (overlay) overlay.style.display = 'none';
+    circle.style.display = 'none';
+    castBtn.classList.remove('onCooldown');
+    return;
+  }
+  const phrase = wordsArr.join(' ');
+  const def = phraseEffects[phrase];
+  if (!def) return;
+  const cdEnd = speechState.cooldowns[phrase];
+  if (cdEnd && Date.now() < cdEnd) {
+    const ratio = (cdEnd - Date.now()) / def.cd;
+    if (overlay) {
+      overlay.style.setProperty('--cooldown', ratio);
+      overlay.style.display = 'block';
+    }
+    const circleOverlay = circle.querySelector('.cooldown-overlay');
+    if (circleOverlay) {
+      circleOverlay.style.setProperty('--cooldown', ratio);
+    }
+    circle.style.display = 'block';
+    castBtn.classList.add('onCooldown');
+  } else {
+    if (overlay) overlay.style.display = 'none';
+    circle.style.display = 'none';
+    castBtn.classList.remove('onCooldown');
+  }
 }
 
 function addSpeechXP(amt) {
@@ -373,5 +419,6 @@ export function tickSpeech(delta) {
   renderOrbs();
   renderResources();
   renderXpBar();
+  updateCastCooldown();
   checkUnlocks();
 }
