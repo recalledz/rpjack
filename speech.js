@@ -103,7 +103,8 @@ export function initSpeech() {
     const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
     const mastery = speechState.level + speechState.masteryBonus;
     const difficulty = complexity + 100;
-    const chance = ((mastery + 0.5) / difficulty) * 100;
+    const ratio = (mastery + 0.5) / difficulty;
+    const chance = 0.95 * (1 - Math.exp(-ratio * 2.2)) * 100;
     window.showTooltip(`${chance.toFixed(1)}% chance`, e.pageX + 10, e.pageY + 10);
   });
   castBtn.addEventListener('mouseleave', window.hideTooltip);
@@ -218,7 +219,8 @@ function renderPhraseInfo() {
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level + speechState.masteryBonus;
   const difficulty = complexity + 100;
-  const chance = ((mastery + 0.5) / difficulty) * 100;
+  const ratio = (mastery + 0.5) / difficulty;
+  const chance = 0.95 * (1 - Math.exp(-ratio * 2.2)) * 100;
   info.textContent =
     `Cost: ${cost} | Effect: ${effect} | CD: ${cd} | Diff: ${complexity} | Chance: ${chance.toFixed(1)}%`;
   const cap = def.capacity || 0;
@@ -237,7 +239,8 @@ function castPhrase() {
   const complexity = (def.complexity?.verb || 0) + (def.complexity?.target || 0);
   const mastery = speechState.level + speechState.masteryBonus;
   const difficulty = complexity + 100;
-  const chance = (mastery + 0.5) / difficulty;
+  const ratio = (mastery + 0.5) / difficulty;
+  const chance = 0.95 * (1 - Math.exp(-ratio * 2.2));
   if (Math.random() > chance) {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
