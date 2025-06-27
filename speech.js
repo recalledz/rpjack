@@ -140,7 +140,6 @@ function onDrop(e) {
 }
 
 function renderLists() {
-  if (!container) return;
   const makeTile = (word, type) => {
     const d = document.createElement('div');
     d.className = 'word-tile';
@@ -161,7 +160,6 @@ function renderLists() {
 }
 
 function createSlots() {
-  if (!container) return;
   const slotContainer = container.querySelector('#phraseSlots');
   slotContainer.innerHTML = '';
   speechState.slots.forEach((_, idx) => {
@@ -175,24 +173,20 @@ function createSlots() {
 }
 
 function renderOrbs() {
-  if (container) {
-    const update = (id, orb) => {
-      const fill = container.querySelector(`#${id} .orb-fill`);
-      if (!fill) return;
-      const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
-      fill.style.height = `${pct}%`;
-      const el = container.querySelector(`#${id}`);
-      if (el) el.title = `${Math.floor(orb.current)}/${orb.max}`;
-    };
-    update('orbBody', speechState.orbs.body);
-    update('orbInsight', speechState.orbs.insight);
-    update('orbWill', speechState.orbs.will);
-  }
-  window.dispatchEvent(new CustomEvent('orbs-changed'));
+  const update = (id, orb) => {
+    const fill = container.querySelector(`#${id} .orb-fill`);
+    if (!fill) return;
+    const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
+    fill.style.height = `${pct}%`;
+    const el = container.querySelector(`#${id}`);
+    if (el) el.title = `${Math.floor(orb.current)}/${orb.max}`;
+  };
+  update('orbBody', speechState.orbs.body);
+  update('orbInsight', speechState.orbs.insight);
+  update('orbWill', speechState.orbs.will);
 }
 
 function renderSlots() {
-  if (!container) return;
   createSlots();
   container.querySelectorAll('.phrase-slot').forEach(slot => {
     const idx = Number(slot.dataset.index);
@@ -203,7 +197,6 @@ function renderSlots() {
 }
 
 function renderPhraseInfo() {
-  if (!container) return;
   const info = container.querySelector('#phraseInfo');
   if (!info) return;
   const wordsArr = speechState.slots.filter(Boolean);
@@ -280,9 +273,8 @@ function castPhrase() {
 }
 
 function renderEcho() {
-  if (!container) return;
   const log = container.querySelector('#echoLog');
-  if (log) log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
+  log.innerHTML = speechState.echo.map(e => `<div>${e}</div>`).join('');
 }
 
 function updateCastCooldown() {
@@ -338,7 +330,6 @@ function addSpeechXP(amt) {
 }
 
 function renderXpBar() {
-  if (!container) return;
   const bar = container.querySelector('.speech-xp-bar');
   const fill = bar ? bar.querySelector('.speech-xp-fill') : null;
   if (!bar || !fill) return;
@@ -424,7 +415,6 @@ function renderUpgrades() {
 }
 
 export function tickSpeech(delta) {
-  if (!container) return;
   const dt = delta / 1000;
   ['insight', 'body', 'will'].forEach(k => {
     const orb = speechState.orbs[k];
