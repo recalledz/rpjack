@@ -547,7 +547,11 @@ function renderPhraseInfo() {
   info.innerHTML = `<span class="info-tag">??</span> ${chanceHtml}`;
   const cap = def.capacity || 0;
   const capDisplay = container.querySelector('#capacityDisplay');
-  if (capDisplay) capDisplay.textContent = `Capacity: ${cap}/${speechState.capacity}`;
+  if (capDisplay) {
+    capDisplay.textContent = `Capacity: ${cap}/${speechState.capacity}`;
+    if (cap > speechState.capacity) capDisplay.classList.add('exceeded');
+    else capDisplay.classList.remove('exceeded');
+  }
 }
 
 function castPhrase(phraseArg) {
