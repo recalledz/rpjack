@@ -528,15 +528,18 @@ function renderSlots() {
 function renderPhraseInfo() {
   if (!container) return;
   const info = container.querySelector('#phraseInfo');
+  const castBtn = container.querySelector('#castPhraseBtn');
   if (!info) return;
   const wordsArr = speechState.slots.filter(Boolean);
   if (wordsArr.length < 1) {
     info.textContent = '';
+    if (castBtn) castBtn.disabled = true;
     return;
   }
   const def = buildPhraseDef(wordsArr);
   if (!def) {
     info.textContent = '';
+    if (castBtn) castBtn.disabled = true;
     return;
   }
   const complexity = (def.complexity.verb || 0) + (def.complexity.target || 0) + (def.complexity.modifier || 0);
@@ -552,6 +555,7 @@ function renderPhraseInfo() {
     if (cap > speechState.capacity) capDisplay.classList.add('exceeded');
     else capDisplay.classList.remove('exceeded');
   }
+  if (castBtn) castBtn.disabled = cap > speechState.capacity;
 }
 
 function castPhrase(phraseArg) {
@@ -641,6 +645,9 @@ function castPhrase(phraseArg) {
     } else if (wordsArr.includes('Persistently')) {
       setTimeout(() => castPhrase(phrase), 5000);
     }
+    const castBtn = container.querySelector('#castPhraseBtn');
+    if (castBtn) castBtn.disabled = true;
+    showPhraseDetails(phrase);
   } else {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
@@ -653,7 +660,7 @@ function castPhrase(phraseArg) {
   }
   renderOrbs();
   renderResources();
-  renderPhraseInfo();
+  if (!success) renderPhraseInfo();
   updateCastCooldown();
   checkUnlocks();
 }
@@ -842,6 +849,10 @@ function checkUnlocks() {
     if (murmurBtn) murmurBtn.textContent = 'Murmur Mind';
     const idx = speechState.activePhrases.indexOf('Murmur');
     if (idx >= 0) speechState.activePhrases[idx] = 'Murmur Mind';
+    speechState.capacity += 1;
+    renderSlots();
+    renderHotbar();
+    renderSavedPhraseCards();
     glowConstructToggle();
     renderLists();
   }
