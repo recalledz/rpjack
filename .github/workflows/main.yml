@@ -12,7 +12,7 @@ jobs:
       - name: Convert PR to ready
         run: |
           curl -X PATCH \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            -H "Authorization: token ${{ secrets.gh_pat }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
             -d '{"draft": false}'
