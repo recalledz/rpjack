@@ -2354,6 +2354,9 @@ body {
 .capacity-display {
     font-size: 0.8rem;
 }
+.capacity-display.exceeded {
+    color: #f66;
+}
 
 .speech-orbs {
     display: flex;
@@ -2510,6 +2513,7 @@ body {
 .phrase-card {
     display: flex;
     flex-direction: column;
+    min-height: 40px;
     padding: 2px 4px;
     border: 1px solid #555;
     border-radius: 4px;
@@ -2600,6 +2604,7 @@ body {
 
 .hotbar-phrase {
     font-size: 0.75rem;
+    min-height: 40px;
 }
 
 .cast-button {
