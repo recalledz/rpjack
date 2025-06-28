@@ -176,8 +176,11 @@ export function initSpeech() {
       <button id="constructBtn" class="cast-button" style="display:none">Construct</button>
     </div>
     <div id="phraseHotbar" class="phrase-hotbar"></div>
-    <div id="constructPanel" class="construct-panel" style="display:none">
-      <h3 class="section-title">Construct Reality</h3>
+    <div id="constructPanel" class="construct-panel">
+      <div class="construct-header">
+        <h3 class="section-title">Construct Reality</h3>
+        <button id="closeConstructBtn" class="cast-button">❌</button>
+      </div>
       <div class="word-list" id="verbList"></div>
       <div class="word-list" id="targetList" style="display:none"></div>
       <div class="phrase-slots" id="phraseSlots"></div>
@@ -218,6 +221,8 @@ export function initSpeech() {
   if (murmurBtn) murmurBtn.addEventListener('click', castMurmur);
   const constructBtn = container.querySelector('#constructBtn');
   if (constructBtn) constructBtn.addEventListener('click', toggleConstructPanel);
+  const closeBtn = container.querySelector('#closeConstructBtn');
+  if (closeBtn) closeBtn.addEventListener('click', toggleConstructPanel);
   renderSlots();
   updateCastCooldown();
   renderResources();
@@ -457,7 +462,8 @@ function castMurmur() {
 function toggleConstructPanel() {
   const panel = container.querySelector('#constructPanel');
   if (!panel) return;
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  const open = panel.classList.toggle('open');
+  container.classList.toggle('construct-mode', open);
 }
 
 function savePhrase() {
