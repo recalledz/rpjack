@@ -28,6 +28,8 @@ export const speechState = {
   },
   capacity: 1,
   slots: [null],
+  memorySlots: 2,
+  activePhrases: ['Murmur'],
   cooldowns: {},
   constructUnlocked: false,
   savedPhrases: [],
@@ -70,9 +72,9 @@ function orbColor(key) {
     case 'will':
       return '#a060ff';
     case 'thought':
-      return '#9cf';
+      return '#4466aa';
     case 'structure':
-      return '#ccc';
+      return '#a97b5d';
     default:
       return '#555';
   }
@@ -186,6 +188,40 @@ function getWordCategory(word) {
   return null;
 }
 
+function wordColor(word) {
+  const cat = getWordCategory(word);
+  if (cat === 'modifiers') return '#777';
+  if (word === 'Mind') return orbColor('thought');
+  if (word === 'Form') return orbColor('structure');
+  if (word === 'Self') return orbColor('body');
+  if (cat === 'verbs') return orbColor('insight');
+  return '#555';
+}
+
+function phraseGradient(phrase) {
+  const colors = phrase.split(' ').map(wordColor);
+  if (colors.length === 1) return colors[0];
+  const step = 100 / colors.length;
+  const stops = colors
+    .map((c, i) => `${c} ${i * step}%, ${c} ${(i + 1) * step}%`)
+    .join(', ');
+  return `linear-gradient(to right, ${stops})`;
+}
+
+function createPhraseCard(phrase) {
+  const card = document.createElement('div');
+  card.className = 'phrase-card';
+  card.style.background = phraseGradient(phrase);
+  phrase.split(' ').forEach(w => {
+    const line = document.createElement('div');
+    line.className = 'phrase-word';
+    line.textContent = w;
+    line.style.color = wordColor(w);
+    card.appendChild(line);
+  });
+  return card;
+}
+
 function getWordPotency(word) {
   const cat = getWordCategory(word);
   if (!cat || !wordState[cat][word]) return 1;
@@ -253,6 +289,7 @@ export function initSpeech() {
       <div class="word-list" id="modifierList" style="display:none"></div>
       <div class="phrase-slots" id="phraseSlots"></div>
       <div id="capacityDisplay" class="capacity-display"></div>
+      <div id="memorySlotsDisplay" class="memory-slots"></div>
       <div class="cast-container">
         <div class="cast-wrapper">
           <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
@@ -375,6 +412,9 @@ function renderLists() {
     d.className = 'word-tile';
     d.classList.add(type);
     d.textContent = word;
+    const color = wordColor(word);
+    d.style.background = color;
+    d.style.borderColor = color;
     d.draggable = true;
     d.dataset.type = type;
     d.dataset.word = word;
@@ -626,7 +666,8 @@ function castPhrase(phraseArg) {
 }
 
 function castMurmur() {
-  castPhrase('Murmur');
+  const phrase = words.targets.includes('Mind') ? 'Murmur Mind' : 'Murmur';
+  castPhrase(phrase);
   updateCastCooldown();
 }
 
@@ -666,6 +707,9 @@ function savePhrase() {
   if (!def) return;
   if ((def.capacity || 0) > speechState.capacity) return;
   speechState.savedPhrases.push(phrase);
+  if (speechState.activePhrases.length < speechState.memorySlots) {
+    speechState.activePhrases.push(phrase);
+  }
   renderHotbar();
   renderSavedPhraseCards();
 }
@@ -674,31 +718,45 @@ function renderHotbar() {
   const bar = container.querySelector('#phraseHotbar');
   if (!bar) return;
   bar.innerHTML = '';
-  speechState.savedPhrases.forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'cast-button hotbar-phrase';
-    btn.textContent = p;
-    btn.addEventListener('click', () => castPhrase(p));
-    bar.appendChild(btn);
+  speechState.activePhrases.forEach(p => {
+    const card = createPhraseCard(p);
+    card.classList.add('hotbar-phrase');
+    card.addEventListener('click', () => castPhrase(p));
+    bar.appendChild(card);
   });
 }
 
 function renderSavedPhraseCards() {
   const cont = container.querySelector('#savedPhraseCards');
   if (!cont) return;
+  const slotCont = container.querySelector('#memorySlotsDisplay');
+  if (slotCont) {
+    slotCont.innerHTML = '';
+    for (let i = 0; i < speechState.memorySlots; i++) {
+      const ms = document.createElement('div');
+      ms.className = 'memory-slot';
+      if (i < speechState.activePhrases.length) ms.classList.add('filled');
+      slotCont.appendChild(ms);
+    }
+  }
   cont.innerHTML = '';
   speechState.savedPhrases.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'saved-phrase-card';
-    p.split(' ').forEach(w => {
-      const line = document.createElement('div');
-      line.className = 'saved-phrase-word';
-      line.textContent = w;
-      card.appendChild(line);
-    });
-    card.addEventListener('click', () => castPhrase(p));
+    const card = createPhraseCard(p);
+    if (speechState.activePhrases.includes(p)) card.classList.add('active');
+    card.addEventListener('click', () => togglePhraseActive(p));
     cont.appendChild(card);
   });
+}
+
+function togglePhraseActive(phrase) {
+  const idx = speechState.activePhrases.indexOf(phrase);
+  if (idx >= 0) {
+    speechState.activePhrases.splice(idx, 1);
+  } else if (speechState.activePhrases.length < speechState.memorySlots) {
+    speechState.activePhrases.push(phrase);
+  }
+  renderHotbar();
+  renderSavedPhraseCards();
 }
 
 function updateCastCooldown() {
@@ -779,6 +837,10 @@ function checkUnlocks() {
     words.targets.push('Mind');
     wordState.targets['Mind'] = { level: 1, xp: 0 };
     addLog('Your awareness turns inward. Target "Mind" unlocked.', 'info');
+    const murmurBtn = container.querySelector('#murmurBtn');
+    if (murmurBtn) murmurBtn.textContent = 'Murmur Mind';
+    const idx = speechState.activePhrases.indexOf('Murmur');
+    if (idx >= 0) speechState.activePhrases[idx] = 'Murmur Mind';
     glowConstructToggle();
     renderLists();
   }
@@ -822,7 +884,7 @@ function renderResources() {
     const bar = document.createElement('div');
     bar.className = 'resource-bar';
     const fill = document.createElement('div');
-    fill.className = 'resource-fill';
+    fill.className = `resource-fill ${key}`;
     fill.style.width = `${(res.current / res.max) * 100}%`;
     bar.appendChild(fill);
     wrapper.appendChild(text);
