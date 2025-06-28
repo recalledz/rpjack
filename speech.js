@@ -283,21 +283,25 @@ export function initSpeech() {
         <h3 class="section-title">Construct Reality</h3>
         <button id="closeConstructBtn" class="cast-button">❌</button>
       </div>
-      <div class="word-list" id="verbList"></div>
-      <div class="word-list" id="targetList" style="display:none"></div>
-      <div class="word-list" id="modifierList" style="display:none"></div>
-      <div class="phrase-slots" id="phraseSlots"></div>
-      <div id="capacityDisplay" class="capacity-display"></div>
-      <div id="memorySlotsDisplay" class="memory-slots"></div>
-      <div class="cast-container">
-        <div class="cast-wrapper">
-          <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
-          <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
+      <div class="construct-top">
+        <div class="word-list" id="verbList"></div>
+        <div class="word-list" id="targetList" style="display:none"></div>
+        <div class="word-list" id="modifierList" style="display:none"></div>
+        <div class="phrase-slots" id="phraseSlots"></div>
+        <div id="capacityDisplay" class="capacity-display"></div>
+        <div class="cast-container">
+          <div class="cast-wrapper">
+            <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
+            <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
+          </div>
+          <div id="phraseInfo" class="phrase-info"></div>
         </div>
-        <div id="phraseInfo" class="phrase-info"></div>
       </div>
-      <div id="savedPhraseCards" class="saved-phrases"></div>
-      <div id="phraseDetails" class="phrase-info"></div>
+      <div class="construct-bottom">
+        <div id="savedPhraseCards" class="saved-phrases"></div>
+        <div id="memorySlotsDisplay" class="memory-slots"></div>
+        <div id="phraseDetails" class="phrase-info"></div>
+      </div>
     </div>
   `;
   if (window.lucide) lucide.createIcons();
@@ -444,9 +448,13 @@ function renderLists() {
 }
 
 function ensureSlotCount() {
-  const minSlots = speechState.capacity + 1;
+  const wordsPlaced = speechState.slots.filter(Boolean).length;
+  const minSlots = wordsPlaced + 1;
   while (speechState.slots.length < minSlots) {
     speechState.slots.push(null);
+  }
+  while (speechState.slots.length > minSlots && speechState.slots[speechState.slots.length - 1] === null) {
+    speechState.slots.pop();
   }
   if (!speechState.slots.includes(null)) {
     speechState.slots.push(null);
@@ -547,7 +555,30 @@ function renderPhraseInfo() {
   const difficulty = complexity;
   const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2)) * 100;
   const chanceHtml = `<span class="info-tag">Chance: ${chance.toFixed(1)}%</span>`;
-  info.innerHTML = `<span class="info-tag">??</span> ${chanceHtml}`;
+  const phrase = wordsArr.join(' ');
+  if (speechState.savedPhrases.includes(phrase)) {
+    const potMult = (wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length) * def.potency;
+    const costHtml = Object.entries(def.cost)
+      .map(
+        ([k, v]) =>
+          `<span class="info-tag" style="background:${orbColor(k)}">Cost:${Math.ceil(v * potMult)} ${resourceIcons[k] || capFirst(k)}</span>`
+      )
+      .join(' ');
+    const effectHtml = def.create
+      ? Object.entries(def.create)
+          .map(
+            ([k, v]) =>
+              `<span class="info-tag" style="background:${orbColor(k)}">Effect: +${(
+                v * potMult
+              ).toFixed(1)} ${resourceIcons[k] || capFirst(k)}</span>`
+          )
+          .join(' ')
+      : `<span class="info-tag">Effect: None</span>`;
+    const cdHtml = `<span class="info-tag">CD: ${def.cd ? def.cd / 1000 + 's' : '0s'}</span>`;
+    info.innerHTML = `${costHtml} ${effectHtml} ${cdHtml} ${chanceHtml}`;
+  } else {
+    info.innerHTML = `<span class="info-tag">??</span> ${chanceHtml}`;
+  }
   const cap = def.capacity || 0;
   const capDisplay = container.querySelector('#capacityDisplay');
   if (capDisplay) {
@@ -648,6 +679,7 @@ function castPhrase(phraseArg) {
     const castBtn = container.querySelector('#castPhraseBtn');
     if (castBtn) castBtn.disabled = true;
     showPhraseDetails(phrase);
+    renderPhraseInfo();
   } else {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
@@ -849,6 +881,9 @@ function checkUnlocks() {
     if (murmurBtn) murmurBtn.textContent = 'Murmur Mind';
     const idx = speechState.activePhrases.indexOf('Murmur');
     if (idx >= 0) speechState.activePhrases[idx] = 'Murmur Mind';
+    const spIdx = speechState.savedPhrases.indexOf('Murmur');
+    if (spIdx >= 0) speechState.savedPhrases.splice(spIdx, 1);
+    if (!speechState.savedPhrases.includes('Murmur Mind')) speechState.savedPhrases.push('Murmur Mind');
     speechState.capacity += 1;
     renderSlots();
     renderHotbar();
