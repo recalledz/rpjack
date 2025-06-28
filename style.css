@@ -2341,6 +2341,7 @@ body {
     height: 100%;
     width: 0%;
     background: #88f;
+    transition: width 0.3s ease;
 }
 .speech-level {
     font-size: 0.8rem;
@@ -2363,6 +2364,21 @@ body {
     border: 1px solid #888;
     position: relative;
     overflow: hidden;
+    color: #fff;
+}
+
+.speech-orb.full {
+    box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+}
+
+.speech-orb.pulse {
+    animation: orb-pulse 0.3s ease;
+}
+
+@keyframes orb-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
 .speech-orb .orb-fill {
@@ -2406,8 +2422,25 @@ body {
 
 .phrase-info {
     font-size: 0.8rem;
-    margin-left: 8px;
-    align-self: center;
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
+.info-tag {
+    padding: 2px 4px;
+    background: #444;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+
+.section-title {
+    text-align: center;
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #d4af37;
 }
 
 .phrase-slot {
@@ -2434,6 +2467,12 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.cast-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .cast-button {
@@ -2509,6 +2548,7 @@ body {
 .speech-orb#orbWill {
     background: rgba(128,0,255,0.2);
     border-color: #a060ff;
+    color: #a060ff;
 }
 .speech-orb#orbWill .orb-fill {
     background: rgba(128,0,255,0.6);
@@ -2517,6 +2557,7 @@ body {
 .speech-orb#orbBody {
     background: rgba(255,0,0,0.2);
     border-color: #ff8888;
+    color: #ff8888;
 }
 .speech-orb#orbBody .orb-fill {
     background: rgba(255,0,0,0.6);
@@ -2525,6 +2566,7 @@ body {
 .speech-orb#orbInsight {
     background: rgba(0,0,255,0.2);
     border-color: #8888ff;
+    color: #8888ff;
 }
 
 .speech-tab-orbs .speech-orb {
