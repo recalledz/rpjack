@@ -2475,6 +2475,31 @@ body {
     align-items: center;
 }
 
+.murmur-controls {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.phrase-hotbar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.construct-panel {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.hotbar-phrase {
+    font-size: 0.75rem;
+}
+
 .cast-button {
     position: relative;
     padding: 4px 8px;
