@@ -115,6 +115,11 @@ export function initSpeech() {
   container = document.getElementById('speechPanel');
   if (!container) return;
   container.innerHTML = `
+    <div class="speech-orbs speech-tab-orbs">
+      <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
+      <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
+      <div id="orbWill" class="speech-orb"><div class="orb-fill"></div></div>
+    </div>
     <div class="speech-xp-container">
       <i data-lucide="mic" class="speech-icon"></i>
       <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
@@ -251,7 +256,22 @@ function renderSlots() {
     slot.classList.toggle('verb-slot', idx === 0);
     slot.classList.toggle('target-slot', idx > 0);
     const word = speechState.slots[idx];
-    slot.textContent = word || '';
+    slot.innerHTML = '';
+    if (word) {
+      const span = document.createElement('span');
+      span.className = 'slot-word';
+      span.textContent = word;
+      const x = document.createElement('span');
+      x.className = 'slot-clear';
+      x.textContent = 'x';
+      x.addEventListener('click', ev => {
+        ev.stopPropagation();
+        speechState.slots[idx] = null;
+        renderSlots();
+      });
+      slot.appendChild(span);
+      slot.appendChild(x);
+    }
     slot.classList.toggle('filled', Boolean(word));
   });
   renderPhraseInfo();
@@ -391,9 +411,6 @@ function addSpeechXP(amt) {
   if (speechState.level !== oldLevel) {
     if (!words.verbs.includes('Murmur')) {
       words.verbs.push('Murmur');
-    }
-    if (speechState.level >= 2 && !words.targets.includes('Insight')) {
-      words.targets.push('Insight');
     }
     if (speechState.level >= 10 && speechState.slots.length < 3) {
       speechState.slots.push(null);

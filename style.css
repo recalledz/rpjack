@@ -2171,11 +2171,19 @@ body {
     width: 100%;
 }
 #coreTabContent svg {
-    max-width: 280px;
-    transform: scale(1);
+    max-width: 360px;
+    transform: scale(1.2);
 }
 .core-level-text {
     margin-top: 4px;
+}
+
+.player-speech-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
 }
 
 .player-upgrades-panel {
@@ -2517,6 +2525,20 @@ body {
 .speech-orb#orbInsight {
     background: rgba(0,0,255,0.2);
     border-color: #8888ff;
+}
+
+.speech-tab-orbs .speech-orb {
+    width: 48px;
+    height: 48px;
+}
+
+.slot-clear {
+    margin-left: 4px;
+    color: #a44;
+    cursor: pointer;
+}
+.slot-word {
+    pointer-events: none;
 }
 .speech-orb#orbInsight .orb-fill {
     background: rgba(0,0,255,0.6);
