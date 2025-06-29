@@ -279,8 +279,10 @@ export function initSpeech() {
     <h3 class="section-title">Speech Progression</h3>
     <div class="speech-xp-container">
       <i data-lucide="mic" class="speech-icon"></i>
-      <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
-      <div id="speechLevel" class="speech-level"></div>
+      <div class="speech-progress">
+        <div id="speechLevel" class="speech-level"></div>
+        <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
+      </div>
     </div>
     <div class="murmur-controls">
       <button id="murmurBtn" class="cast-button">Murmur</button>
@@ -973,21 +975,29 @@ function renderResources() {
   panel.innerHTML = '';
   Object.entries(speechState.resources).forEach(([key, res]) => {
     if (res.unlocked === false) return;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'resource';
-    const text = document.createElement('div');
-    text.className = 'resource-text';
-    text.textContent = `${key}: ${Math.floor(res.current)}/${res.max}`;
+    const box = document.createElement('div');
+    box.className = 'resource-box';
+    const icon = document.createElement('i');
+    icon.dataset.lucide = key === 'thought' ? 'brain' : 'cube';
+    const name = document.createElement('span');
+    name.className = 'resource-name';
+    name.textContent = capFirst(key);
     const bar = document.createElement('div');
     bar.className = 'resource-bar';
     const fill = document.createElement('div');
     fill.className = `resource-fill ${key}`;
     fill.style.width = `${(res.current / res.max) * 100}%`;
+    const value = document.createElement('span');
+    value.className = `resource-value ${key}`;
+    value.textContent = `${Math.floor(res.current)}/${res.max}`;
     bar.appendChild(fill);
-    wrapper.appendChild(text);
-    wrapper.appendChild(bar);
-    panel.appendChild(wrapper);
+    box.appendChild(icon);
+    box.appendChild(name);
+    box.appendChild(bar);
+    box.appendChild(value);
+    panel.appendChild(box);
   });
+  if (window.lucide) lucide.createIcons({icons: {}});
 }
 
 function renderGains() {
@@ -1045,42 +1055,61 @@ function purchaseUpgrade(name) {
   renderPhraseInfo();
 }
 
-function renderUpgrades() {
-  const panel = document.getElementById('speechUpgrades');
-  if (!panel) return;
-  panel.innerHTML = '';
+export function renderUpgrades() {
+  const panels = [
+    document.getElementById('speechUpgrades'),
+    document.getElementById('coreUpgrades')
+  ].filter(Boolean);
+  if (!panels.length) return;
+  panels.forEach(panel => (panel.innerHTML = ''));
   const addSection = title => {
     const h = document.createElement('h4');
     h.className = 'section-title';
     h.textContent = title;
-    panel.appendChild(h);
+    panels.forEach(p => p.appendChild(h.cloneNode(true)));
   };
 
   addSection('Core Upgrades');
+  const coreGroups = panels.map(p => {
+    const div = document.createElement('div');
+    div.className = 'upgrade-group';
+    p.appendChild(div);
+    return div;
+  });
   const coreUp = [
     ['cohere', `Cohere Lv.${speechState.upgrades.cohere.level}`],
     ['expandMind', `Expand Mind Lv.${speechState.upgrades.expandMind.level}`]
   ];
   coreUp.forEach(([name, label]) => {
-    const btn = document.createElement('button');
-    const cost = getUpgradeCost(name);
-    btn.innerHTML = `${label} (${formatCost(cost)})`;
-    btn.addEventListener('click', () => purchaseUpgrade(name));
-    panel.appendChild(btn);
+    coreGroups.forEach(g => {
+      const btn = document.createElement('button');
+      const cost = getUpgradeCost(name);
+      btn.innerHTML = `${label} (${formatCost(cost)})`;
+      btn.addEventListener('click', () => purchaseUpgrade(name));
+      g.appendChild(btn);
+    });
   });
 
   addSection('Vocal Growth');
+  const vocalGroups = panels.map(p => {
+    const div = document.createElement('div');
+    div.className = 'upgrade-group';
+    p.appendChild(div);
+    return div;
+  });
   const vocalUp = [];
   if (speechState.upgrades.vocalMaturity.unlocked)
     vocalUp.push(['vocalMaturity', `Vocal Maturity Lv.${speechState.upgrades.vocalMaturity.level}`]);
   if (speechState.upgrades.capacityBoost.unlocked)
     vocalUp.push(['capacityBoost', 'Capacity +2']);
   vocalUp.forEach(([name, label]) => {
-    const btn = document.createElement('button');
-    const cost = getUpgradeCost(name);
-    btn.innerHTML = `${label} (${formatCost(cost)})`;
-    btn.addEventListener('click', () => purchaseUpgrade(name));
-    panel.appendChild(btn);
+    vocalGroups.forEach(g => {
+      const btn = document.createElement('button');
+      const cost = getUpgradeCost(name);
+      btn.innerHTML = `${label} (${formatCost(cost)})`;
+      btn.addEventListener('click', () => purchaseUpgrade(name));
+      g.appendChild(btn);
+    });
   });
 }
 
