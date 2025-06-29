@@ -2346,6 +2346,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex-direction: column;
     flex: 1;
     gap: 6px;
+    position: relative;
 }
 
 .core-actions {
@@ -2459,10 +2460,11 @@ body.darkenshift-mode .tabsContainer button.active {
     flex-direction: column;
     gap: 8px;
     align-items: center;
-    margin-top: 10px;
+    margin-top: 0;
     position: relative; /* allow floating phrase clouds */
     width: 100%;
     height: 100%;
+    flex: 1;
     overflow: hidden;
     color: #e0e0f0;
     font-family: inherit;
@@ -2752,15 +2754,14 @@ body.darkenshift-mode .tabsContainer button.active {
 
 .construct-panel {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     margin: 0;
     padding: 8px;
     box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.9);
-    border-right: 1px solid #555;
+    background: linear-gradient(#11131c, #0e0f1a);
+    border: 1px solid #4a4a60;
+    box-shadow: 0 0 8px #7f7fcf;
+    backdrop-filter: blur(4px);
     display: flex;
     flex-direction: column;
     gap: 6px;
