@@ -895,6 +895,7 @@ function addSpeechXP(amt) {
     checkUnlocks();
   }
   renderXpBar();
+  window.dispatchEvent(new CustomEvent('speech-xp-changed'));
 }
 
 function renderXpBar() {

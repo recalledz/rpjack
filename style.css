@@ -1997,7 +1997,8 @@ body {
 .playerTab {
     display: flex;
     gap: 10px;
-    background-color: #556b7a;
+    background-color: #0b0f1a;
+    color: #e0e0f0;
     padding: 5px;
     height: 100vh;
 }
@@ -2159,6 +2160,11 @@ body {
     justify-content: flex-start;
     gap: 10px;
     flex: 1;
+    background: #1a1f2e;
+    border: 1px solid #444a5a;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 0 10px rgba(127, 175, 255, 0.2);
 }
 #coreTabContent {
     display: flex;
@@ -2176,6 +2182,42 @@ body {
 .core-level-text {
     margin-top: 4px;
 }
+.speech-level-display {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: #1a1f2e;
+    padding: 4px 8px;
+    border-radius: 8px;
+    box-shadow: 0 0 4px rgba(127, 175, 255, 0.3);
+}
+.speech-level-display .speech-level-value {
+    color: #c785ff;
+}
+.core-resource-indicators {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 4px;
+}
+.core-resource-indicators .resource-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: #1a1f2e;
+    border-radius: 6px;
+    box-shadow: 0 0 4px rgba(127, 175, 255, 0.2);
+    font-size: 0.8rem;
+    color: #e0e0f0;
+}
+.core-resource-indicators .resource-box i {
+    width: 16px;
+    height: 16px;
+}
+.resource-box.mind .resource-value { color: #7fd9ff; }
+.resource-box.body .resource-value { color: #ff8888; }
+.resource-box.will .resource-value { color: #ffa37f; }
 
 .player-speech-panel {
     display: flex;
@@ -2208,22 +2250,22 @@ body {
 }
 .core-actions button {
     padding: 6px;
-    border: 2px solid #b76eff;
-    background: #4b0082;
-    color: #e0d0ff;
+    border: 2px solid #7fafff;
+    background: #1a1f2e;
+    color: #e0e0f0;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
     text-shadow: 0 0 6px #000;
-    box-shadow: 0 0 8px rgba(183, 110, 255, 0.5);
+    box-shadow: 0 0 8px rgba(127, 175, 255, 0.5);
     transition: all 0.2s;
 }
 .core-actions button:hover {
-    box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
-    color: #fff4b3;
+    box-shadow: 0 0 12px rgba(127, 175, 255, 0.8);
+    color: #e0e0f0;
 }
 .core-actions button.active {
-    background: #b76eff;
+    background: #7fafff;
 }
 
 .core-resources {
@@ -2280,13 +2322,14 @@ body {
 
 #meditateCoreBtn {
     padding: 4px 8px;
-    border: 2px solid #b76eff;
-    background: #4b0082;
-    color: #e0d0ff;
+    border: 2px solid #7fafff;
+    background: #1a1f2e;
+    color: #e0e0f0;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
     text-shadow: 0 0 4px #000;
+    box-shadow: 0 0 8px rgba(127, 175, 255, 0.4);
 }
 #meditateCoreBtn:disabled {
     opacity: 0.5;
@@ -2342,7 +2385,7 @@ body {
     left: 0;
     height: 100%;
     width: 0%;
-    background: #88f;
+    background: #c785ff;
     transition: width 0.3s ease;
 }
 .speech-level {
