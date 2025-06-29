@@ -381,6 +381,7 @@ export function initSpeech() {
   const constructorView = constructPanel.querySelector('.constructor-view');
   if (constructorView) {
     constructorView.style.display = 'flex';
+    constructorView.style.flexDirection = 'column';
   }
   renderSlots();
   updateCastCooldown();
