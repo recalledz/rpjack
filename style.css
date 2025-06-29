@@ -2536,6 +2536,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    padding: 4px;
 }
 
 .orb-value {
@@ -2543,9 +2544,15 @@ body.darkenshift-mode .tabsContainer button.active {
     text-align: center;
 }
 
+.orb-regen {
+    font-size: 0.6rem;
+    text-align: center;
+    color: #aaa;
+}
+
 .speech-orb {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     border: 1px solid #888;
     position: relative;
