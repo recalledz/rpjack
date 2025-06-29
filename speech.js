@@ -720,6 +720,9 @@ function castPhrase(phraseArg) {
     if (castBtn) castBtn.disabled = true;
     showPhraseDetails(phrase);
     renderPhraseInfo();
+    // Clear slots after casting for easier new phrase construction
+    speechState.slots = [null];
+    renderSlots();
   } else {
     speechState.failCount += 1;
     if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
@@ -918,9 +921,10 @@ function checkUnlocks() {
     wordState.targets['Mind'] = { level: 1, xp: 0 };
     addLog('Your awareness turns inward. Target "Mind" unlocked.', 'info');
     const murmurBtn = container.querySelector('#murmurBtn');
-    if (murmurBtn) murmurBtn.textContent = 'Murmur Mind';
+    if (murmurBtn) murmurBtn.remove();
     const idx = speechState.activePhrases.indexOf('Murmur');
-    if (idx >= 0) speechState.activePhrases[idx] = 'Murmur Mind';
+    if (idx >= 0) speechState.activePhrases.splice(idx, 1);
+    if (!speechState.activePhrases.includes('Murmur Mind')) speechState.activePhrases.push('Murmur Mind');
     const spIdx = speechState.savedPhrases.indexOf('Murmur');
     if (spIdx >= 0) speechState.savedPhrases.splice(spIdx, 1);
     if (!speechState.savedPhrases.includes('Murmur Mind')) speechState.savedPhrases.push('Murmur Mind');

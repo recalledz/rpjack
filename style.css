@@ -4,6 +4,11 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
 }
 
 body {
@@ -1025,12 +1030,12 @@ body {
     /*height: max-content;*/
     width: 100%;
     max-width: 120px;
-    max-height: 120px;
+    max-height: 144px; /* increased for better visibility */
 }
 
 @media (min-width: 1024px) {
     .card-wrapper {
-        max-width: 140px;
+        max-width: 168px; /* scaled up for larger layouts */
         max-height: none;
     }
     .handContainer {
@@ -2534,6 +2539,8 @@ body {
 .phrase-word {
     line-height: 1;
     display: block;
+    font-weight: bold;
+    text-shadow: 0 0 4px #000;
 }
 
 .memory-slots {
