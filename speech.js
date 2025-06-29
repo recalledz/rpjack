@@ -215,7 +215,7 @@ function createPhraseCard(phrase) {
     const line = document.createElement('div');
     line.className = 'phrase-word';
     line.textContent = w;
-    line.style.color = wordColor(w);
+    line.style.color = '#000';
     card.appendChild(line);
   });
   return card;
@@ -633,11 +633,13 @@ function castPhrase(phraseArg) {
   const wordsArr = phraseArg ? phraseArg.split(' ') : speechState.slots.filter(Boolean);
   if (wordsArr.length < 1) return;
   const phrase = wordsArr.join(' ');
-  const def = buildPhraseDef(wordsArr);
+  let def = buildPhraseDef(wordsArr);
   if (!def) return;
+  const special = phraseEffects[phrase];
+  if (special) def = { ...def, ...special };
   const hasVerb = wordsArr.some(w => getWordCategory(w) === 'verbs');
   const hasTarget = wordsArr.some(w => getWordCategory(w) === 'targets');
-  if (!(hasVerb && hasTarget) && phrase !== 'Murmur') return;
+  if (!(hasVerb && hasTarget) && (phrase !== 'Murmur' || words.targets.includes('Mind'))) return;
   if (wordsArr.includes('Chant') && wordsArr.includes('Persistently')) return;
   for (const orb of Object.values(speechState.orbs)) {
     if (orb.current < 0) return;
@@ -882,7 +884,7 @@ function addSpeechXP(amt) {
   const oldLevel = speechState.level;
   speechState.level = Math.floor(speechState.xp / 10) + 1;
   if (speechState.level !== oldLevel) {
-    if (!words.verbs.includes('Murmur')) {
+    if (!words.verbs.includes('Murmur') && !words.targets.includes('Mind')) {
       words.verbs.push('Murmur');
       glowConstructToggle();
       renderLists();
@@ -928,6 +930,9 @@ function checkUnlocks() {
     const spIdx = speechState.savedPhrases.indexOf('Murmur');
     if (spIdx >= 0) speechState.savedPhrases.splice(spIdx, 1);
     if (!speechState.savedPhrases.includes('Murmur Mind')) speechState.savedPhrases.push('Murmur Mind');
+    const verbIdx = words.verbs.indexOf('Murmur');
+    if (verbIdx >= 0) words.verbs.splice(verbIdx, 1);
+    delete wordState.verbs['Murmur'];
     speechState.capacity += 1;
     renderSlots();
     renderHotbar();
