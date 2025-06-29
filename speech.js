@@ -360,8 +360,9 @@ export function initSpeech() {
   }
   const closeBtn = container.querySelector('#closeConstructBtn');
   if (closeBtn) closeBtn.addEventListener('click', toggleConstructPanel);
-  const panel = container.querySelector('#constructPanel');
+  const panel = document.getElementById('constructPanel');
   if (panel) {
+    container.parentElement.appendChild(panel);
     panel.addEventListener('pointerdown', e => {
       if (!panel.classList.contains('open')) return;
       if (e.target.closest('.word-tile')) return;
@@ -735,7 +736,7 @@ function castMurmur() {
 }
 
 function toggleConstructPanel(forceOpen) {
-  const panel = container.querySelector('#constructPanel');
+  const panel = document.getElementById('constructPanel');
   const toggle = container.querySelector('#constructToggle');
   if (!panel) return;
   const isOpen = panel.classList.contains('open');
