@@ -5,7 +5,7 @@ const FORM_UNLOCK_THOUGHT_REQ = 15;
 export const speechState = {
   orbs: {
     body: { current: 0, max: 10 },
-    insight: { current: 0, max: 10 },
+    insight: { current: 0, max: 110 },
     will: { current: 0, max: 10 }
   },
   resources: {
@@ -272,14 +272,17 @@ export function initSpeech() {
       <div id="orbInsightContainer" class="orb-container">
         <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
         <div id="orbInsightValue" class="orb-value"></div>
+        <div id="orbInsightRegen" class="orb-regen"></div>
       </div>
       <div id="orbBodyContainer" class="orb-container" style="display:none">
         <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
         <div id="orbBodyValue" class="orb-value"></div>
+        <div id="orbBodyRegen" class="orb-regen"></div>
       </div>
       <div id="orbWillContainer" class="orb-container" style="display:none">
         <div id="orbWill" class="speech-orb"><div class="orb-fill"></div></div>
         <div id="orbWillValue" class="orb-value"></div>
+        <div id="orbWillRegen" class="orb-regen"></div>
       </div>
     </div>
     <h3 class="section-title">Speech Progression</h3>
@@ -519,6 +522,8 @@ function renderOrbs() {
       }
       const label = container.querySelector(`#${id}Value`);
       if (label) label.textContent = `${Math.floor(orb.current)}/${orb.max}`;
+      const regenLabel = container.querySelector(`#${id}Regen`);
+      if (regenLabel) regenLabel.textContent = `${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/s`;
     };
     update('orbBody', speechState.orbs.body);
     update('orbInsight', speechState.orbs.insight);
