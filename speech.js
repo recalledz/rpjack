@@ -997,7 +997,7 @@ function renderResources() {
     box.appendChild(value);
     panel.appendChild(box);
   });
-  if (window.lucide) lucide.createIcons({icons: {}});
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderGains() {
