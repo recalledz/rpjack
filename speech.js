@@ -328,7 +328,7 @@ export function initSpeech() {
   createSlots();
   attachWordListeners();
   const castBtn = container.querySelector('#castPhraseBtn');
-  castBtn.addEventListener('click', castPhrase);
+  castBtn.addEventListener('click', () => castPhrase());
   castBtn.addEventListener('mouseenter', e => {
     const wordsArr = speechState.slots.filter(Boolean);
     if (wordsArr.length < 1) return;
