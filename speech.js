@@ -290,9 +290,6 @@ export function initSpeech() {
         <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
       </div>
     </div>
-    <div class="murmur-controls">
-      <button id="murmurBtn" class="cast-button">Murmur</button>
-    </div>
     <div id="constructToggle" class="construct-toggle" style="display:none">❮</div>
     <div id="phraseHotbar" class="phrase-hotbar"></div>
     <div id="constructPanel" class="construct-panel">
@@ -947,6 +944,10 @@ function checkUnlocks() {
     renderLists();
     renderResources();
     renderSlots();
+    speechState.activePhrases = speechState.activePhrases.filter(p => p !== 'Murmur');
+    speechState.savedPhrases = speechState.savedPhrases.filter(p => p !== 'Murmur');
+    renderHotbar();
+    renderSavedPhraseCards();
     speechState.upgrades.capacityBoost.unlocked = true;
     renderUpgrades();
   }

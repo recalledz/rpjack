@@ -2669,11 +2669,6 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
 }
 
-.murmur-controls {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-}
 
 .phrase-hotbar {
     display: flex;
