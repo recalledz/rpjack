@@ -20,6 +20,28 @@ body {
     overflow-y: auto;
 }
 
+:root {
+    --core-bg: #1a1f2e;
+    --core-border: #444a5a;
+    --core-accent: #7fafff;
+    --core-text: #e0e0f0;
+    --core-glow: rgba(127, 175, 255, 0.2);
+}
+
+body.darkenshift-mode {
+    background: #06070c;
+    color: #dcdcf0;
+    font-weight: 300;
+}
+
+body.darkenshift-mode {
+    --core-bg: #0a0b10;
+    --core-border: #363842;
+    --core-accent: #8c78b8;
+    --core-text: #dcdcf0;
+    --core-glow: rgba(140, 120, 184, 0.5);
+}
+
 #debugPanel {
     position: absolute;
     top: 0;
@@ -44,6 +66,22 @@ body {
     cursor: pointer;
 }
 
+#themeToggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    background: #222;
+    color: #fff;
+    border: 1px solid var(--core-accent);
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .tabsContainer {
     display: flex;
     gap: 12px;
@@ -51,6 +89,11 @@ body {
     background: radial-gradient(circle, #00451b 0%, #001a0a 100%);
     box-shadow: 0 0 20px #d4af37;
     border-bottom: 3px solid #d4af37;
+}
+body.darkenshift-mode .tabsContainer {
+    background: radial-gradient(circle, #0d0d15 0%, #06070c 100%);
+    box-shadow: 0 0 20px var(--core-glow);
+    border-bottom-color: var(--core-border);
 }
 
 .tabsContainer button {
@@ -68,14 +111,28 @@ body {
     justify-content: center;
     text-align: center;
 }
+body.darkenshift-mode .tabsContainer button {
+    color: var(--core-accent);
+    border-color: var(--core-accent);
+    box-shadow: 0 0 8px var(--core-glow);
+}
 .tabsContainer button:hover {
     box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
     color: #fff4b3;
+}
+body.darkenshift-mode .tabsContainer button:hover {
+    box-shadow: 0 0 12px var(--core-glow);
+    color: var(--core-text);
 }
 .tabsContainer button.active {
     background: #d4af37;
     color: #220000;
     box-shadow: inset 0 0 8px #fff8c6, 0 0 12px #d4af37;
+}
+body.darkenshift-mode .tabsContainer button.active {
+    background: var(--core-accent);
+    color: #06070c;
+    box-shadow: inset 0 0 8px var(--core-glow), 0 0 12px var(--core-accent);
 }
 .imaginary-subtabs {
     display: flex;
@@ -2160,11 +2217,11 @@ body {
     justify-content: flex-start;
     gap: 10px;
     flex: 1;
-    background: #1a1f2e;
-    border: 1px solid #444a5a;
+    background: var(--core-bg);
+    border: 1px solid var(--core-border);
     border-radius: 8px;
     padding: 8px;
-    box-shadow: 0 0 10px rgba(127, 175, 255, 0.2);
+    box-shadow: 0 0 10px var(--core-glow);
 }
 #coreTabContent {
     display: flex;
@@ -2186,10 +2243,10 @@ body {
     text-align: center;
     font-size: 1.2rem;
     font-weight: 600;
-    background: #1a1f2e;
+    background: var(--core-bg);
     padding: 4px 8px;
     border-radius: 8px;
-    box-shadow: 0 0 4px rgba(127, 175, 255, 0.3);
+    box-shadow: 0 0 4px var(--core-glow);
 }
 .speech-level-display .speech-level-value {
     color: #c785ff;
@@ -2205,11 +2262,11 @@ body {
     align-items: center;
     gap: 4px;
     padding: 2px 6px;
-    background: #1a1f2e;
+    background: var(--core-bg);
     border-radius: 6px;
-    box-shadow: 0 0 4px rgba(127, 175, 255, 0.2);
+    box-shadow: 0 0 4px var(--core-glow);
     font-size: 0.8rem;
-    color: #e0e0f0;
+    color: var(--core-text);
 }
 .core-resource-indicators .resource-box i {
     width: 16px;
@@ -2250,22 +2307,23 @@ body {
 }
 .core-actions button {
     padding: 6px;
-    border: 2px solid #7fafff;
-    background: #1a1f2e;
-    color: #e0e0f0;
+    border: 2px solid var(--core-accent);
+    background: var(--core-bg);
+    color: var(--core-text);
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
     text-shadow: 0 0 6px #000;
-    box-shadow: 0 0 8px rgba(127, 175, 255, 0.5);
+    box-shadow: 0 0 8px var(--core-glow);
     transition: all 0.2s;
 }
 .core-actions button:hover {
-    box-shadow: 0 0 12px rgba(127, 175, 255, 0.8);
-    color: #e0e0f0;
+    box-shadow: 0 0 12px var(--core-glow);
+    color: var(--core-text);
 }
 .core-actions button.active {
-    background: #7fafff;
+    background: var(--core-accent);
+    color: #06070c;
 }
 
 .core-resources {
