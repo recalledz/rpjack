@@ -925,15 +925,8 @@ function checkUnlocks() {
     addLog('Your awareness turns inward. Target "Mind" unlocked.', 'info');
     const murmurBtn = container.querySelector('#murmurBtn');
     if (murmurBtn) murmurBtn.remove();
-    const idx = speechState.activePhrases.indexOf('Murmur');
-    if (idx >= 0) speechState.activePhrases.splice(idx, 1);
     if (!speechState.activePhrases.includes('Murmur Mind')) speechState.activePhrases.push('Murmur Mind');
-    const spIdx = speechState.savedPhrases.indexOf('Murmur');
-    if (spIdx >= 0) speechState.savedPhrases.splice(spIdx, 1);
     if (!speechState.savedPhrases.includes('Murmur Mind')) speechState.savedPhrases.push('Murmur Mind');
-    const verbIdx = words.verbs.indexOf('Murmur');
-    if (verbIdx >= 0) words.verbs.splice(verbIdx, 1);
-    delete wordState.verbs['Murmur'];
     speechState.capacity += 1;
     renderSlots();
     renderHotbar();
