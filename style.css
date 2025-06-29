@@ -2325,6 +2325,7 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: flex-start;
     gap: 8px;
     flex: 1;
+    height: 100%;
 }
 
 .player-upgrades-panel {
@@ -2347,6 +2348,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex: 1;
     gap: 6px;
     position: relative;
+    height: 100%;
 }
 
 .core-actions {
