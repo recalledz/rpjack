@@ -251,10 +251,11 @@ function addWordXp(word, amt) {
 }
 
 let container;
+let constructPanel;
 let pointerDrag = null;
 function attachWordListeners() {
-  if (!container) return;
-  container.querySelectorAll('.word-tile').forEach(t => {
+  if (!constructPanel) return;
+  constructPanel.querySelectorAll('.word-tile').forEach(t => {
     t.removeEventListener('dragstart', onDrag);
     t.addEventListener('dragstart', onDrag);
     t.removeEventListener('pointerdown', onTilePointerDown);
@@ -323,12 +324,13 @@ export function initSpeech() {
       </div>
     </div>
   `;
+  constructPanel = container.querySelector('#constructPanel');
   if (window.lucide) lucide.createIcons();
   renderLists();
   renderOrbs();
   createSlots();
   attachWordListeners();
-  const castBtn = container.querySelector('#castPhraseBtn');
+  const castBtn = constructPanel.querySelector('#castPhraseBtn');
   castBtn.addEventListener('click', () => castPhrase());
   castBtn.addEventListener('mouseenter', e => {
     const wordsArr = speechState.slots.filter(Boolean);
@@ -358,9 +360,9 @@ export function initSpeech() {
       window.addEventListener('pointerup', up);
     });
   }
-  const closeBtn = container.querySelector('#closeConstructBtn');
+  const closeBtn = constructPanel.querySelector('#closeConstructBtn');
   if (closeBtn) closeBtn.addEventListener('click', toggleConstructPanel);
-  const panel = document.getElementById('constructPanel');
+  const panel = constructPanel;
   if (panel) {
     container.parentElement.appendChild(panel);
     panel.addEventListener('pointerdown', e => {
@@ -376,7 +378,7 @@ export function initSpeech() {
     });
   }
 
-  const constructorView = container.querySelector('.constructor-view');
+  const constructorView = constructPanel.querySelector('.constructor-view');
   if (constructorView) {
     constructorView.style.display = 'flex';
   }
@@ -432,7 +434,7 @@ function onSlotClick(e) {
 }
 
 function renderLists() {
-  if (!container) return;
+  if (!constructPanel) return;
   const makeTile = (word, type) => {
     const d = document.createElement('div');
     d.className = 'word-tile';
@@ -452,18 +454,18 @@ function renderLists() {
     }
     return d;
   };
-  const verbList = container.querySelector('#verbList');
+  const verbList = constructPanel.querySelector('#verbList');
   if (verbList) {
     verbList.innerHTML = '';
     words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
   }
-  const targetList = container.querySelector('#targetList');
+  const targetList = constructPanel.querySelector('#targetList');
   if (targetList) {
     targetList.innerHTML = '';
     words.targets.forEach(w => targetList.appendChild(makeTile(w, 'target')));
     targetList.style.display = words.targets.length ? 'flex' : 'none';
   }
-  const modList = container.querySelector('#modifierList');
+  const modList = constructPanel.querySelector('#modifierList');
   if (modList) {
     modList.innerHTML = '';
     words.modifiers.forEach(w => modList.appendChild(makeTile(w, 'modifier')));
@@ -487,9 +489,9 @@ function ensureSlotCount() {
 }
 
 function createSlots() {
-  if (!container) return;
+  if (!constructPanel) return;
   ensureSlotCount();
-  const slotContainer = container.querySelector('#phraseSlots');
+  const slotContainer = constructPanel.querySelector('#phraseSlots');
   slotContainer.innerHTML = '';
   speechState.slots.forEach((_, idx) => {
     const slot = document.createElement('div');
@@ -529,10 +531,10 @@ function renderOrbs() {
 }
 
 function renderSlots() {
-  if (!container) return;
+  if (!constructPanel) return;
   ensureSlotCount();
   createSlots();
-  container.querySelectorAll('.phrase-slot').forEach(slot => {
+  constructPanel.querySelectorAll('.phrase-slot').forEach(slot => {
     const idx = Number(slot.dataset.index);
     slot.classList.toggle('verb-slot', idx === 0);
     slot.classList.toggle('target-slot', idx === 1);
@@ -561,9 +563,9 @@ function renderSlots() {
 }
 
 function renderPhraseInfo() {
-  if (!container) return;
-  const info = container.querySelector('#phraseInfo');
-  const castBtn = container.querySelector('#castPhraseBtn');
+  if (!constructPanel) return;
+  const info = constructPanel.querySelector('#phraseInfo');
+  const castBtn = constructPanel.querySelector('#castPhraseBtn');
   if (!info) return;
   const wordsArr = speechState.slots.filter(Boolean);
   if (wordsArr.length < 1) {
@@ -607,7 +609,7 @@ function renderPhraseInfo() {
     info.innerHTML = `<span class="info-tag">??</span> ${chanceHtml}`;
   }
   const cap = def.capacity || 0;
-  const capDisplay = container.querySelector('#capacityDisplay');
+  const capDisplay = constructPanel.querySelector('#capacityDisplay');
   if (capDisplay) {
     capDisplay.textContent = `Capacity: ${cap}/${speechState.capacity}`;
     if (cap > speechState.capacity) capDisplay.classList.add('exceeded');
@@ -705,7 +707,7 @@ function castPhrase(phraseArg) {
     } else if (wordsArr.includes('Persistently')) {
       setTimeout(() => castPhrase(phrase), 5000);
     }
-    const castBtn = container.querySelector('#castPhraseBtn');
+      const castBtn = constructPanel.querySelector('#castPhraseBtn');
     if (castBtn) castBtn.disabled = true;
     showPhraseDetails(phrase);
     renderPhraseInfo();
@@ -736,7 +738,7 @@ function castMurmur() {
 }
 
 function toggleConstructPanel(forceOpen) {
-  const panel = document.getElementById('constructPanel');
+  const panel = constructPanel;
   const toggle = container.querySelector('#constructToggle');
   if (!panel) return;
   const isOpen = panel.classList.contains('open');
@@ -796,9 +798,9 @@ function renderHotbar() {
 }
 
 function renderSavedPhraseCards() {
-  const cont = container.querySelector('#savedPhraseCards');
+  const cont = constructPanel.querySelector('#savedPhraseCards');
   if (!cont) return;
-  const slotCont = container.querySelector('#memorySlotsDisplay');
+  const slotCont = constructPanel.querySelector('#memorySlotsDisplay');
   if (slotCont) {
     slotCont.innerHTML = '';
     for (let i = 0; i < speechState.memorySlots; i++) {
@@ -832,8 +834,8 @@ function togglePhraseActive(phrase) {
 }
 
 function updateCastCooldown() {
-  const castBtn = container.querySelector('#castPhraseBtn');
-  const circle = container.querySelector('#castCooldownCircle');
+  const castBtn = constructPanel.querySelector('#castPhraseBtn');
+  const circle = constructPanel.querySelector('#castCooldownCircle');
   if (!castBtn || !circle) return;
   const overlay = castBtn.querySelector('.cooldown-overlay');
   const wordsArr = speechState.slots.filter(Boolean);
@@ -1141,8 +1143,8 @@ function showPhraseCloud(text) {
 }
 
 function showPhraseDetails(phrase) {
-  if (!container) return;
-  const info = container.querySelector('#phraseDetails');
+  if (!constructPanel) return;
+  const info = constructPanel.querySelector('#phraseDetails');
   if (!info) return;
   const wordsArr = phrase.split(' ');
   const def = buildPhraseDef(wordsArr);
