@@ -289,27 +289,36 @@ export function initSpeech() {
     <div id="phraseHotbar" class="phrase-hotbar"></div>
     <div id="constructPanel" class="construct-panel">
       <div class="construct-header">
-        <h3 class="section-title">Construct Reality</h3>
+        <div class="construct-tabs">
+          <button class="constructTabButton active">Constructor</button>
+          <button class="upgradeTabButton">Upgrades</button>
+        </div>
         <button id="closeConstructBtn" class="cast-button">❌</button>
       </div>
-      <div class="construct-top">
-        <div class="word-list" id="verbList"></div>
-        <div class="word-list" id="targetList" style="display:none"></div>
-        <div class="word-list" id="modifierList" style="display:none"></div>
-        <div class="phrase-slots" id="phraseSlots"></div>
-        <div id="capacityDisplay" class="capacity-display"></div>
-        <div class="cast-container">
-          <div class="cast-wrapper">
-            <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
-            <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
+      <div class="construct-tab constructor-view">
+        <div class="construct-top">
+          <div class="word-list" id="verbList"></div>
+          <div class="word-list" id="targetList" style="display:none"></div>
+          <div class="word-list" id="modifierList" style="display:none"></div>
+          <div class="phrase-slots" id="phraseSlots"></div>
+          <div id="capacityDisplay" class="capacity-display"></div>
+          <div class="cast-container">
+            <div class="cast-wrapper">
+              <button id="castPhraseBtn" class="cast-button"><span>Cast</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
+              <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
+            </div>
+            <div id="phraseInfo" class="phrase-info"></div>
           </div>
-          <div id="phraseInfo" class="phrase-info"></div>
+        </div>
+        <div class="construct-bottom">
+          <div id="savedPhraseCards" class="saved-phrases"></div>
+          <div id="memorySlotsDisplay" class="memory-slots"></div>
+          <div id="phraseDetails" class="phrase-info"></div>
         </div>
       </div>
-      <div class="construct-bottom">
-        <div id="savedPhraseCards" class="saved-phrases"></div>
-        <div id="memorySlotsDisplay" class="memory-slots"></div>
-        <div id="phraseDetails" class="phrase-info"></div>
+      <div class="construct-tab upgrades-view" style="display:none;">
+        <div id="speechGains" class="speech-gains"></div>
+        <div id="speechUpgrades" class="speech-upgrades"></div>
       </div>
     </div>
   `;
@@ -362,6 +371,26 @@ export function initSpeech() {
         window.removeEventListener('pointerup', up);
       }
       window.addEventListener('pointerup', up);
+    });
+  }
+
+  const constructorTabBtn = container.querySelector('.constructTabButton');
+  const upgradeTabBtn = container.querySelector('.upgradeTabButton');
+  const constructorView = container.querySelector('.constructor-view');
+  const upgradesView = container.querySelector('.upgrades-view');
+  if (constructorTabBtn && upgradeTabBtn && constructorView && upgradesView) {
+    constructorTabBtn.addEventListener('click', () => {
+      constructorView.style.display = 'flex';
+      upgradesView.style.display = 'none';
+      constructorTabBtn.classList.add('active');
+      upgradeTabBtn.classList.remove('active');
+    });
+    upgradeTabBtn.addEventListener('click', () => {
+      constructorView.style.display = 'none';
+      upgradesView.style.display = 'flex';
+      upgradeTabBtn.classList.add('active');
+      constructorTabBtn.classList.remove('active');
+      renderUpgrades();
     });
   }
   renderSlots();
