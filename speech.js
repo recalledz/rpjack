@@ -39,7 +39,11 @@ export const speechState = {
   formUnlocked: false,
   failCount: 0,
   masteryBonus: 0,
-  modifierUnlocks: { Inwardly: false, Sharply: false, Persistently: false },
+  modifierUnlocks: {
+    Inwardly: true,
+    Sharply: true,
+    Persistently: true
+  },
   selfCastCount: 0,
   lastPhrase: '',
   repeatCount: 0,
@@ -47,9 +51,17 @@ export const speechState = {
 };
 
 const words = {
-  verbs: ['Murmur'],
-  targets: ['Self'],
-  modifiers: []
+  verbs: ['Murmur', 'Chant', 'Whisper', 'Declare', 'Invoke', 'Command'],
+  targets: ['Self', 'Form', 'Mind', 'Body', 'Soul', 'Spirit'],
+  modifiers: [
+    'Inwardly',
+    'Sharply',
+    'Persistently',
+    'Softly',
+    'Forcefully',
+    'Briefly',
+    'Reverently'
+  ]
 };
 
 const resourceIcons = {
@@ -94,25 +106,58 @@ function formatCost(cost) {
 }
 
 export const wordState = {
-  verbs: { Murmur: { level: 1, xp: 0 } },
-  targets: { Self: { level: 1, xp: 0 } },
-  modifiers: {}
+  verbs: {
+    Murmur: { level: 1, xp: 0 },
+    Chant: { level: 1, xp: 0 },
+    Whisper: { level: 1, xp: 0 },
+    Declare: { level: 1, xp: 0 },
+    Invoke: { level: 1, xp: 0 },
+    Command: { level: 1, xp: 0 }
+  },
+  targets: {
+    Self: { level: 1, xp: 0 },
+    Form: { level: 1, xp: 0 },
+    Mind: { level: 1, xp: 0 },
+    Body: { level: 1, xp: 0 },
+    Soul: { level: 1, xp: 0 },
+    Spirit: { level: 1, xp: 0 }
+  },
+  modifiers: {
+    Inwardly: { level: 1, xp: 0 },
+    Sharply: { level: 1, xp: 0 },
+    Persistently: { level: 1, xp: 0 },
+    Softly: { level: 1, xp: 0 },
+    Forcefully: { level: 1, xp: 0 },
+    Briefly: { level: 1, xp: 0 },
+    Reverently: { level: 1, xp: 0 }
+  }
 };
 
 const wordData = {
   verbs: {
     Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 0, tags: ['verb', 'murmur'] },
-    Chant: { capacity: 2, cost: { insight: 3 }, power: 1, cd: 0, tags: ['verb', 'chant'] }
+    Chant: { capacity: 2, cost: { insight: 3 }, power: 1, cd: 0, tags: ['verb', 'chant'] },
+    Whisper: { capacity: 1, cost: { insight: 4 }, power: 1, cd: 0, tags: ['verb', 'whisper'] },
+    Declare: { capacity: 2, cost: { insight: 6 }, power: 1, cd: 0, tags: ['verb', 'declare'] },
+    Invoke: { capacity: 3, cost: { insight: 5 }, power: 1, cd: 0, tags: ['verb', 'invoke'] },
+    Command: { capacity: 2, cost: { insight: 7 }, power: 1, cd: 0, tags: ['verb', 'command'] }
   },
   targets: {
     Self: { capacity: 1, tags: ['target', 'self'] },
     Form: { capacity: 2, tags: ['target', 'form'] },
-    Mind: { capacity: 1, tags: ['target', 'mind'] }
+    Mind: { capacity: 1, tags: ['target', 'mind'] },
+    Body: { capacity: 1, tags: ['target', 'body'] },
+    Soul: { capacity: 1, tags: ['target', 'soul'] },
+    Spirit: { capacity: 2, tags: ['target', 'spirit'] }
   },
   modifiers: {
     Inwardly: { capacity: 0, costDelta: -1, potency: 1.1, cdDelta: 0, complexity: 0.5, tags: ['modifier', 'inward'] },
     Sharply: { capacity: 1, costDelta: 2, potency: 2, cdDelta: 2000, complexity: 1.5, tags: ['modifier', 'sharp'] },
-    Persistently: { capacity: 1, costDelta: 1, potency: 1, cdDelta: 1000, complexity: 1.0, repeat: true, tags: ['modifier', 'persistent'] }
+    Persistently: { capacity: 1, costDelta: 1, potency: 1, cdDelta: 1000, complexity: 1.0, repeat: true, tags: ['modifier', 'persistent'] },
+    Softly: { capacity: 0, costDelta: -1, potency: 1.0, cdDelta: 0, complexity: 0.5, tags: ['modifier', 'soft'] },
+    Forcefully: { capacity: 2, costDelta: 2, potency: 2, cdDelta: 1500, complexity: 1.5, tags: ['modifier', 'forceful'] },
+    Briefly: { capacity: 0, costDelta: -1, potency: 0.8, cdDelta: -1000, complexity: 0.5, tags: ['modifier', 'brief'] },
+    Reverently: { capacity: 1, costDelta: 1, potency: 1.2, cdDelta: 1000, complexity: 1.0, tags: ['modifier', 'reverent'] }
   }
 };
 
@@ -135,7 +180,35 @@ const tagRules = [
       cd: 3000,
       complexity: { verb: 1, target: 1 }
     }
-  }
+  },
+  // Whispering to the mind gathers extra Thought.
+  {
+    tags: ['whisper', 'mind'],
+    phraseLength: 2,
+    effect: { create: { thought: 2 }, cd: 1000, complexity: { verb: 1, target: 1 } }
+  },
+  // Declaring Form shapes additional Structure.
+  {
+    tags: ['declare', 'form'],
+    phraseLength: 2,
+    effect: { create: { structure: 2 }, cd: 4000, complexity: { verb: 1, target: 1 } }
+  },
+  // Invoking the Soul crystallizes Thought and Structure.
+  {
+    tags: ['invoke', 'soul'],
+    phraseLength: 2,
+    effect: { create: { thought: 1, structure: 1 }, cd: 3000, complexity: { verb: 1, target: 1 } }
+  },
+  // Commanding the Spirit solidifies significant Structure.
+  {
+    tags: ['command', 'spirit'],
+    phraseLength: 2,
+    effect: { create: { structure: 4 }, cd: 5000, complexity: { verb: 1, target: 1 } }
+  },
+  // Brief phrases recover faster.
+  { tags: ['brief'], effect: { cd: -1000 } },
+  // Reverent speech grants extra XP.
+  { tags: ['reverent'], effect: { xp: 2 } }
 ];
 
 
