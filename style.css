@@ -2879,6 +2879,9 @@ body.darkenshift-mode .tabsContainer button.active {
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 6px;
 }
+.construct-panel .phrase-card {
+    width: 80px;
+}
 
 .speech-panel.construct-mode .speech-orbs {
     position: absolute;
