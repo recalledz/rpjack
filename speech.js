@@ -101,40 +101,43 @@ export const wordState = {
 
 const wordData = {
   verbs: {
-    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 0 },
-    Chant: { capacity: 2, cost: { insight: 3 }, power: 1, cd: 0 }
+    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 0, tags: ['verb', 'murmur'] },
+    Chant: { capacity: 2, cost: { insight: 3 }, power: 1, cd: 0, tags: ['verb', 'chant'] }
   },
   targets: {
-    Self: { capacity: 1 },
-    Form: { capacity: 2 },
-    Mind: { capacity: 1 }
+    Self: { capacity: 1, tags: ['target', 'self'] },
+    Form: { capacity: 2, tags: ['target', 'form'] },
+    Mind: { capacity: 1, tags: ['target', 'mind'] }
   },
   modifiers: {
-    Inwardly: { capacity: 0, costDelta: -1, potency: 1.1, cdDelta: 0, complexity: 0.5 },
-    Sharply: { capacity: 1, costDelta: 2, potency: 2, cdDelta: 2000, complexity: 1.5 },
-    Persistently: { capacity: 1, costDelta: 1, potency: 1, cdDelta: 1000, complexity: 1.0, repeat: true }
+    Inwardly: { capacity: 0, costDelta: -1, potency: 1.1, cdDelta: 0, complexity: 0.5, tags: ['modifier', 'inward'] },
+    Sharply: { capacity: 1, costDelta: 2, potency: 2, cdDelta: 2000, complexity: 1.5, tags: ['modifier', 'sharp'] },
+    Persistently: { capacity: 1, costDelta: 1, potency: 1, cdDelta: 1000, complexity: 1.0, repeat: true, tags: ['modifier', 'persistent'] }
   }
 };
 
-const phraseEffects = {
-  Murmur: {
-    cost: { insight: 5 },
-    // Murmur simply grants Speech XP and has no direct effect
-    create: null,
-    cd: 0,
-    xp: 1,
-    capacity: 1,
-    complexity: { verb: 1, target: 0 }
-  },
-  'Murmur Form': {
-    cost: { insight: 5 },
-    create: { thought: -1, structure: 3 },
-    cd: 3000,
-    xp: 1,
-    capacity: 3,
-    complexity: { verb: 1, target: 1 }
+// Map combinations of tags to phrase effects. The first matching rule applies
+// its effect to the phrase definition. More specific rules should appear later
+// in the list so they can override generic behaviour.
+const tagRules = [
+  // Any verb directed at the mind generates a point of Thought.
+  { tags: ['verb', 'mind'], effect: { create: { thought: 1 } } },
+
+  // Base Murmur behaviour when used alone.
+  { tags: ['murmur'], phraseLength: 1, effect: { complexity: { verb: 1, target: 0 } } },
+
+  // Murmur focused on Form materialises Structure at the cost of Thought.
+  {
+    tags: ['murmur', 'form'],
+    phraseLength: 2,
+    effect: {
+      create: { thought: -1, structure: 3 },
+      cd: 3000,
+      complexity: { verb: 1, target: 1 }
+    }
   }
-};
+];
+
 
 function buildPhraseDef(wordsArr) {
   if (!wordsArr.length) return null;
@@ -173,10 +176,27 @@ function buildPhraseDef(wordsArr) {
     result.complexity[cat.slice(0, -1)] += data.complexity || 0;
     if (data.repeat) result.repeat = true;
   });
-  const hasVerb = wordsArr.some(w => getWordCategory(w) === 'verbs');
-  if (hasVerb && wordsArr.includes('Mind')) {
-    result.create.thought = (result.create.thought || 0) + 1;
-  }
+  const phraseTags = new Set();
+  wordsArr.forEach(w => {
+    const cat = getWordCategory(w);
+    if (!cat) return;
+    const data = wordData[cat][w];
+    if (data && data.tags) data.tags.forEach(t => phraseTags.add(t));
+  });
+  tagRules.forEach(rule => {
+    if (rule.phraseLength && rule.phraseLength !== wordsArr.length) return;
+    if (rule.tags.every(t => phraseTags.has(t))) {
+      const eff = rule.effect || {};
+      if (eff.cost) result.cost = { ...result.cost, ...eff.cost };
+      if (eff.create) result.create = { ...result.create, ...eff.create };
+      if (eff.complexity) result.complexity = { ...result.complexity, ...eff.complexity };
+      if (eff.cd !== undefined) result.cd = eff.cd;
+      if (eff.xp !== undefined) result.xp = eff.xp;
+      if (eff.capacity !== undefined) result.capacity = eff.capacity;
+      if (eff.potency !== undefined) result.potency = eff.potency;
+      if (eff.repeat !== undefined) result.repeat = eff.repeat;
+    }
+  });
   if (result.cost.insight !== undefined) {
     result.cost.insight = Math.max(1, result.cost.insight);
   }
@@ -627,8 +647,6 @@ function castPhrase(phraseArg) {
   const phrase = wordsArr.join(' ');
   let def = buildPhraseDef(wordsArr);
   if (!def) return;
-  const special = phraseEffects[phrase];
-  if (special) def = { ...def, ...special };
   const hasVerb = wordsArr.some(w => getWordCategory(w) === 'verbs');
   const hasTarget = wordsArr.some(w => getWordCategory(w) === 'targets');
   if (!(hasVerb && hasTarget) && (phrase !== 'Murmur' || words.targets.includes('Mind'))) return;
