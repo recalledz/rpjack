@@ -33,8 +33,8 @@ export const speechState = {
   voiceXp: 0,
   voiceLevel: 1,
   memorySlots: 2,
-  activeConstructs: [],
-  savedConstructs: [],
+  activeConstructs: ['Murmur'],
+  savedConstructs: ['Murmur'],
   buffs: {},
   constructUnlocked: true,
   pot: []
