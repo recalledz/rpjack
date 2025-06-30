@@ -91,9 +91,9 @@ export function initSpeech() {
       <div class="construct-tab constructor-view">
         <div id="constructPot" class="construct-pot">⚗️</div>
         <div id="resourceButtons" class="resource-buttons"></div>
-        <button id="performConstruct" class="cast-button">Construct</button>
-        <div id="constructCards" class="built-phrases"></div>
+        <button id="performConstruct" class="cast-button construct-button">Construct</button>
         <div id="memorySlotsDisplay" class="memory-slots"></div>
+        <div id="constructCards" class="built-phrases"></div>
       </div>
     </div>
   `;
@@ -108,7 +108,7 @@ export function initSpeech() {
   renderUpgrades();
   renderConstructCards();
   renderHotbar();
-  if (window.lucide) lucide.createIcons();
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
 }
 
 function togglePanel() {
@@ -126,6 +126,8 @@ function togglePanel() {
 }
 
 function addResourceToPot(name) {
+  if (speechState.pot.includes(name)) return;
+  if (speechState.pot.length >= 3) return;
   speechState.pot.push(name);
   renderPot();
 }
@@ -134,6 +136,17 @@ function renderPot() {
   const pot = container.querySelector('#constructPot');
   if (!pot) return;
   pot.textContent = speechState.pot.length ? speechState.pot.join(' + ') : '⚗️';
+  updateConstructButtonValidity();
+}
+
+function updateConstructButtonValidity() {
+  const btn = panel.querySelector('#performConstruct');
+  if (!btn) return;
+  const unique = new Set(speechState.pot);
+  const valid = speechState.pot.length > 0 &&
+                speechState.pot.length <= 3 &&
+                unique.size === speechState.pot.length;
+  btn.classList.toggle('invalid', !valid);
 }
 
 function renderResourcesUI() {
@@ -211,7 +224,23 @@ function renderConstructCards() {
 function createConstructCard(name) {
   const card = document.createElement('div');
   card.className = 'phrase-card';
-  card.textContent = name;
+  const title = document.createElement('div');
+  title.className = 'phrase-word';
+  title.textContent = name;
+  card.appendChild(title);
+  const recipe = recipes.find(r => r.name === name);
+  if (recipe) {
+    const effect = document.createElement('div');
+    effect.className = 'construct-effect';
+    effect.textContent = `Output: ${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+    card.appendChild(effect);
+    const cost = document.createElement('div');
+    cost.className = 'construct-cost';
+    cost.textContent = `Cost: ${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+    card.appendChild(cost);
+  } else {
+    card.textContent = name;
+  }
   return card;
 }
 
@@ -285,7 +314,7 @@ function renderResources() {
     const header = document.createElement('div');
     header.className = 'resource-text';
     const icon = document.createElement('i');
-    icon.dataset.lucide = 'cube';
+    icon.dataset.lucide = 'package';
     const name = document.createElement('span');
     name.className = 'resource-name';
     name.textContent = key.charAt(0).toUpperCase() + key.slice(1);
@@ -305,7 +334,7 @@ function renderResources() {
     box.appendChild(bar);
     panelRes.appendChild(box);
   });
-  if (window.lucide) lucide.createIcons();
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   window.dispatchEvent(new CustomEvent('resources-changed'));
 }
 

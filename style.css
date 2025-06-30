@@ -3117,4 +3117,20 @@ body.darkenshift-mode .tabsContainer button.active {
 
 .construct-pot { text-align:center; font-size:2rem; margin:8px 0; }
 .resource-buttons { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; }
+.construct-button {
+    padding: 4px 8px;
+    margin: 4px auto;
+    border: 2px solid #b76eff;
+    background: #4b0082;
+    color: #e0d0ff;
+}
+.construct-button.invalid {
+    background: #662222;
+    border-color: #aa4444;
+}
+.construct-effect,
+.construct-cost {
+    font-size: 0.65rem;
+    text-align: center;
+}
 

@@ -761,7 +761,7 @@ function renderPurchasedUpgrades() {
     wrap.appendChild(cardEl);
     purchasedUpgradeList.appendChild(wrap);
   });
-  lucide.createIcons();
+  lucide.createIcons({ icons: lucide.icons });
 }
 
 function updateActiveEffects() {
@@ -954,7 +954,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('location-discovered', e => addDiscoveredLocation(e.detail.name));
   loadGame();
   initVignetteToggles();
-  if (window.lucide) lucide.createIcons();
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   initCore();
   initSpeech();
   window.addEventListener('core-mind-upgrade', () => {
@@ -1185,7 +1185,7 @@ function renderDealerCard() {
     : renderDealerCardBase(currentEnemy);
   dCardContainer.innerHTML = '';
   dCardContainer.appendChild(card);
-  lucide.createIcons();
+  lucide.createIcons({ icons: lucide.icons });
 }
 
 function animateCardHit(card) {
@@ -1930,7 +1930,7 @@ function openCardUpgradeSelection(onCloseCallback = null) {
   });
   box.appendChild(handRow);
 
-  lucide.createIcons();
+  lucide.createIcons({ icons: lucide.icons });
 }
 
 function closeCardUpgradeSelection() {
@@ -2116,7 +2116,7 @@ function showUpgradePopup(id) {
       </div>
     </div>`;
   document.body.appendChild(wrapper);
-  lucide.createIcons();
+  lucide.createIcons({ icons: lucide.icons });
   setTimeout(() => wrapper.remove(), 3000);
 }
 
