@@ -11,7 +11,9 @@ export const speechState = {
   },
   resources: {
     insight: { current: 0, max: 10, regen: 0.1, unlocked: true },
-    sound: { current: 0, max: 10, unlocked: true }
+    sound: { current: 0, max: 10, regen: 0, unlocked: true },
+    thought: { current: 0, max: 10, regen: 0, unlocked: false },
+    structure: { current: 0, max: 10, regen: 0, unlocked: false }
   },
   gains: {
     body: 0,
@@ -33,6 +35,7 @@ export const speechState = {
   memorySlots: 2,
   activeConstructs: [],
   savedConstructs: [],
+  buffs: {},
   constructUnlocked: true,
   pot: []
 };
@@ -46,8 +49,94 @@ const recipes = [
     output: { sound: 1 },
     xp: 1,
     unlocked: true
+  },
+  {
+    name: 'Echo of Mind',
+    input: { sound: 1, insight: 1 },
+    output: { thought: 1 },
+    xp: 1,
+    unlocked: true
+  },
+  {
+    name: 'Clarity Pulse',
+    input: { thought: 1, insight: 1 },
+    output: {},
+    xp: 0,
+    unlocked: true,
+    type: 'buff'
+  },
+  {
+    name: 'Symbol Seed',
+    input: { sound: 1, thought: 1 },
+    output: { structure: 1 },
+    xp: 1,
+    unlocked: true
+  },
+  {
+    name: 'Mental Construct',
+    input: { sound: 1, thought: 1, insight: 1 },
+    output: {},
+    xp: 0,
+    unlocked: true,
+    type: 'buff'
   }
 ];
+
+// Per-tick effects for active constructs. These are simplified
+// implementations to demonstrate the new constructs in action.
+const constructEffects = {
+  Murmur(dt) {
+    const amount = dt; // 1 insight -> 1 sound per second
+    const ins = speechState.resources.insight;
+    const snd = speechState.resources.sound;
+    if (ins.current >= amount) {
+      ins.current -= amount;
+      snd.current = Math.min(snd.max, snd.current + amount);
+    }
+  },
+  'Echo of Mind'(dt) {
+    const ins = speechState.resources.insight;
+    const th = speechState.resources.thought;
+    const amount = dt * 0.2; // slower rate
+    if (ins.current >= amount) {
+      ins.current -= amount;
+      th.current = Math.min(th.max, th.current + amount);
+      th.unlocked = true;
+    }
+  },
+  'Clarity Pulse'(dt) {
+    const bonus = 0.01 * dt; // 1% regen per second
+    speechState.resources.insight.current = Math.min(
+      speechState.resources.insight.max,
+      speechState.resources.insight.current + bonus
+    );
+    speechState.resources.sound.current = Math.min(
+      speechState.resources.sound.max,
+      speechState.resources.sound.current + bonus
+    );
+  },
+  'Symbol Seed'(dt) {
+    const th = speechState.resources.thought;
+    const snd = speechState.resources.sound;
+    const str = speechState.resources.structure;
+    const drain = dt * 0.1;
+    if (th.current >= drain && snd.current >= drain) {
+      th.current -= drain;
+      snd.current -= drain;
+      str.current = Math.min(str.max, str.current + drain);
+      str.unlocked = true;
+    }
+  },
+  'Mental Construct'(dt) {
+    // doubles effects of other constructs while active
+    speechState.activeConstructs
+      .filter(c => c !== 'Mental Construct')
+      .forEach(c => {
+        const effect = constructEffects[c];
+        if (effect) effect(dt);
+      });
+  }
+};
 
 let container;
 let panel;
@@ -120,6 +209,7 @@ function togglePanel() {
   } else {
     panel.classList.remove('close-right');
     panel.classList.add('open');
+    renderResourcesUI();
   }
   const toggle = container.querySelector('#constructToggle');
   if (toggle) toggle.textContent = open ? '❮' : '❯';
@@ -424,6 +514,13 @@ function renderGains() {
   panel.innerHTML = '';
 }
 
+function tickActiveConstructs(dt) {
+  speechState.activeConstructs.forEach(name => {
+    const effect = constructEffects[name];
+    if (effect) effect(dt);
+  });
+}
+
 export function tickSpeech(delta) {
   if (!container) return;
   const dt = delta / 1000;
@@ -440,6 +537,7 @@ export function tickSpeech(delta) {
   });
   const ins = speechState.resources.insight;
   ins.current = Math.min(ins.max, ins.current + ins.regen * dt);
+  tickActiveConstructs(dt);
   renderOrbs();
   renderResources();
   refreshCore();
