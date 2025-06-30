@@ -92,6 +92,15 @@ const recipes = [
   }
 ];
 
+const resourceIcons = {
+  insight: 'star',
+  sound: 'volume-2',
+  thought: 'activity',
+  structure: 'cube',
+  body: 'heart',
+  will: 'flame'
+};
+
 // Per-tick effects for active constructs. These are simplified
 // implementations to demonstrate the new constructs in action.
 const constructEffects = {
@@ -335,12 +344,40 @@ function renderConstructCards() {
 function createConstructCard(name) {
   const card = document.createElement('div');
   card.className = 'phrase-card';
+  card.dataset.name = name;
   const title = document.createElement('div');
   title.className = 'phrase-word';
   title.textContent = name;
   card.appendChild(title);
   const recipe = recipes.find(r => r.name === name);
-  if (!recipe) card.textContent = name;
+  if (recipe) {
+    const iconCont = document.createElement('div');
+    iconCont.className = 'construct-icons';
+    const outRow = document.createElement('div');
+    outRow.className = 'icon-row';
+    Object.entries(recipe.output).forEach(([res, amt]) => {
+      const span = document.createElement('span');
+      span.innerHTML = `<i data-lucide="${resourceIcons[res] || 'package'}"></i> ${amt}`;
+      outRow.appendChild(span);
+    });
+    iconCont.appendChild(outRow);
+    const costRow = document.createElement('div');
+    costRow.className = 'icon-row';
+    Object.entries(recipe.input).forEach(([res, amt]) => {
+      const span = document.createElement('span');
+      span.innerHTML = `<i data-lucide="${resourceIcons[res] || 'package'}"></i> ${amt}`;
+      costRow.appendChild(span);
+    });
+    iconCont.appendChild(costRow);
+    card.appendChild(iconCont);
+    if (recipe.cooldown) {
+      const overlay = document.createElement('div');
+      overlay.className = 'cooldown-overlay';
+      card.appendChild(overlay);
+    }
+  } else {
+    card.textContent = name;
+  }
   return card;
 }
 
@@ -351,10 +388,10 @@ function createConstructInfo(name) {
   info.className = 'construct-info';
   const effect = document.createElement('div');
   effect.className = 'construct-effect';
-  effect.innerHTML = `<i data-lucide="arrow-up-circle"></i> ${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+  effect.textContent = `${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
   const cost = document.createElement('div');
   cost.className = 'construct-cost';
-  cost.innerHTML = `<i data-lucide="arrow-down-circle"></i> ${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+  cost.textContent = `${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
   info.appendChild(effect);
   info.appendChild(cost);
   return info;
@@ -371,7 +408,7 @@ function toggleConstructActive(name) {
   renderHotbar();
 }
 
-function castConstruct(name) {
+function castConstruct(name, el) {
   const def = recipes.find(r => r.name === name);
   if (!def) return;
   if (speechState.cooldowns[name] > 0) return;
@@ -387,7 +424,7 @@ function castConstruct(name) {
     if (r) r.current = Math.min(r.max, r.current + amt);
   }
   speechState.voiceXp += def.xp || 0;
-  showPhraseCloud(name);
+  showPhraseCloud(name, el);
   if (def.duration) {
     speechState.activeBuffs[name] = def.duration;
   } else {
@@ -409,7 +446,7 @@ function renderHotbar() {
   speechState.activeConstructs.forEach(c => {
     const card = createConstructCard(c);
     card.classList.add('hotbar-phrase');
-    card.addEventListener('click', () => castConstruct(c));
+    card.addEventListener('click', () => castConstruct(c, card));
     bar.appendChild(card);
   });
 }
@@ -585,6 +622,21 @@ function tickActiveConstructs(dt) {
   }
 }
 
+function updateCooldownOverlays() {
+  if (!container) return;
+  const cards = container.querySelectorAll('.phrase-card[data-name]');
+  cards.forEach(card => {
+    const name = card.dataset.name;
+    const def = recipes.find(r => r.name === name);
+    if (!def || !def.cooldown) return;
+    const remaining = speechState.cooldowns[name] || 0;
+    const ratio = 1 - remaining / def.cooldown;
+    const overlay = card.querySelector('.cooldown-overlay');
+    if (overlay) overlay.style.setProperty('--cooldown', ratio);
+    card.classList.toggle('onCooldown', remaining > 0);
+  });
+}
+
 export function tickSpeech(delta) {
   if (!container) return;
   const dt = delta / 1000;
@@ -602,17 +654,19 @@ export function tickSpeech(delta) {
   const ins = speechState.resources.insight;
   ins.current = Math.min(ins.max, ins.current + ins.regen * dt);
   tickActiveConstructs(dt);
+  updateCooldownOverlays();
   renderOrbs();
   renderResources();
   refreshCore();
   renderXpBar();
 }
 
-function showPhraseCloud(text) {
+function showPhraseCloud(text, target) {
   if (!container) return;
   const el = document.createElement('div');
   el.className = 'phrase-cloud';
   el.textContent = text;
-  container.appendChild(el);
+  const parent = target || container;
+  parent.appendChild(el);
   setTimeout(() => el.remove(), 3000);
 }
