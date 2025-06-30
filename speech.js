@@ -27,13 +27,13 @@ export const speechState = {
       costFunc: lvl => ({ structure: 2 * Math.pow(lvl + 1, 2) })
     }
   },
-  capacity: 1,
+  capacity: 10,
   slots: [null],
   memorySlots: 2,
-  activePhrases: ['Murmur'],
+  activePhrases: ['Murmur', 'Murmur Mind'],
   cooldowns: {},
   constructUnlocked: true,
-  savedPhrases: [],
+  savedPhrases: ['Murmur Mind'],
   xp: 0,
   level: 1,
   formUnlocked: false,
