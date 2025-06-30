@@ -2472,6 +2472,29 @@ body.darkenshift-mode .tabsContainer button.active {
     font-family: inherit;
 }
 
+.speech-top {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.speech-top .orbs-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.speech-top .xp-column {
+    flex: 0 0 25%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
 .speech-xp-container {
     display: flex;
     flex-direction: column;
@@ -3035,6 +3058,9 @@ body.darkenshift-mode .tabsContainer button.active {
 .resource-fill.structure { background: #a97b5d; }
 .resource-fill.body { background: #ff8888; }
 .resource-fill.will { background: #ffa37f; }
+.resource-fill.sound {
+    background: linear-gradient(#555, #999);
+}
 
 .resource-text {
     font-size: 0.7rem;
@@ -3135,5 +3161,26 @@ body.darkenshift-mode .tabsContainer button.active {
 .construct-cost {
     font-size: 0.65rem;
     text-align: center;
+}
+
+.construct-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    gap: 2px;
+}
+
+.construct-info {
+    font-size: 0.65rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.construct-info i {
+    width: 12px;
+    height: 12px;
 }
 

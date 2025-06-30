@@ -155,30 +155,35 @@ export function initSpeech() {
   container = document.getElementById('speechPanel');
   if (!container) return;
   container.innerHTML = `
-    <h3 class="section-title">Core Orbs</h3>
-    <div class="speech-orbs speech-tab-orbs">
-      <div id="orbInsightContainer" class="orb-container">
-        <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
-        <div id="orbInsightValue" class="orb-value"></div>
-        <div id="orbInsightRegen" class="orb-regen"></div>
+    <div class="speech-top">
+      <div class="orbs-section">
+        <h3 class="section-title">Core Orbs</h3>
+        <div class="speech-orbs speech-tab-orbs">
+          <div id="orbInsightContainer" class="orb-container">
+            <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
+            <div id="orbInsightValue" class="orb-value"></div>
+            <div id="orbInsightRegen" class="orb-regen"></div>
+          </div>
+          <div id="orbBodyContainer" class="orb-container" style="display:none">
+            <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
+            <div id="orbBodyValue" class="orb-value"></div>
+            <div id="orbBodyRegen" class="orb-regen"></div>
+          </div>
+          <div id="orbWillContainer" class="orb-container" style="display:none">
+            <div id="orbWill" class="speech-orb"><div class="orb-fill"></div></div>
+            <div id="orbWillValue" class="orb-value"></div>
+            <div id="orbWillRegen" class="orb-regen"></div>
+          </div>
+        </div>
       </div>
-      <div id="orbBodyContainer" class="orb-container" style="display:none">
-        <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
-        <div id="orbBodyValue" class="orb-value"></div>
-        <div id="orbBodyRegen" class="orb-regen"></div>
-      </div>
-      <div id="orbWillContainer" class="orb-container" style="display:none">
-        <div id="orbWill" class="speech-orb"><div class="orb-fill"></div></div>
-        <div id="orbWillValue" class="orb-value"></div>
-        <div id="orbWillRegen" class="orb-regen"></div>
-      </div>
-    </div>
-    <h3 class="section-title">Voice Progression</h3>
-    <div class="speech-xp-container">
-      <i data-lucide="mic" class="speech-icon"></i>
-      <div class="speech-progress">
-        <div id="voiceLevel" class="speech-level"></div>
-        <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
+      <div class="xp-column">
+        <div class="speech-xp-container">
+          <i data-lucide="mic" class="speech-icon"></i>
+          <div class="speech-progress">
+            <div id="voiceLevel" class="speech-level"></div>
+            <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
+          </div>
+        </div>
       </div>
     </div>
     <div id="constructToggle" class="construct-toggle">❮</div>
@@ -314,11 +319,17 @@ function renderConstructCards() {
     slotCont.appendChild(ms);
   }
   speechState.savedConstructs.forEach(c => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'construct-card-wrapper';
     const card = createConstructCard(c);
     if (speechState.activeConstructs.includes(c)) card.classList.add('active');
     card.addEventListener('click', () => toggleConstructActive(c));
-    cont.appendChild(card);
+    wrapper.appendChild(card);
+    const info = createConstructInfo(c);
+    if (info) wrapper.appendChild(info);
+    cont.appendChild(wrapper);
   });
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
 }
 
 function createConstructCard(name) {
@@ -329,19 +340,24 @@ function createConstructCard(name) {
   title.textContent = name;
   card.appendChild(title);
   const recipe = recipes.find(r => r.name === name);
-  if (recipe) {
-    const effect = document.createElement('div');
-    effect.className = 'construct-effect';
-    effect.textContent = `Output: ${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
-    card.appendChild(effect);
-    const cost = document.createElement('div');
-    cost.className = 'construct-cost';
-    cost.textContent = `Cost: ${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
-    card.appendChild(cost);
-  } else {
-    card.textContent = name;
-  }
+  if (!recipe) card.textContent = name;
   return card;
+}
+
+function createConstructInfo(name) {
+  const recipe = recipes.find(r => r.name === name);
+  if (!recipe) return null;
+  const info = document.createElement('div');
+  info.className = 'construct-info';
+  const effect = document.createElement('div');
+  effect.className = 'construct-effect';
+  effect.innerHTML = `<i data-lucide="arrow-up-circle"></i> ${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+  const cost = document.createElement('div');
+  cost.className = 'construct-cost';
+  cost.innerHTML = `<i data-lucide="arrow-down-circle"></i> ${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+  info.appendChild(effect);
+  info.appendChild(cost);
+  return info;
 }
 
 function toggleConstructActive(name) {
