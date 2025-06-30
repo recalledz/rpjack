@@ -1209,3 +1209,80 @@ function showPhraseDetails(phrase) {
   const chanceHtml = `<span class="info-tag">Chance: ${chance.toFixed(1)}%</span>`;
   info.innerHTML = `${costHtml} ${effectHtml} ${cdHtml} ${chanceHtml}`;
 }
+
+function listAllCombosForRule(rule) {
+  const verbs = Object.keys(wordData.verbs);
+  const targets = Object.keys(wordData.targets);
+  const modifiers = Object.keys(wordData.modifiers);
+  const combos = [];
+  const allCombos = [];
+  verbs.forEach(v => {
+    allCombos.push([v]);
+    targets.forEach(t => {
+      allCombos.push([v, t]);
+      modifiers.forEach(m => allCombos.push([v, t, m]));
+    });
+  });
+  allCombos.forEach(arr => {
+    if (rule.phraseLength && arr.length !== rule.phraseLength) return;
+    const tags = new Set();
+    arr.forEach(w => {
+      const cat = getWordCategory(w);
+      const data = wordData[cat][w];
+      if (data && data.tags) data.tags.forEach(t => tags.add(t));
+    });
+    if (rule.tags.every(t => tags.has(t))) combos.push(arr.join(' '));
+  });
+  return combos;
+}
+
+export function renderTagGuide() {
+  const panel = document.getElementById('tagGuide');
+  if (!panel) return;
+  panel.innerHTML = '';
+
+  const wordTable = document.createElement('table');
+  const head = document.createElement('tr');
+  head.innerHTML = '<th>Word</th><th>Category</th><th>Tags</th>';
+  wordTable.appendChild(head);
+  ['verbs', 'targets', 'modifiers'].forEach(cat => {
+    Object.entries(wordData[cat]).forEach(([w, d]) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${w}</td><td>${cat.slice(0, -1)}</td><td>${(d.tags || []).join(', ')}</td>`;
+      wordTable.appendChild(tr);
+    });
+  });
+  panel.appendChild(wordTable);
+
+  const ruleHeader = document.createElement('h4');
+  ruleHeader.textContent = 'Tag Effects';
+  panel.appendChild(ruleHeader);
+  const ul = document.createElement('ul');
+  tagRules.forEach(r => {
+    const li = document.createElement('li');
+    const effects = [];
+    if (r.effect.create) {
+      effects.push(
+        'create ' +
+          Object.entries(r.effect.create)
+            .map(([k, v]) => `${v > 0 ? '+' : ''}${v} ${k}`)
+            .join(', ')
+      );
+    }
+    if (r.effect.cost) {
+      effects.push(
+        'cost ' +
+          Object.entries(r.effect.cost)
+            .map(([k, v]) => `${v > 0 ? '+' : ''}${v} ${k}`)
+            .join(', ')
+      );
+    }
+    if (r.effect.cd) effects.push(`CD ${r.effect.cd / 1000}s`);
+    const combos = listAllCombosForRule(r);
+    li.innerHTML = `<strong>${r.tags.join(' + ')}</strong> → ${effects.join('; ')}${
+      combos.length ? ' <em>(' + combos.join(', ') + ')</em>' : ''
+    }`;
+    ul.appendChild(li);
+  });
+  panel.appendChild(ul);
+}

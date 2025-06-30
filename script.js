@@ -20,7 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { initSpeech, tickSpeech } from "./speech.js";
+import { initSpeech, tickSpeech, renderTagGuide } from "./speech.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -421,6 +421,8 @@ let playerCoreSubTabButton;
 let playerCorePanel;
 let playerSpeechSubTabButton;
 let playerSpeechPanel;
+let playerLexiconSubTabButton;
+let playerLexiconPanel;
 let statsOverviewSubTabButton;
 let statsEconomySubTabButton;
 let statsOverviewContainer;
@@ -572,6 +574,8 @@ function initTabs() {
   playerCorePanel = document.querySelector(".player-core-panel");
   playerSpeechSubTabButton = document.querySelector('.playerSpeechSubTabButton');
   playerSpeechPanel = document.querySelector('.player-speech-panel');
+  playerLexiconSubTabButton = document.querySelector('.playerLexiconSubTabButton');
+  playerLexiconPanel = document.querySelector('.player-lexicon-panel');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
   statsEconomySubTabButton = document.querySelector('.statsEconomySubTabButton');
   statsOverviewContainer = document.getElementById('statsOverviewContainer');
@@ -625,15 +629,29 @@ function initTabs() {
     playerCoreSubTabButton.addEventListener("click", () => {
       if (playerCorePanel) playerCorePanel.style.display = "flex";
       if (playerSpeechPanel) playerSpeechPanel.style.display = "none";
+      if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
       playerCoreSubTabButton.classList.add("active");
       if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove("active");
+      if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
     });
   if (playerSpeechSubTabButton)
     playerSpeechSubTabButton.addEventListener('click', () => {
       if (playerCorePanel) playerCorePanel.style.display = 'none';
       if (playerSpeechPanel) playerSpeechPanel.style.display = 'flex';
+      if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
       playerSpeechSubTabButton.classList.add('active');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
+      if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
+    });
+  if (playerLexiconSubTabButton)
+    playerLexiconSubTabButton.addEventListener('click', () => {
+      if (playerCorePanel) playerCorePanel.style.display = 'none';
+      if (playerSpeechPanel) playerSpeechPanel.style.display = 'none';
+      if (playerLexiconPanel) playerLexiconPanel.style.display = 'flex';
+      playerLexiconSubTabButton.classList.add('active');
+      if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
+      if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove('active');
+      if (typeof renderTagGuide === 'function') renderTagGuide();
     });
   if (statsOverviewSubTabButton)
     statsOverviewSubTabButton.addEventListener('click', () => {
