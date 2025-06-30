@@ -17,8 +17,8 @@ This document outlines the updated rules for constructing phrases in the Codex g
 
 ## 2. Unlock: Construct Reality Panel
 
-* **Trigger:** Speech Level ≥ 2 (10 Speech XP)
-* Upon unlocking, display the message:
+* **Unlocked at start**
+* Display the message:
   > “You feel your words press outward. You may now construct meaning.”
 * Enables a **Construct** button that opens the panel.
 
