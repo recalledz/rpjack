@@ -3114,3 +3114,7 @@ body.darkenshift-mode .tabsContainer button.active {
 .speech-orb#orbInsight .orb-fill {
     background: rgba(0,0,255,0.6);
 }
+
+.construct-pot { text-align:center; font-size:2rem; margin:8px 0; }
+.resource-buttons { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; }
+

@@ -1,7 +1,8 @@
 import addLog from './log.js';
 import { coreState, refreshCore } from './core.js';
 
-const FORM_UNLOCK_THOUGHT_REQ = 15;
+// Core state for the Constructs system. Orbs and upgrades from the
+// previous speech implementation remain intact.
 export const speechState = {
   orbs: {
     body: { current: 0, max: 10 },
@@ -9,8 +10,8 @@ export const speechState = {
     will: { current: 0, max: 10 }
   },
   resources: {
-    thought: { current: 0, max: 30 },
-    structure: { current: 0, max: 10, unlocked: false }
+    insight: { current: 0, max: 10, regen: 0.1, unlocked: true },
+    sound: { current: 0, max: 10, unlocked: true }
   },
   gains: {
     body: 0,
@@ -20,341 +21,36 @@ export const speechState = {
   upgrades: {
     cohere: { level: 0, baseCost: 2 },
     vocalMaturity: { level: 0, baseCost: 2, unlocked: false },
-    capacityBoost: { level: 0, baseCost: { insight: 10, thought: 5 }, unlocked: false },
+    capacityBoost: { level: 0, baseCost: { insight: 10 }, unlocked: false },
     expandMind: {
       level: 0,
       unlocked: true,
-      costFunc: lvl => ({ structure: 2 * Math.pow(lvl + 1, 2) })
+      costFunc: lvl => ({ insight: 2 * Math.pow(lvl + 1, 2) })
     }
   },
-  capacity: 10,
-  slots: [null],
+  voiceXp: 0,
+  voiceLevel: 1,
   memorySlots: 2,
-  activePhrases: ['Murmur', 'Murmur Mind'],
-  cooldowns: {},
+  activeConstructs: [],
+  savedConstructs: [],
   constructUnlocked: true,
-  savedPhrases: ['Murmur Mind'],
-  xp: 0,
-  level: 1,
-  formUnlocked: false,
-  failCount: 0,
-  masteryBonus: 0,
-  modifierUnlocks: {
-    Inwardly: true,
-    Sharply: true,
-    Persistently: true
-  },
-  selfCastCount: 0,
-  lastPhrase: '',
-  repeatCount: 0,
-  highCostPhrases: new Set()
+  pot: []
 };
 
-const words = {
-  verbs: ['Murmur', 'Chant', 'Whisper', 'Declare', 'Invoke', 'Command'],
-  targets: ['Self', 'Form', 'Mind', 'Body', 'Soul', 'Spirit'],
-  modifiers: [
-    'Inwardly',
-    'Sharply',
-    'Persistently',
-    'Softly',
-    'Forcefully',
-    'Briefly',
-    'Reverently'
-  ]
-};
-
-const resourceIcons = {
-  insight: '🟦',
-  thought: '🧠',
-  structure: '🧱',
-  body: '❤️',
-  will: '💜'
-};
-
-function capFirst(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function orbColor(key) {
-  switch (key) {
-    case 'insight':
-      return '#88f';
-    case 'body':
-      return '#f66';
-    case 'will':
-      return '#a060ff';
-    case 'thought':
-      return '#4466aa';
-    case 'structure':
-      return '#a97b5d';
-    default:
-      return '#555';
-  }
-}
-
-function formatCost(cost) {
-  if (typeof cost === 'number') {
-    return `${cost} ${resourceIcons.insight}`;
-  }
-  const parts = [];
-  for (const [k, v] of Object.entries(cost)) {
-    const icon = resourceIcons[k] || '';
-    parts.push(`${v} ${icon}`);
-  }
-  return parts.join(' ');
-}
-
-export const wordState = {
-  verbs: {
-    Murmur: { level: 1, xp: 0 },
-    Chant: { level: 1, xp: 0 },
-    Whisper: { level: 1, xp: 0 },
-    Declare: { level: 1, xp: 0 },
-    Invoke: { level: 1, xp: 0 },
-    Command: { level: 1, xp: 0 }
-  },
-  targets: {
-    Self: { level: 1, xp: 0 },
-    Form: { level: 1, xp: 0 },
-    Mind: { level: 1, xp: 0 },
-    Body: { level: 1, xp: 0 },
-    Soul: { level: 1, xp: 0 },
-    Spirit: { level: 1, xp: 0 }
-  },
-  modifiers: {
-    Inwardly: { level: 1, xp: 0 },
-    Sharply: { level: 1, xp: 0 },
-    Persistently: { level: 1, xp: 0 },
-    Softly: { level: 1, xp: 0 },
-    Forcefully: { level: 1, xp: 0 },
-    Briefly: { level: 1, xp: 0 },
-    Reverently: { level: 1, xp: 0 }
-  }
-};
-
-const wordData = {
-  verbs: {
-    Murmur: { capacity: 1, cost: { insight: 5 }, power: 1, cd: 0, tags: ['verb', 'murmur'] },
-    Chant: { capacity: 2, cost: { insight: 3 }, power: 1, cd: 0, tags: ['verb', 'chant'] },
-    Whisper: { capacity: 1, cost: { insight: 4 }, power: 1, cd: 0, tags: ['verb', 'whisper'] },
-    Declare: { capacity: 2, cost: { insight: 6 }, power: 1, cd: 0, tags: ['verb', 'declare'] },
-    Invoke: { capacity: 3, cost: { insight: 5 }, power: 1, cd: 0, tags: ['verb', 'invoke'] },
-    Command: { capacity: 2, cost: { insight: 7 }, power: 1, cd: 0, tags: ['verb', 'command'] }
-  },
-  targets: {
-    Self: { capacity: 1, tags: ['target', 'self'] },
-    Form: { capacity: 2, tags: ['target', 'form'] },
-    Mind: { capacity: 1, tags: ['target', 'mind'] },
-    Body: { capacity: 1, tags: ['target', 'body'] },
-    Soul: { capacity: 1, tags: ['target', 'soul'] },
-    Spirit: { capacity: 2, tags: ['target', 'spirit'] }
-  },
-  modifiers: {
-    Inwardly: { capacity: 0, costDelta: -1, potency: 1.1, cdDelta: 0, complexity: 0.5, tags: ['modifier', 'inward'] },
-    Sharply: { capacity: 1, costDelta: 2, potency: 2, cdDelta: 2000, complexity: 1.5, tags: ['modifier', 'sharp'] },
-    Persistently: { capacity: 1, costDelta: 1, potency: 1, cdDelta: 1000, complexity: 1.0, repeat: true, tags: ['modifier', 'persistent'] },
-    Softly: { capacity: 0, costDelta: -1, potency: 1.0, cdDelta: 0, complexity: 0.5, tags: ['modifier', 'soft'] },
-    Forcefully: { capacity: 2, costDelta: 2, potency: 2, cdDelta: 1500, complexity: 1.5, tags: ['modifier', 'forceful'] },
-    Briefly: { capacity: 0, costDelta: -1, potency: 0.8, cdDelta: -1000, complexity: 0.5, tags: ['modifier', 'brief'] },
-    Reverently: { capacity: 1, costDelta: 1, potency: 1.2, cdDelta: 1000, complexity: 1.0, tags: ['modifier', 'reverent'] }
-  }
-};
-
-// Map combinations of tags to phrase effects. The first matching rule applies
-// its effect to the phrase definition. More specific rules should appear later
-// in the list so they can override generic behaviour.
-const tagRules = [
-  // Any verb directed at the mind generates a point of Thought.
-  { tags: ['verb', 'mind'], effect: { create: { thought: 1 } } },
-
-  // Base Murmur behaviour when used alone.
-  { tags: ['murmur'], phraseLength: 1, effect: { complexity: { verb: 1, target: 0 } } },
-
-  // Murmur focused on Form materialises Structure at the cost of Thought.
+// Basic construct recipe list. Additional constructs can be appended
+// later through unlocks or upgrades.
+const recipes = [
   {
-    tags: ['murmur', 'form'],
-    phraseLength: 2,
-    effect: {
-      create: { thought: -1, structure: 3 },
-      cd: 3000,
-      complexity: { verb: 1, target: 1 }
-    }
-  },
-  // Whispering to the mind gathers extra Thought.
-  {
-    tags: ['whisper', 'mind'],
-    phraseLength: 2,
-    effect: { create: { thought: 2 }, cd: 1000, complexity: { verb: 1, target: 1 } }
-  },
-  // Declaring Form shapes additional Structure.
-  {
-    tags: ['declare', 'form'],
-    phraseLength: 2,
-    effect: { create: { structure: 2 }, cd: 4000, complexity: { verb: 1, target: 1 } }
-  },
-  // Invoking the Soul crystallizes Thought and Structure.
-  {
-    tags: ['invoke', 'soul'],
-    phraseLength: 2,
-    effect: { create: { thought: 1, structure: 1 }, cd: 3000, complexity: { verb: 1, target: 1 } }
-  },
-  // Commanding the Spirit solidifies significant Structure.
-  {
-    tags: ['command', 'spirit'],
-    phraseLength: 2,
-    effect: { create: { structure: 4 }, cd: 5000, complexity: { verb: 1, target: 1 } }
-  },
-  // Brief phrases recover faster.
-  { tags: ['brief'], effect: { cd: -1000 } },
-  // Reverent speech grants extra XP.
-  { tags: ['reverent'], effect: { xp: 2 } }
+    name: 'Murmur',
+    input: { insight: 2 },
+    output: { sound: 1 },
+    xp: 1,
+    unlocked: true
+  }
 ];
 
-
-function buildPhraseDef(wordsArr) {
-  if (!wordsArr.length) return null;
-  const result = {
-    cost: {},
-    create: {},
-    cd: 0,
-    xp: 1,
-    capacity: 0,
-    complexity: { verb: 0, target: 0, modifier: 0 },
-    repeat: false,
-    potency: 1
-  };
-  wordsArr.forEach(w => {
-    const cat = getWordCategory(w);
-    if (!cat) return;
-    const data = wordData[cat][w];
-    if (!data) return;
-    result.capacity += data.capacity || 0;
-    if (data.cost) {
-      for (const [k, v] of Object.entries(data.cost)) {
-        result.cost[k] = (result.cost[k] || 0) + v;
-      }
-    }
-    if (data.costDelta) {
-      result.cost.insight = (result.cost.insight || 0) + data.costDelta;
-    }
-    if (data.create) {
-      for (const [k, v] of Object.entries(data.create)) {
-        result.create[k] = (result.create[k] || 0) + v;
-      }
-    }
-    result.cd += data.cd || 0;
-    if (data.cdDelta) result.cd += data.cdDelta;
-    if (data.potency) result.potency *= data.potency;
-    result.complexity[cat.slice(0, -1)] += data.complexity || 0;
-    if (data.repeat) result.repeat = true;
-  });
-  const phraseTags = new Set();
-  wordsArr.forEach(w => {
-    const cat = getWordCategory(w);
-    if (!cat) return;
-    const data = wordData[cat][w];
-    if (data && data.tags) data.tags.forEach(t => phraseTags.add(t));
-  });
-  tagRules.forEach(rule => {
-    if (rule.phraseLength && rule.phraseLength !== wordsArr.length) return;
-    if (rule.tags.every(t => phraseTags.has(t))) {
-      const eff = rule.effect || {};
-      if (eff.cost) result.cost = { ...result.cost, ...eff.cost };
-      if (eff.create) result.create = { ...result.create, ...eff.create };
-      if (eff.complexity) result.complexity = { ...result.complexity, ...eff.complexity };
-      if (eff.cd !== undefined) result.cd = eff.cd;
-      if (eff.xp !== undefined) result.xp = eff.xp;
-      if (eff.capacity !== undefined) result.capacity = eff.capacity;
-      if (eff.potency !== undefined) result.potency = eff.potency;
-      if (eff.repeat !== undefined) result.repeat = eff.repeat;
-    }
-  });
-  if (result.cost.insight !== undefined) {
-    result.cost.insight = Math.max(1, result.cost.insight);
-  }
-  return result;
-}
-
-function getWordCategory(word) {
-  if (wordData.verbs[word]) return 'verbs';
-  if (wordData.targets[word]) return 'targets';
-  if (wordData.modifiers[word]) return 'modifiers';
-  return null;
-}
-
-function wordColor(word) {
-  const cat = getWordCategory(word);
-  if (cat === 'modifiers') return '#777';
-  if (word === 'Mind') return orbColor('thought');
-  if (word === 'Form') return orbColor('structure');
-  if (word === 'Self') return orbColor('body');
-  if (cat === 'verbs') return orbColor('insight');
-  return '#555';
-}
-
-function phraseGradient(phrase) {
-  const colors = phrase.split(' ').map(wordColor);
-  if (colors.length === 1) return colors[0];
-  const step = 100 / (colors.length - 1);
-  const stops = colors.map((c, i) => `${c} ${i * step}%`).join(', ');
-  return `linear-gradient(to right, ${stops})`;
-}
-
-function createPhraseCard(phrase) {
-  const card = document.createElement('div');
-  card.className = 'phrase-card';
-  card.style.background = '#111';
-  phrase.split(' ').forEach(w => {
-    const line = document.createElement('div');
-    line.className = 'phrase-word';
-    line.textContent = w;
-    line.style.color = '#eee';
-    card.appendChild(line);
-  });
-  const bar = document.createElement('div');
-  bar.className = 'phrase-bar';
-  bar.style.background = phraseGradient(phrase);
-  card.appendChild(bar);
-  return card;
-}
-
-function getWordPotency(word) {
-  const cat = getWordCategory(word);
-  if (!cat || !wordState[cat][word]) return 1;
-  return Math.pow(1.1, wordState[cat][word].level - 1);
-}
-
-function getWordXpReq(word) {
-  const cat = getWordCategory(word);
-  if (!cat || !wordState[cat][word]) return 5;
-  const lvl = wordState[cat][word].level;
-  return Math.floor(5 * Math.pow(2, lvl - 1));
-}
-
-function addWordXp(word, amt) {
-  const cat = getWordCategory(word);
-  if (!cat || !wordState[cat][word]) return;
-  const ws = wordState[cat][word];
-  ws.xp += amt;
-  while (ws.xp >= getWordXpReq(word)) {
-    ws.xp -= getWordXpReq(word);
-    ws.level += 1;
-  }
-}
-
 let container;
-let constructPanel;
-let pointerDrag = null;
-function attachWordListeners() {
-  if (!constructPanel) return;
-  constructPanel.querySelectorAll('.word-tile').forEach(t => {
-    t.removeEventListener('dragstart', onDrag);
-    t.addEventListener('dragstart', onDrag);
-    t.removeEventListener('pointerdown', onTilePointerDown);
-    t.addEventListener('pointerdown', onTilePointerDown);
-  });
-}
+let panel;
 
 export function initSpeech() {
   container = document.getElementById('speechPanel');
@@ -378,729 +74,239 @@ export function initSpeech() {
         <div id="orbWillRegen" class="orb-regen"></div>
       </div>
     </div>
-    <h3 class="section-title">Speech Progression</h3>
+    <h3 class="section-title">Voice Progression</h3>
     <div class="speech-xp-container">
       <i data-lucide="mic" class="speech-icon"></i>
       <div class="speech-progress">
-        <div id="speechLevel" class="speech-level"></div>
+        <div id="voiceLevel" class="speech-level"></div>
         <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
       </div>
     </div>
-    <div id="constructToggle" class="construct-toggle" style="${
-      speechState.constructUnlocked ? '' : 'display:none'
-    }">❮</div>
-    <div id="phraseHotbar" class="phrase-hotbar"></div>
+    <div id="constructToggle" class="construct-toggle">❮</div>
+    <div id="constructHotbar" class="phrase-hotbar"></div>
     <div id="constructPanel" class="construct-panel">
       <div class="construct-header">
         <button id="closeConstructBtn" class="cast-button">❌</button>
       </div>
       <div class="construct-tab constructor-view">
-        <div class="phrase-constructor">
-          <h3 class="section-title">Phrase Constructor</h3>
-          <div class="word-list" id="verbList"></div>
-          <div class="word-list" id="targetList" style="display:none"></div>
-          <div class="word-list" id="modifierList" style="display:none"></div>
-          <div class="phrase-slots" id="phraseSlots"></div>
-          <div id="capacityDisplay" class="capacity-display"></div>
-          <div class="cast-wrapper">
-            <button id="castPhraseBtn" class="cast-button"><span>Attempt Creation</span><div class="cooldown-overlay" style="--cooldown:0; display:none"></div></button>
-            <div id="castCooldownCircle" class="cast-cooldown" style="display:none"><div class="cooldown-overlay" style="--cooldown:0"></div></div>
-          </div>
-        </div>
-        <div class="phrase-output">
-          <div id="phraseInfo" class="phrase-info"></div>
-        </div>
-        <div class="built-phrases">
-          <h3 class="section-title">Built Phrases</h3>
-          <div id="savedPhraseCards" class="saved-phrases"></div>
-          <div id="memorySlotsDisplay" class="memory-slots"></div>
-          <div id="phraseDetails" class="phrase-info"></div>
-        </div>
+        <div id="constructPot" class="construct-pot">⚗️</div>
+        <div id="resourceButtons" class="resource-buttons"></div>
+        <button id="performConstruct" class="cast-button">Construct</button>
+        <div id="constructCards" class="built-phrases"></div>
+        <div id="memorySlotsDisplay" class="memory-slots"></div>
       </div>
     </div>
   `;
-  constructPanel = container.querySelector('#constructPanel');
-  if (window.lucide) lucide.createIcons();
-  renderLists();
+  panel = container.querySelector('#constructPanel');
+  container.querySelector('#constructToggle').addEventListener('click', togglePanel);
+  panel.querySelector('#closeConstructBtn').addEventListener('click', togglePanel);
+  panel.querySelector('#performConstruct').addEventListener('click', performConstruct);
+  renderResourcesUI();
+  renderPot();
+  renderXpBar();
   renderOrbs();
-  createSlots();
-  attachWordListeners();
-  const castBtn = constructPanel.querySelector('#castPhraseBtn');
-  castBtn.addEventListener('click', () => castPhrase());
-  castBtn.addEventListener('mouseenter', e => {
-    const wordsArr = speechState.slots.filter(Boolean);
-    if (wordsArr.length < 1) return;
-    const def = buildPhraseDef(wordsArr);
-    if (!def) return;
-    const complexity = (def.complexity.verb || 0) + (def.complexity.target || 0) + (def.complexity.modifier || 0);
-    const mastery = speechState.level + speechState.masteryBonus;
-    const difficulty = complexity;
-    const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2)) * 100;
-    window.showTooltip(`${chance.toFixed(1)}% chance`, e.pageX + 10, e.pageY + 10);
-  });
-  castBtn.addEventListener('mouseleave', window.hideTooltip);
-  const murmurBtn = container.querySelector('#murmurBtn');
-  if (murmurBtn) murmurBtn.addEventListener('click', castMurmur);
-  const constructToggle = container.querySelector('#constructToggle');
-  if (constructToggle) {
-    if (speechState.constructUnlocked) constructToggle.style.display = 'block';
-    constructToggle.addEventListener('click', () => toggleConstructPanel());
-    constructToggle.addEventListener('pointerdown', e => {
-      const start = e.clientX;
-      function up(ev) {
-        const diff = start - ev.clientX;
-        if (diff > 30) toggleConstructPanel(true);
-        if (diff < -30) toggleConstructPanel(false);
-        window.removeEventListener('pointerup', up);
-      }
-      window.addEventListener('pointerup', up);
-    });
-  }
-  const closeBtn = constructPanel.querySelector('#closeConstructBtn');
-  if (closeBtn) closeBtn.addEventListener('click', toggleConstructPanel);
-  const panel = constructPanel;
-  if (panel) {
-    container.parentElement.appendChild(panel);
-    panel.addEventListener('pointerdown', e => {
-      if (!panel.classList.contains('open')) return;
-      if (e.target.closest('.word-tile')) return;
-      const startX = e.clientX;
-      function up(ev) {
-        const diff = ev.clientX - startX;
-        if (diff > 50) toggleConstructPanel(false);
-        window.removeEventListener('pointerup', up);
-      }
-      window.addEventListener('pointerup', up);
-    });
-  }
-
-  const constructorView = constructPanel.querySelector('.constructor-view');
-  if (constructorView) {
-    constructorView.style.display = 'flex';
-    constructorView.style.flexDirection = 'column';
-  }
-  renderSlots();
-  updateCastCooldown();
-  renderResources();
-  renderGains();
   renderUpgrades();
+  renderConstructCards();
   renderHotbar();
-  renderSavedPhraseCards();
-  checkUnlocks();
+  if (window.lucide) lucide.createIcons();
 }
 
-function onDrag(e) {
-  e.dataTransfer.setData('text/type', e.target.dataset.type);
-  e.dataTransfer.setData('text/word', e.target.dataset.word);
-}
-
-function onDrop(e) {
-  const type = e.dataTransfer.getData('text/type');
-  const word = e.dataTransfer.getData('text/word');
-  const idx = Number(e.currentTarget.dataset.index);
-  if ((idx === 0 && type !== 'verb') || (idx === 1 && type !== 'target') || (idx > 1 && type !== 'modifier')) return;
-  speechState.slots[idx] = word;
-  renderSlots();
-}
-
-function onTilePointerDown(e) {
-  e.preventDefault();
-  pointerDrag = { word: e.currentTarget.dataset.word, type: e.currentTarget.dataset.type };
-  window.addEventListener('pointerup', onTilePointerUp, { once: true });
-}
-
-function onTilePointerUp(e) {
-  if (!pointerDrag) return;
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  const slot = el && el.closest('.phrase-slot');
-  if (slot) {
-    const idx = Number(slot.dataset.index);
-    if (!((idx === 0 && pointerDrag.type !== 'verb') || (idx === 1 && pointerDrag.type !== 'target') || (idx > 1 && pointerDrag.type !== 'modifier'))) {
-      speechState.slots[idx] = pointerDrag.word;
-      renderSlots();
-    }
-  }
-  pointerDrag = null;
-}
-
-function onSlotClick(e) {
-  const idx = Number(e.currentTarget.dataset.index);
-  if (!speechState.slots[idx]) return;
-  speechState.slots[idx] = null;
-  renderSlots();
-}
-
-function renderLists() {
-  if (!constructPanel) return;
-  const makeTile = (word, type) => {
-    const d = document.createElement('div');
-    d.className = 'word-tile';
-    d.classList.add(type);
-    d.textContent = word;
-    const color = wordColor(word);
-    d.style.background = color;
-    d.style.borderColor = color;
-    d.draggable = true;
-    d.dataset.type = type;
-    d.dataset.word = word;
-    const ws = wordState[type + 's']?.[word];
-    if (ws) {
-      const potency = getWordPotency(word).toFixed(2);
-      const xpReq = getWordXpReq(word);
-      d.title = `Lv.${ws.level} ${ws.xp}/${xpReq} Potency ${potency}x`;
-    }
-    return d;
-  };
-  const verbList = constructPanel.querySelector('#verbList');
-  if (verbList) {
-    verbList.innerHTML = '';
-    words.verbs.forEach(w => verbList.appendChild(makeTile(w, 'verb')));
-  }
-  const targetList = constructPanel.querySelector('#targetList');
-  if (targetList) {
-    targetList.innerHTML = '';
-    words.targets.forEach(w => targetList.appendChild(makeTile(w, 'target')));
-    targetList.style.display = words.targets.length ? 'flex' : 'none';
-  }
-  const modList = constructPanel.querySelector('#modifierList');
-  if (modList) {
-    modList.innerHTML = '';
-    words.modifiers.forEach(w => modList.appendChild(makeTile(w, 'modifier')));
-    modList.style.display = words.modifiers.length ? 'flex' : 'none';
-  }
-  attachWordListeners();
-}
-
-function ensureSlotCount() {
-  const wordsPlaced = speechState.slots.filter(Boolean).length;
-  const minSlots = wordsPlaced + 1;
-  while (speechState.slots.length < minSlots) {
-    speechState.slots.push(null);
-  }
-  while (speechState.slots.length > minSlots && speechState.slots[speechState.slots.length - 1] === null) {
-    speechState.slots.pop();
-  }
-  if (!speechState.slots.includes(null)) {
-    speechState.slots.push(null);
-  }
-}
-
-function createSlots() {
-  if (!constructPanel) return;
-  ensureSlotCount();
-  const slotContainer = constructPanel.querySelector('#phraseSlots');
-  slotContainer.innerHTML = '';
-  speechState.slots.forEach((_, idx) => {
-    const slot = document.createElement('div');
-    slot.className = 'phrase-slot';
-    slot.dataset.index = idx;
-    slot.addEventListener('dragover', e => e.preventDefault());
-    slot.addEventListener('drop', onDrop);
-    slot.addEventListener('click', onSlotClick);
-    slotContainer.appendChild(slot);
-  });
-}
-
-function renderOrbs() {
-  if (container) {
-    const update = (id, orb) => {
-      const fill = container.querySelector(`#${id} .orb-fill`);
-      if (!fill) return;
-      const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
-      fill.style.height = `${pct}%`;
-      const el = container.querySelector(`#${id}`);
-      if (el) {
-        el.title = `${Math.floor(orb.current)}/${orb.max} (${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/sec)`;
-        el.classList.toggle('full', orb.current >= orb.max);
-      }
-      const label = container.querySelector(`#${id}Value`);
-      if (label) label.textContent = `${Math.floor(orb.current)}/${orb.max}`;
-      const regenLabel = container.querySelector(`#${id}Regen`);
-      if (regenLabel) regenLabel.textContent = `${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/s`;
-    };
-    update('orbBody', speechState.orbs.body);
-    update('orbInsight', speechState.orbs.insight);
-    update('orbWill', speechState.orbs.will);
-    const bodyEl = container.querySelector('#orbBodyContainer');
-    if (bodyEl) bodyEl.style.display = speechState.orbs.body.current >= 1 ? 'flex' : 'none';
-    const willEl = container.querySelector('#orbWillContainer');
-    if (willEl) willEl.style.display = speechState.orbs.will.current >= 1 ? 'flex' : 'none';
-  }
-  window.dispatchEvent(new CustomEvent('orbs-changed'));
-}
-
-function renderSlots() {
-  if (!constructPanel) return;
-  ensureSlotCount();
-  createSlots();
-  constructPanel.querySelectorAll('.phrase-slot').forEach(slot => {
-    const idx = Number(slot.dataset.index);
-    slot.classList.toggle('verb-slot', idx === 0);
-    slot.classList.toggle('target-slot', idx === 1);
-    slot.classList.toggle('modifier-slot', idx > 1);
-    const word = speechState.slots[idx];
-    slot.innerHTML = '';
-    if (word) {
-      const span = document.createElement('span');
-      span.className = 'slot-word';
-      span.textContent = word;
-      const x = document.createElement('span');
-      x.className = 'slot-clear';
-      x.textContent = 'x';
-      x.addEventListener('click', ev => {
-        ev.stopPropagation();
-        speechState.slots[idx] = null;
-        renderSlots();
-      });
-      slot.appendChild(span);
-      slot.appendChild(x);
-    }
-    slot.classList.toggle('filled', Boolean(word));
-  });
-  renderPhraseInfo();
-  updateCastCooldown();
-}
-
-function renderPhraseInfo() {
-  if (!constructPanel) return;
-  const info = constructPanel.querySelector('#phraseInfo');
-  const castBtn = constructPanel.querySelector('#castPhraseBtn');
-  if (!info) return;
-  const wordsArr = speechState.slots.filter(Boolean);
-  if (wordsArr.length < 1) {
-    info.textContent = '';
-    if (castBtn) castBtn.disabled = true;
-    return;
-  }
-  const def = buildPhraseDef(wordsArr);
-  if (!def) {
-    info.textContent = '';
-    if (castBtn) castBtn.disabled = true;
-    return;
-  }
-  const complexity = (def.complexity.verb || 0) + (def.complexity.target || 0) + (def.complexity.modifier || 0);
-  const mastery = speechState.level + speechState.masteryBonus;
-  const difficulty = complexity;
-  const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2)) * 100;
-  const chanceHtml = `<span class="info-tag">Chance: ${chance.toFixed(1)}%</span>`;
-  const phrase = wordsArr.join(' ');
-  if (speechState.savedPhrases.includes(phrase)) {
-    const potMult = (wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length) * def.potency;
-    const costHtml = Object.entries(def.cost)
-      .map(
-        ([k, v]) =>
-          `<span class="info-tag" style="background:${orbColor(k)}">Cost:${Math.ceil(v * potMult)} ${resourceIcons[k] || capFirst(k)}</span>`
-      )
-      .join(' ');
-    const effectHtml = def.create
-      ? Object.entries(def.create)
-          .map(
-            ([k, v]) =>
-              `<span class="info-tag" style="background:${orbColor(k)}">Effect: +${(
-                v * potMult
-              ).toFixed(1)} ${resourceIcons[k] || capFirst(k)}</span>`
-          )
-          .join(' ')
-      : `<span class="info-tag">Effect: None</span>`;
-    const cdHtml = `<span class="info-tag">CD: ${def.cd ? def.cd / 1000 + 's' : '0s'}</span>`;
-    info.innerHTML = `${costHtml} ${effectHtml} ${cdHtml} ${chanceHtml}`;
-  } else {
-    info.innerHTML = `<span class="info-tag">??</span> ${chanceHtml}`;
-  }
-  const cap = def.capacity || 0;
-  const capDisplay = constructPanel.querySelector('#capacityDisplay');
-  if (capDisplay) {
-    capDisplay.textContent = `Capacity: ${cap}/${speechState.capacity}`;
-    if (cap > speechState.capacity) capDisplay.classList.add('exceeded');
-    else capDisplay.classList.remove('exceeded');
-  }
-  if (castBtn) castBtn.disabled = cap > speechState.capacity;
-}
-
-function castPhrase(phraseArg) {
-  const wordsArr = phraseArg ? phraseArg.split(' ') : speechState.slots.filter(Boolean);
-  if (wordsArr.length < 1) return;
-  const phrase = wordsArr.join(' ');
-  let def = buildPhraseDef(wordsArr);
-  if (!def) return;
-  const hasVerb = wordsArr.some(w => getWordCategory(w) === 'verbs');
-  const hasTarget = wordsArr.some(w => getWordCategory(w) === 'targets');
-  if (!(hasVerb && hasTarget) && (phrase !== 'Murmur' || words.targets.includes('Mind'))) return;
-  if (wordsArr.includes('Chant') && wordsArr.includes('Persistently')) return;
-  for (const orb of Object.values(speechState.orbs)) {
-    if (orb.current < 0) return;
-  }
-  for (const res of Object.values(speechState.resources)) {
-    if (res.current < 0) return;
-  }
-  if (speechState.cooldowns[phrase] && Date.now() < speechState.cooldowns[phrase]) return;
-  if ((def.capacity || 0) > speechState.capacity) return;
-  const potMult = (wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length) * def.potency;
-  for (const [orb, cost] of Object.entries(def.cost)) {
-    if (speechState.orbs[orb].current < cost * potMult) return;
-  }
-  const complexity = (def.complexity.verb || 0) + (def.complexity.target || 0) + (def.complexity.modifier || 0);
-  const mastery = speechState.level + speechState.masteryBonus;
-  const difficulty = complexity;
-  const chance = 0.95 / (1 + Math.exp(difficulty - mastery - 0.2));
-  const success = Math.random() <= chance;
-  for (const [orb, cost] of Object.entries(def.cost)) {
-    speechState.orbs[orb].current -= cost * potMult;
-    const el = container.querySelector(`#orb${capFirst(orb)}`);
-    if (el) {
-      el.classList.add('pulse');
-      setTimeout(() => el.classList.remove('pulse'), 300);
-    }
-  }
-  speechState.cooldowns[phrase] = Date.now() + def.cd;
-  if (success) {
-    if (def.create) {
-      for (const [res, amt] of Object.entries(def.create)) {
-        const r = speechState.resources[res];
-        if (r) r.current = Math.min(r.max, r.current + amt * potMult);
-      }
-    }
-    wordsArr.forEach(w => addWordXp(w, def.xp || 1));
-    if (def.xp) addSpeechXP(def.xp);
-    showPhraseCloud(phrase);
-    if (wordsArr.includes('Self')) {
-      speechState.selfCastCount += 1;
-      if (!speechState.modifierUnlocks.Inwardly && speechState.selfCastCount >= 3) {
-        speechState.modifierUnlocks.Inwardly = true;
-        words.modifiers.push('Inwardly');
-        wordState.modifiers['Inwardly'] = { level: 1, xp: 0 };
-        addLog('Modifier unlocked: Inwardly', 'info');
-        glowConstructToggle();
-        renderLists();
-      }
-    }
-    const totalCost = Object.values(def.cost).reduce((a, v) => a + v, 0);
-    if (totalCost >= 6) speechState.highCostPhrases.add(phrase);
-    if (!speechState.modifierUnlocks.Sharply && speechState.highCostPhrases.size >= 3) {
-      speechState.modifierUnlocks.Sharply = true;
-      words.modifiers.push('Sharply');
-      wordState.modifiers['Sharply'] = { level: 1, xp: 0 };
-      addLog('Modifier unlocked: Sharply', 'info');
-      glowConstructToggle();
-      renderLists();
-    }
-    if (speechState.lastPhrase === phrase) {
-      speechState.repeatCount += 1;
-    } else {
-      speechState.repeatCount = 1;
-    }
-    speechState.lastPhrase = phrase;
-    if (!speechState.modifierUnlocks.Persistently && speechState.repeatCount >= 3) {
-      speechState.modifierUnlocks.Persistently = true;
-      words.modifiers.push('Persistently');
-      wordState.modifiers['Persistently'] = { level: 1, xp: 0 };
-      addLog('Modifier unlocked: Persistently', 'info');
-      glowConstructToggle();
-      renderLists();
-    }
-    savePhrase(phrase);
-    if (wordsArr.includes('Chant')) {
-      setTimeout(() => castPhrase(phrase), 1000);
-    } else if (wordsArr.includes('Persistently')) {
-      setTimeout(() => castPhrase(phrase), 5000);
-    }
-      const castBtn = constructPanel.querySelector('#castPhraseBtn');
-    if (castBtn) castBtn.disabled = true;
-    showPhraseDetails(phrase);
-    renderPhraseInfo();
-    // Clear slots after casting for easier new phrase construction
-    speechState.slots = [null];
-    renderSlots();
-  } else {
-    speechState.failCount += 1;
-    if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
-      speechState.upgrades.vocalMaturity.unlocked = true;
-      addLog('Vocal Maturity unlocked!', 'info');
-      renderUpgrades();
-    }
-    if (def.xp) addSpeechXP(def.xp / 2);
-    showPhraseCloud('...');
-  }
-  renderOrbs();
-  renderResources();
-  if (!success) renderPhraseInfo();
-  updateCastCooldown();
-  checkUnlocks();
-}
-
-function castMurmur() {
-  const phrase = words.targets.includes('Mind') ? 'Murmur Mind' : 'Murmur';
-  castPhrase(phrase);
-  updateCastCooldown();
-}
-
-function toggleConstructPanel(forceOpen) {
-  const panel = constructPanel;
-  const toggle = container.querySelector('#constructToggle');
+function togglePanel() {
   if (!panel) return;
-  const isOpen = panel.classList.contains('open');
-  const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !isOpen;
-  if (shouldOpen) {
-    panel.classList.remove('close-right');
-    panel.classList.add('open');
-    container.classList.add('construct-mode');
-    if (toggle) toggle.textContent = '❯';
-  } else {
+  const open = panel.classList.contains('open');
+  if (open) {
     panel.classList.remove('open');
     panel.classList.add('close-right');
-    container.classList.remove('construct-mode');
-    if (toggle) toggle.textContent = '❮';
-    panel.addEventListener('transitionend', () => panel.classList.remove('close-right'), { once: true });
+  } else {
+    panel.classList.remove('close-right');
+    panel.classList.add('open');
   }
-}
-
-function glowConstructToggle() {
   const toggle = container.querySelector('#constructToggle');
-  if (!toggle) return;
-  toggle.classList.add('glow-notify');
-  setTimeout(() => toggle.classList.remove('glow-notify'), 3000);
+  if (toggle) toggle.textContent = open ? '❮' : '❯';
 }
 
-function savePhrase(phraseArg) {
-  const wordsArr = phraseArg ? phraseArg.split(' ') : speechState.slots.filter(Boolean);
-  if (wordsArr.length < 2 && wordsArr.join(' ') !== 'Murmur') return;
-  const phrase = wordsArr.join(' ');
-  if (speechState.savedPhrases.includes(phrase)) return;
-  const def = buildPhraseDef(wordsArr);
-  if (!def) return;
-  if ((def.capacity || 0) > speechState.capacity) return;
-  speechState.savedPhrases.push(phrase);
-  if (speechState.activePhrases.length < speechState.memorySlots) {
-    speechState.activePhrases.push(phrase);
-  }
-  renderHotbar();
-  renderSavedPhraseCards();
-  showPhraseDetails(phrase);
-  if (phrase.startsWith('Murmur')) {
-    const murmurBtn = container.querySelector('#murmurBtn');
-    if (murmurBtn) murmurBtn.remove();
-  }
+function addResourceToPot(name) {
+  speechState.pot.push(name);
+  renderPot();
 }
 
-function renderHotbar() {
-  const bar = container.querySelector('#phraseHotbar');
-  if (!bar) return;
-  bar.innerHTML = '';
-  speechState.activePhrases.forEach(p => {
-    const card = createPhraseCard(p);
-    card.classList.add('hotbar-phrase');
-    card.addEventListener('click', () => castPhrase(p));
-    bar.appendChild(card);
+function renderPot() {
+  const pot = container.querySelector('#constructPot');
+  if (!pot) return;
+  pot.textContent = speechState.pot.length ? speechState.pot.join(' + ') : '⚗️';
+}
+
+function renderResourcesUI() {
+  const cont = container.querySelector('#resourceButtons');
+  if (!cont) return;
+  cont.innerHTML = '';
+  Object.entries(speechState.resources).forEach(([name, res]) => {
+    if (res.unlocked === false) return;
+    const btn = document.createElement('button');
+    btn.className = 'cast-button';
+    btn.textContent = `${name} (${Math.floor(res.current)})`;
+    btn.addEventListener('click', () => addResourceToPot(name));
+    cont.appendChild(btn);
   });
 }
 
-function renderSavedPhraseCards() {
-  const cont = constructPanel.querySelector('#savedPhraseCards');
-  if (!cont) return;
-  const slotCont = constructPanel.querySelector('#memorySlotsDisplay');
-  if (slotCont) {
-    slotCont.innerHTML = '';
-    for (let i = 0; i < speechState.memorySlots; i++) {
-      const ms = document.createElement('div');
-      ms.className = 'memory-slot';
-      if (i < speechState.activePhrases.length) ms.classList.add('filled');
-      slotCont.appendChild(ms);
+function performConstruct() {
+  if (!speechState.pot.length) return;
+  const counts = {};
+  speechState.pot.forEach(r => {
+    counts[r] = (counts[r] || 0) + 1;
+  });
+  const recipe = recipes.find(r => r.unlocked && Object.entries(r.input).every(([k,v]) => counts[k] >= v));
+  speechState.pot = [];
+  renderPot();
+  if (!recipe) return;
+  for (const [res, amt] of Object.entries(recipe.input)) {
+    if (!speechState.resources[res] || speechState.resources[res].current < amt) return;
+  }
+  for (const [res, amt] of Object.entries(recipe.input)) {
+    speechState.resources[res].current -= amt;
+  }
+  for (const [res, amt] of Object.entries(recipe.output)) {
+    const r = speechState.resources[res];
+    if (r) r.current = Math.min(r.max, r.current + amt);
+  }
+  speechState.voiceXp += recipe.xp;
+  addConstruct(recipe.name);
+  renderResourcesUI();
+  renderXpBar();
+  addLog(`${recipe.name} constructed!`, 'info');
+}
+
+function addConstruct(name) {
+  if (!speechState.savedConstructs.includes(name)) {
+    speechState.savedConstructs.push(name);
+    if (speechState.activeConstructs.length < speechState.memorySlots) {
+      speechState.activeConstructs.push(name);
     }
   }
+  renderConstructCards();
+  renderHotbar();
+}
+
+function renderConstructCards() {
+  const cont = panel.querySelector('#constructCards');
+  const slotCont = panel.querySelector('#memorySlotsDisplay');
+  if (!cont || !slotCont) return;
   cont.innerHTML = '';
-  speechState.savedPhrases.forEach(p => {
-    const card = createPhraseCard(p);
-    if (speechState.activePhrases.includes(p)) card.classList.add('active');
-    card.addEventListener('click', () => {
-      togglePhraseActive(p);
-      showPhraseDetails(p);
-    });
+  slotCont.innerHTML = '';
+  for (let i = 0; i < speechState.memorySlots; i++) {
+    const ms = document.createElement('div');
+    ms.className = 'memory-slot';
+    if (i < speechState.activeConstructs.length) ms.classList.add('filled');
+    slotCont.appendChild(ms);
+  }
+  speechState.savedConstructs.forEach(c => {
+    const card = createConstructCard(c);
+    if (speechState.activeConstructs.includes(c)) card.classList.add('active');
+    card.addEventListener('click', () => toggleConstructActive(c));
     cont.appendChild(card);
   });
 }
 
-function togglePhraseActive(phrase) {
-  const idx = speechState.activePhrases.indexOf(phrase);
+function createConstructCard(name) {
+  const card = document.createElement('div');
+  card.className = 'phrase-card';
+  card.textContent = name;
+  return card;
+}
+
+function toggleConstructActive(name) {
+  const idx = speechState.activeConstructs.indexOf(name);
   if (idx >= 0) {
-    speechState.activePhrases.splice(idx, 1);
-  } else if (speechState.activePhrases.length < speechState.memorySlots) {
-    speechState.activePhrases.push(phrase);
+    speechState.activeConstructs.splice(idx, 1);
+  } else if (speechState.activeConstructs.length < speechState.memorySlots) {
+    speechState.activeConstructs.push(name);
   }
+  renderConstructCards();
   renderHotbar();
-  renderSavedPhraseCards();
 }
 
-function updateCastCooldown() {
-  const castBtn = constructPanel.querySelector('#castPhraseBtn');
-  const circle = constructPanel.querySelector('#castCooldownCircle');
-  if (!castBtn || !circle) return;
-  const overlay = castBtn.querySelector('.cooldown-overlay');
-  const wordsArr = speechState.slots.filter(Boolean);
-  if (wordsArr.length < 1) {
-    if (overlay) overlay.style.display = 'none';
-    circle.style.display = 'none';
-    castBtn.classList.remove('onCooldown');
-    return;
-  }
-  const phrase = wordsArr.join(' ');
-  const def = buildPhraseDef(wordsArr);
-  if (!def) return;
-  const cdEnd = speechState.cooldowns[phrase];
-  if (cdEnd && Date.now() < cdEnd) {
-    const ratio = (cdEnd - Date.now()) / def.cd;
-    if (overlay) {
-      overlay.style.setProperty('--cooldown', ratio);
-      overlay.style.display = 'block';
-    }
-    const circleOverlay = circle.querySelector('.cooldown-overlay');
-    if (circleOverlay) {
-      circleOverlay.style.setProperty('--cooldown', ratio);
-    }
-    circle.style.display = 'block';
-    castBtn.classList.add('onCooldown');
-  } else {
-    if (overlay) overlay.style.display = 'none';
-    circle.style.display = 'none';
-    castBtn.classList.remove('onCooldown');
-  }
-}
-
-function addSpeechXP(amt) {
-  speechState.xp += amt;
-  const oldLevel = speechState.level;
-  speechState.level = Math.floor(speechState.xp / 10) + 1;
-  if (speechState.level !== oldLevel) {
-    if (!words.verbs.includes('Murmur') && !words.targets.includes('Mind')) {
-      words.verbs.push('Murmur');
-      glowConstructToggle();
-      renderLists();
-    } else {
-      renderLists();
-    }
-    renderSlots();
-    checkUnlocks();
-  }
-  renderXpBar();
-  window.dispatchEvent(new CustomEvent('speech-xp-changed'));
+function renderHotbar() {
+  const bar = container.querySelector('#constructHotbar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  speechState.activeConstructs.forEach(c => {
+    const card = createConstructCard(c);
+    card.classList.add('hotbar-phrase');
+    bar.appendChild(card);
+  });
 }
 
 function renderXpBar() {
-  if (!container) return;
-  const bar = container.querySelector('.speech-xp-bar');
-  const fill = bar ? bar.querySelector('.speech-xp-fill') : null;
-  if (!bar || !fill) return;
-  const levelBase = (speechState.level - 1) * 10;
-  const pct = Math.min(1, (speechState.xp - levelBase) / 10);
-  fill.style.width = `${pct * 100}%`;
-  bar.title = `Speech XP ${speechState.xp}/${levelBase + 10}`;
-  const levelEl = container.querySelector('#speechLevel');
-  if (levelEl) levelEl.textContent = `Speech Lv.${speechState.level}`;
+  const barFill = container.querySelector('.speech-xp-fill');
+  const lvlEl = container.querySelector('#voiceLevel');
+  if (!barFill || !lvlEl) return;
+  speechState.voiceLevel = Math.floor(speechState.voiceXp / 10) + 1;
+  const pct = Math.min(1, (speechState.voiceXp % 10) / 10);
+  barFill.style.width = `${pct * 100}%`;
+  lvlEl.textContent = `Voice Lv.${speechState.voiceLevel}`;
 }
 
-function checkUnlocks() {
-  if (!speechState.constructUnlocked && speechState.level >= 2) {
-    speechState.constructUnlocked = true;
-    const toggle = container.querySelector('#constructToggle');
-    if (toggle) toggle.style.display = 'block';
-    toggleConstructPanel(true);
-    addLog('You feel your words press outward. You may now construct meaning.', 'info');
-  }
-  if (speechState.level >= 2 && !words.targets.includes('Mind')) {
-    words.targets.push('Mind');
-    wordState.targets['Mind'] = { level: 1, xp: 0 };
-    addLog('Your awareness turns inward. Target "Mind" unlocked.', 'info');
-    const murmurBtn = container.querySelector('#murmurBtn');
-    if (murmurBtn) murmurBtn.remove();
-    if (!speechState.activePhrases.includes('Murmur Mind')) speechState.activePhrases.push('Murmur Mind');
-    if (!speechState.savedPhrases.includes('Murmur Mind')) speechState.savedPhrases.push('Murmur Mind');
-    speechState.capacity += 1;
-    renderSlots();
-    renderHotbar();
-    renderSavedPhraseCards();
-    glowConstructToggle();
-    renderLists();
-  }
-  if (speechState.level >= 3) {
-    speechState.capacity = Math.max(speechState.capacity, 2);
-  }
-  if (speechState.level >= 8 && !words.verbs.includes('Chant')) {
-    words.verbs.push('Chant');
-    wordState.verbs['Chant'] = { level: 1, xp: 0 };
-    addLog('Verb unlocked: Chant', 'info');
-    glowConstructToggle();
-    renderLists();
-  }
-  const thought = speechState.resources.thought.current;
-  if (!speechState.formUnlocked && Math.floor(thought + 1e-6) >= FORM_UNLOCK_THOUGHT_REQ) {
-    speechState.formUnlocked = true;
-    if (!words.targets.includes('Form')) {
-      words.targets.push('Form');
-      wordState.targets['Form'] = { level: 1, xp: 0 };
+function renderOrbs() {
+  if (!container) return;
+  const update = (id, orb) => {
+    const fill = container.querySelector(`#${id} .orb-fill`);
+    if (!fill) return;
+    const pct = Math.max(0, Math.min(1, orb.current / orb.max)) * 100;
+    fill.style.height = `${pct}%`;
+    const el = container.querySelector(`#${id}`);
+    if (el) {
+      el.title = `${Math.floor(orb.current)}/${orb.max} (${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/sec)`;
+      el.classList.toggle('full', orb.current >= orb.max);
     }
-    speechState.resources.structure.unlocked = true;
-    addLog('A concept stabilizes… Form is now available.', 'info');
-    glowConstructToggle();
-    renderLists();
-    renderResources();
-    renderSlots();
-    speechState.activePhrases = speechState.activePhrases.filter(p => p !== 'Murmur');
-    speechState.savedPhrases = speechState.savedPhrases.filter(p => p !== 'Murmur');
-    renderHotbar();
-    renderSavedPhraseCards();
-    speechState.upgrades.capacityBoost.unlocked = true;
-    renderUpgrades();
-  }
-  if (!speechState.upgrades.vocalMaturity.unlocked && speechState.failCount >= 5) {
-    speechState.upgrades.vocalMaturity.unlocked = true;
-    addLog('Vocal Maturity unlocked!', 'info');
-    renderUpgrades();
-  }
+    const label = container.querySelector(`#${id}Value`);
+    if (label) label.textContent = `${Math.floor(orb.current)}/${orb.max}`;
+    const regenLabel = container.querySelector(`#${id}Regen`);
+    if (regenLabel) regenLabel.textContent = `${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/s`;
+  };
+  update('orbBody', speechState.orbs.body);
+  update('orbInsight', speechState.orbs.insight);
+  update('orbWill', speechState.orbs.will);
+  const bodyEl = container.querySelector('#orbBodyContainer');
+  if (bodyEl) bodyEl.style.display = speechState.orbs.body.current >= 1 ? 'flex' : 'none';
+  const willEl = container.querySelector('#orbWillContainer');
+  if (willEl) willEl.style.display = speechState.orbs.will.current >= 1 ? 'flex' : 'none';
+  window.dispatchEvent(new CustomEvent('orbs-changed'));
 }
 
 function renderResources() {
-  const panel = document.getElementById('secondaryResources');
-  if (!panel) return;
-  panel.innerHTML = '';
+  const panelRes = document.getElementById('secondaryResources');
+  if (!panelRes) return;
+  panelRes.innerHTML = '';
   Object.entries(speechState.resources).forEach(([key, res]) => {
     if (res.unlocked === false) return;
     const box = document.createElement('div');
     box.className = 'resource-box';
-
     const header = document.createElement('div');
     header.className = 'resource-text';
-
     const icon = document.createElement('i');
-    icon.dataset.lucide = key === 'thought' ? 'brain' : key === 'structure' ? 'brick-wall' : 'cube';
+    icon.dataset.lucide = 'cube';
     const name = document.createElement('span');
     name.className = 'resource-name';
-    name.textContent = capFirst(key);
+    name.textContent = key.charAt(0).toUpperCase() + key.slice(1);
     const value = document.createElement('span');
     value.className = `resource-value ${key}`;
     value.textContent = `${Math.floor(res.current)}/${res.max}`;
-
     header.appendChild(icon);
     header.appendChild(name);
     header.appendChild(value);
-
     const bar = document.createElement('div');
     bar.className = 'resource-bar';
     const fill = document.createElement('div');
     fill.className = `resource-fill ${key}`;
     fill.style.width = `${(res.current / res.max) * 100}%`;
     bar.appendChild(fill);
-
     box.appendChild(header);
     box.appendChild(bar);
-    panel.appendChild(box);
+    panelRes.appendChild(box);
   });
   if (window.lucide) lucide.createIcons();
   window.dispatchEvent(new CustomEvent('resources-changed'));
-}
-
-function renderGains() {
-  const panel = document.getElementById('speechGains');
-  if (!panel) return;
-  panel.innerHTML = '';
 }
 
 function getUpgradeCost(name) {
@@ -1138,10 +344,9 @@ function purchaseUpgrade(name) {
   if (name === 'cohere') {
     speechState.gains.insight += 0.5;
   } else if (name === 'vocalMaturity') {
-    speechState.masteryBonus += 0.5;
+    speechState.voiceXp += 5;
   } else if (name === 'capacityBoost') {
-    speechState.capacity += 2;
-    renderSlots();
+    speechState.memorySlots += 1;
   } else if (name === 'expandMind') {
     speechState.orbs.insight.max += 10;
   }
@@ -1149,66 +354,45 @@ function purchaseUpgrade(name) {
   renderGains();
   renderOrbs();
   renderResources();
-  renderPhraseInfo();
 }
 
 export function renderUpgrades() {
-  const panel = document.getElementById('speechUpgrades');
-  if (!panel) return;
-  panel.innerHTML = '';
-  const panels = [panel];
-  if (!panels.length) return;
-  panels.forEach(p => (p.innerHTML = ''));
+  const panelUp = document.getElementById('speechUpgrades');
+  if (!panelUp) return;
+  panelUp.innerHTML = '';
   const addSection = title => {
     const h = document.createElement('h4');
     h.className = 'section-title';
     h.textContent = title;
-    panels.forEach(p => p.appendChild(h.cloneNode(true)));
+    panelUp.appendChild(h);
   };
-
   addSection('Core Upgrades');
-  const coreGroups = panels.map(p => {
-    const div = document.createElement('div');
-    div.className = 'upgrade-group';
-    p.appendChild(div);
-    return div;
+  const coreGroup = document.createElement('div');
+  coreGroup.className = 'upgrade-group';
+  panelUp.appendChild(coreGroup);
+  ['cohere','expandMind'].forEach(name => {
+    const btn = document.createElement('button');
+    const cost = getUpgradeCost(name);
+    btn.innerHTML = `${name} (${typeof cost === 'number' ? cost : Object.values(cost).join(',')})`;
+    btn.addEventListener('click', () => purchaseUpgrade(name));
+    coreGroup.appendChild(btn);
   });
-  const coreUp = [
-    ['cohere', `Cohere Lv.${speechState.upgrades.cohere.level}`],
-    ['expandMind', `Expand Mind Lv.${speechState.upgrades.expandMind.level}`]
-  ];
-  coreUp.forEach(([name, label]) => {
-    coreGroups.forEach(g => {
-      const btn = document.createElement('button');
-      const cost = getUpgradeCost(name);
-      btn.innerHTML = `${label} (${formatCost(cost)})`;
-      btn.addEventListener('click', () => purchaseUpgrade(name));
-      g.appendChild(btn);
-    });
-  });
+  if (speechState.upgrades.vocalMaturity.unlocked || speechState.failCount >= 5) {
+    const vocal = document.createElement('div');
+    vocal.className = 'upgrade-group';
+    panelUp.appendChild(vocal);
+    const btn = document.createElement('button');
+    const cost = getUpgradeCost('vocalMaturity');
+    btn.innerHTML = `vocalMaturity (${cost})`;
+    btn.addEventListener('click', () => purchaseUpgrade('vocalMaturity'));
+    vocal.appendChild(btn);
+  }
+}
 
-  addSection('Vocal Growth');
-  const vocalGroups = panels.map(p => {
-    const div = document.createElement('div');
-    div.className = 'upgrade-group';
-    p.appendChild(div);
-    return div;
-  });
-  const vocalUp = [];
-  if (speechState.upgrades.vocalMaturity.unlocked)
-    vocalUp.push(['vocalMaturity', `Vocal Maturity Lv.${speechState.upgrades.vocalMaturity.level}`]);
-  if (speechState.upgrades.capacityBoost.unlocked)
-    vocalUp.push(['capacityBoost', 'Capacity +2']);
-  vocalUp.forEach(([name, label]) => {
-    vocalGroups.forEach(g => {
-      const btn = document.createElement('button');
-      const cost = getUpgradeCost(name);
-      btn.innerHTML = `${label} (${formatCost(cost)})`;
-      btn.addEventListener('click', () => purchaseUpgrade(name));
-      g.appendChild(btn);
-    });
-  });
-  window.dispatchEvent(new CustomEvent('upgrades-changed'));
+function renderGains() {
+  const panel = document.getElementById('speechGains');
+  if (!panel) return;
+  panel.innerHTML = '';
 }
 
 export function tickSpeech(delta) {
@@ -1225,141 +409,10 @@ export function tickSpeech(delta) {
       }
     }
   });
+  const ins = speechState.resources.insight;
+  ins.current = Math.min(ins.max, ins.current + ins.regen * dt);
   renderOrbs();
   renderResources();
   refreshCore();
   renderXpBar();
-  renderPhraseInfo();
-  updateCastCooldown();
-  checkUnlocks();
-}
-
-function showPhraseCloud(text) {
-  if (!container) return;
-  const el = document.createElement('div');
-  el.className = 'phrase-cloud';
-  el.textContent = text;
-  container.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-function showPhraseDetails(phrase) {
-  if (!constructPanel) return;
-  const info = constructPanel.querySelector('#phraseDetails');
-  if (!info) return;
-  const wordsArr = phrase.split(' ');
-  const def = buildPhraseDef(wordsArr);
-  if (!def) {
-    info.textContent = '';
-    return;
-  }
-  const potMult =
-    (wordsArr.reduce((a, w) => a + getWordPotency(w), 0) / wordsArr.length) *
-    def.potency;
-  const costHtml = Object.entries(def.cost)
-    .map(
-      ([k, v]) =>
-        `<span class="info-tag" style="background:${orbColor(k)}">Cost: ${Math.ceil(
-          v * potMult
-        )} ${resourceIcons[k] || capFirst(k)}</span>`
-    )
-    .join(' ');
-  const effectHtml = def.create
-    ? Object.entries(def.create)
-        .map(
-          ([k, v]) =>
-            `<span class="info-tag" style="background:${orbColor(k)}">Effect: +${(
-              v * potMult
-            ).toFixed(1)} ${resourceIcons[k] || capFirst(k)}</span>`
-        )
-        .join(' ')
-    : `<span class="info-tag">Effect: None</span>`;
-  const cdHtml = `<span class="info-tag">CD: ${def.cd ? def.cd / 1000 + 's' : '0s'}</span>`;
-  const complexity =
-    (def.complexity.verb || 0) +
-    (def.complexity.target || 0) +
-    (def.complexity.modifier || 0);
-  const mastery = speechState.level + speechState.masteryBonus;
-  const difficulty = complexity;
-  const chance = (0.95 / (1 + Math.exp(difficulty - mastery - 0.2))) * 100;
-  const chanceHtml = `<span class="info-tag">Chance: ${chance.toFixed(1)}%</span>`;
-  info.innerHTML = `${costHtml} ${effectHtml} ${cdHtml} ${chanceHtml}`;
-}
-
-function listAllCombosForRule(rule) {
-  const verbs = Object.keys(wordData.verbs);
-  const targets = Object.keys(wordData.targets);
-  const modifiers = Object.keys(wordData.modifiers);
-  const combos = [];
-  const allCombos = [];
-  verbs.forEach(v => {
-    allCombos.push([v]);
-    targets.forEach(t => {
-      allCombos.push([v, t]);
-      modifiers.forEach(m => allCombos.push([v, t, m]));
-    });
-  });
-  allCombos.forEach(arr => {
-    if (rule.phraseLength && arr.length !== rule.phraseLength) return;
-    const tags = new Set();
-    arr.forEach(w => {
-      const cat = getWordCategory(w);
-      const data = wordData[cat][w];
-      if (data && data.tags) data.tags.forEach(t => tags.add(t));
-    });
-    if (rule.tags.every(t => tags.has(t))) combos.push(arr.join(' '));
-  });
-  return combos;
-}
-
-export function renderTagGuide() {
-  const panel = document.getElementById('tagGuide');
-  if (!panel) return;
-  panel.innerHTML = '';
-
-  const wordTable = document.createElement('table');
-  const head = document.createElement('tr');
-  head.innerHTML = '<th>Word</th><th>Category</th><th>Tags</th>';
-  wordTable.appendChild(head);
-  ['verbs', 'targets', 'modifiers'].forEach(cat => {
-    Object.entries(wordData[cat]).forEach(([w, d]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${w}</td><td>${cat.slice(0, -1)}</td><td>${(d.tags || []).join(', ')}</td>`;
-      wordTable.appendChild(tr);
-    });
-  });
-  panel.appendChild(wordTable);
-
-  const ruleHeader = document.createElement('h4');
-  ruleHeader.textContent = 'Tag Effects';
-  panel.appendChild(ruleHeader);
-  const ruleTable = document.createElement('table');
-  const rhead = document.createElement('tr');
-  rhead.innerHTML = '<th>Tags</th><th>Effects</th><th>Examples</th>';
-  ruleTable.appendChild(rhead);
-  tagRules.forEach(r => {
-    const effects = [];
-    if (r.effect.create) {
-      effects.push(
-        'create ' +
-          Object.entries(r.effect.create)
-            .map(([k, v]) => `${v > 0 ? '+' : ''}${v} ${k}`)
-            .join(', ')
-      );
-    }
-    if (r.effect.cost) {
-      effects.push(
-        'cost ' +
-          Object.entries(r.effect.cost)
-            .map(([k, v]) => `${v > 0 ? '+' : ''}${v} ${k}`)
-            .join(', ')
-      );
-    }
-    if (r.effect.cd) effects.push(`CD ${r.effect.cd / 1000}s`);
-    const combos = listAllCombosForRule(r);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.tags.join(' + ')}</td><td>${effects.join('; ')}</td><td>${combos.join(', ')}</td>`;
-    ruleTable.appendChild(tr);
-  });
-  panel.appendChild(ruleTable);
 }

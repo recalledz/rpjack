@@ -20,7 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { initSpeech, tickSpeech, renderTagGuide } from "./speech.js";
+import { initSpeech, tickSpeech } from "./speech.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -651,7 +651,6 @@ function initTabs() {
       playerLexiconSubTabButton.classList.add('active');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
       if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove('active');
-      if (typeof renderTagGuide === 'function') renderTagGuide();
     });
   if (statsOverviewSubTabButton)
     statsOverviewSubTabButton.addEventListener('click', () => {
