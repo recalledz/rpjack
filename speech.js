@@ -499,7 +499,7 @@ function renderResources() {
     const header = document.createElement('div');
     header.className = 'resource-text';
     const icon = document.createElement('i');
-    icon.dataset.lucide = 'package';
+    icon.dataset.lucide = resourceIcons[key] || 'package';
     const name = document.createElement('span');
     name.className = 'resource-name';
     name.textContent = key.charAt(0).toUpperCase() + key.slice(1);
@@ -562,7 +562,7 @@ function purchaseUpgrade(name) {
   } else if (name === 'capacityBoost') {
     speechState.memorySlots += 1;
   } else if (name === 'expandMind') {
-    speechState.orbs.insight.max += 10;
+    speechState.orbs.insight.max = Math.round(speechState.orbs.insight.max * 1.15);
   }
   renderUpgrades();
   renderGains();

@@ -2901,17 +2901,13 @@ body.darkenshift-mode .tabsContainer button.active {
 
 .built-phrases {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 10px;
     padding: 6px;
     overflow-y: auto;
     flex: 1;
-    align-items: center;
-}
-.built-phrases .saved-phrases {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 6px;
+    justify-content: center;
+    align-items: flex-start;
 }
 .construct-panel .phrase-card {
     width: 80px;
@@ -3180,6 +3176,7 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
     width: 80px;
     gap: 2px;
+    margin: 4px;
 }
 
 .construct-info {
