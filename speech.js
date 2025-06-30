@@ -32,7 +32,7 @@ export const speechState = {
   memorySlots: 2,
   activePhrases: ['Murmur'],
   cooldowns: {},
-  constructUnlocked: false,
+  constructUnlocked: true,
   savedPhrases: [],
   xp: 0,
   level: 1,
@@ -386,7 +386,9 @@ export function initSpeech() {
         <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
       </div>
     </div>
-    <div id="constructToggle" class="construct-toggle" style="display:none">❮</div>
+    <div id="constructToggle" class="construct-toggle" style="${
+      speechState.constructUnlocked ? '' : 'display:none'
+    }">❮</div>
     <div id="phraseHotbar" class="phrase-hotbar"></div>
     <div id="constructPanel" class="construct-panel">
       <div class="construct-header">
@@ -441,6 +443,7 @@ export function initSpeech() {
   if (murmurBtn) murmurBtn.addEventListener('click', castMurmur);
   const constructToggle = container.querySelector('#constructToggle');
   if (constructToggle) {
+    if (speechState.constructUnlocked) constructToggle.style.display = 'block';
     constructToggle.addEventListener('click', () => toggleConstructPanel());
     constructToggle.addEventListener('pointerdown', e => {
       const start = e.clientX;
@@ -1330,9 +1333,11 @@ export function renderTagGuide() {
   const ruleHeader = document.createElement('h4');
   ruleHeader.textContent = 'Tag Effects';
   panel.appendChild(ruleHeader);
-  const ul = document.createElement('ul');
+  const ruleTable = document.createElement('table');
+  const rhead = document.createElement('tr');
+  rhead.innerHTML = '<th>Tags</th><th>Effects</th><th>Examples</th>';
+  ruleTable.appendChild(rhead);
   tagRules.forEach(r => {
-    const li = document.createElement('li');
     const effects = [];
     if (r.effect.create) {
       effects.push(
@@ -1352,10 +1357,9 @@ export function renderTagGuide() {
     }
     if (r.effect.cd) effects.push(`CD ${r.effect.cd / 1000}s`);
     const combos = listAllCombosForRule(r);
-    li.innerHTML = `<strong>${r.tags.join(' + ')}</strong> → ${effects.join('; ')}${
-      combos.length ? ' <em>(' + combos.join(', ') + ')</em>' : ''
-    }`;
-    ul.appendChild(li);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.tags.join(' + ')}</td><td>${effects.join('; ')}</td><td>${combos.join(', ')}</td>`;
+    ruleTable.appendChild(tr);
   });
-  panel.appendChild(ul);
+  panel.appendChild(ruleTable);
 }
