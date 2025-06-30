@@ -35,7 +35,8 @@ export const speechState = {
   memorySlots: 2,
   activeConstructs: ['Murmur'],
   savedConstructs: ['Murmur'],
-  buffs: {},
+  activeBuffs: {},
+  cooldowns: {},
   constructUnlocked: true,
   pot: []
 };
@@ -48,14 +49,17 @@ const recipes = [
     input: { insight: 2 },
     output: { sound: 1 },
     xp: 1,
-    unlocked: true
+    unlocked: true,
+    cooldown: 0
   },
   {
     name: 'Echo of Mind',
     input: { sound: 1, insight: 1 },
     output: { thought: 1 },
     xp: 1,
-    unlocked: true
+    unlocked: true,
+    duration: 5,
+    cooldown: 5
   },
   {
     name: 'Clarity Pulse',
@@ -63,14 +67,18 @@ const recipes = [
     output: {},
     xp: 0,
     unlocked: true,
-    type: 'buff'
+    type: 'buff',
+    duration: 30,
+    cooldown: 30
   },
   {
     name: 'Symbol Seed',
     input: { sound: 1, thought: 1 },
     output: { structure: 1 },
     xp: 1,
-    unlocked: true
+    unlocked: true,
+    duration: 10,
+    cooldown: 10
   },
   {
     name: 'Mental Construct',
@@ -78,7 +86,9 @@ const recipes = [
     output: {},
     xp: 0,
     unlocked: true,
-    type: 'buff'
+    type: 'buff',
+    duration: 60,
+    cooldown: 60
   }
 ];
 
@@ -345,6 +355,37 @@ function toggleConstructActive(name) {
   renderHotbar();
 }
 
+function castConstruct(name) {
+  const def = recipes.find(r => r.name === name);
+  if (!def) return;
+  if (speechState.cooldowns[name] > 0) return;
+  for (const [res, amt] of Object.entries(def.input)) {
+    const r = speechState.resources[res];
+    if (!r || r.current < amt) return;
+  }
+  for (const [res, amt] of Object.entries(def.input)) {
+    speechState.resources[res].current -= amt;
+  }
+  for (const [res, amt] of Object.entries(def.output)) {
+    const r = speechState.resources[res];
+    if (r) r.current = Math.min(r.max, r.current + amt);
+  }
+  speechState.voiceXp += def.xp || 0;
+  showPhraseCloud(name);
+  if (def.duration) {
+    speechState.activeBuffs[name] = def.duration;
+  } else {
+    const effect = constructEffects[name];
+    if (effect) effect(1);
+  }
+  if (def.cooldown) {
+    speechState.cooldowns[name] = def.cooldown;
+  }
+  renderResources();
+  renderXpBar();
+  renderOrbs();
+}
+
 function renderHotbar() {
   const bar = container.querySelector('#constructHotbar');
   if (!bar) return;
@@ -352,6 +393,7 @@ function renderHotbar() {
   speechState.activeConstructs.forEach(c => {
     const card = createConstructCard(c);
     card.classList.add('hotbar-phrase');
+    card.addEventListener('click', () => castConstruct(c));
     bar.appendChild(card);
   });
 }
@@ -515,10 +557,16 @@ function renderGains() {
 }
 
 function tickActiveConstructs(dt) {
-  speechState.activeConstructs.forEach(name => {
+  for (const name of Object.keys(speechState.activeBuffs)) {
     const effect = constructEffects[name];
     if (effect) effect(dt);
-  });
+    speechState.activeBuffs[name] -= dt;
+    if (speechState.activeBuffs[name] <= 0) delete speechState.activeBuffs[name];
+  }
+  for (const name of Object.keys(speechState.cooldowns)) {
+    speechState.cooldowns[name] = Math.max(0, speechState.cooldowns[name] - dt);
+    if (speechState.cooldowns[name] === 0) delete speechState.cooldowns[name];
+  }
 }
 
 export function tickSpeech(delta) {
@@ -542,4 +590,13 @@ export function tickSpeech(delta) {
   renderResources();
   refreshCore();
   renderXpBar();
+}
+
+function showPhraseCloud(text) {
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'phrase-cloud';
+  el.textContent = text;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
