@@ -21,7 +21,7 @@ export const speechState = {
     will: 0
   },
   upgrades: {
-    cohere: { level: 0, baseCost: 2 },
+    cohere: { level: 0, baseCost: { sound: 4 }, scale: 'linear' },
     vocalMaturity: { level: 0, baseCost: 2, unlocked: false },
     capacityBoost: { level: 0, baseCost: { insight: 10 }, unlocked: false },
     expandMind: {
@@ -50,7 +50,7 @@ const recipes = [
     output: { sound: 1 },
     xp: 1,
     unlocked: true,
-    cooldown: 0
+    cooldown: 1
   },
   {
     name: 'Echo of Mind',
@@ -334,6 +334,9 @@ function renderConstructCards() {
     if (speechState.activeConstructs.includes(c)) card.classList.add('active');
     card.addEventListener('click', () => toggleConstructActive(c));
     wrapper.appendChild(card);
+    const timer = document.createElement('div');
+    timer.className = 'cooldown-timer';
+    wrapper.appendChild(timer);
     const info = createConstructInfo(c);
     if (info) wrapper.appendChild(info);
     cont.appendChild(wrapper);
@@ -529,11 +532,18 @@ function getUpgradeCost(name) {
     return up.costFunc(up.level);
   }
   if (typeof up.baseCost === 'number') {
+    if (up.scale === 'linear') {
+      return Math.floor(up.baseCost + up.level);
+    }
     return Math.floor(up.baseCost * Math.pow(2, up.level));
   }
   const costs = {};
   for (const [k, v] of Object.entries(up.baseCost)) {
-    costs[k] = Math.floor(v * Math.pow(2, up.level));
+    if (up.scale === 'linear') {
+      costs[k] = Math.floor(v + up.level);
+    } else {
+      costs[k] = Math.floor(v * Math.pow(2, up.level));
+    }
   }
   return costs;
 }
@@ -556,7 +566,7 @@ function purchaseUpgrade(name) {
   }
   up.level += 1;
   if (name === 'cohere') {
-    speechState.gains.insight += 0.5;
+    speechState.gains.insight = Math.min(1, 0.2 + up.level * 0.1);
   } else if (name === 'vocalMaturity') {
     speechState.voiceXp += 5;
   } else if (name === 'capacityBoost') {
@@ -587,7 +597,16 @@ export function renderUpgrades() {
   ['cohere','expandMind'].forEach(name => {
     const btn = document.createElement('button');
     const cost = getUpgradeCost(name);
-    btn.innerHTML = `${name} (${typeof cost === 'number' ? cost : Object.values(cost).join(',')})`;
+    const up = speechState.upgrades[name];
+    let costHtml = '';
+    if (typeof cost === 'number') {
+      costHtml = `<span class="icon-row"><span><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    } else {
+      costHtml = `<span class="icon-row">` +
+        Object.entries(cost).map(([r,a]) => `<span><i data-lucide="${resourceIcons[r] || 'package'}"></i> ${a}</span>`).join(' ') +
+        `</span>`;
+    }
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">${name}</span><span class="upgrade-level">Lv.${up.level}</span></span>${costHtml}`;
     btn.addEventListener('click', () => purchaseUpgrade(name));
     coreGroup.appendChild(btn);
   });
@@ -634,6 +653,8 @@ function updateCooldownOverlays() {
     const overlay = card.querySelector('.cooldown-overlay');
     if (overlay) overlay.style.setProperty('--cooldown', ratio);
     card.classList.toggle('onCooldown', remaining > 0);
+    const timer = card.parentElement.querySelector('.cooldown-timer');
+    if (timer) timer.textContent = remaining > 0 ? `${remaining.toFixed(1)}s` : '';
   });
 }
 
