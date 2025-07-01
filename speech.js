@@ -196,9 +196,10 @@ export function initSpeech() {
       </div>
     </div>
     <div id="constructToggle" class="construct-toggle">❮</div>
-    <div id="constructHotbar" class="phrase-hotbar"></div>
-    <div id="constructPanel" class="construct-panel">
+    <div id="constructHotbar" class="construct-hotbar"></div>
+    <div id="modalConstructorPanel" class="modal-constructor-panel">
       <div class="construct-header">
+        <span class="construct-title">Modal Panel Constructor</span>
         <button id="closeConstructBtn" class="cast-button">❌</button>
       </div>
       <div class="construct-tab constructor-view">
@@ -206,11 +207,11 @@ export function initSpeech() {
         <div id="resourceButtons" class="resource-buttons"></div>
         <button id="performConstruct" class="cast-button construct-button">Construct</button>
         <div id="memorySlotsDisplay" class="memory-slots"></div>
-        <div id="constructCards" class="built-phrases"></div>
+        <div id="constructCards" class="built-constructs"></div>
       </div>
     </div>
   `;
-  panel = container.querySelector('#constructPanel');
+  panel = container.querySelector('#modalConstructorPanel');
   container.querySelector('#constructToggle').addEventListener('click', togglePanel);
   panel.querySelector('#closeConstructBtn').addEventListener('click', togglePanel);
   panel.querySelector('#performConstruct').addEventListener('click', performConstruct);
@@ -346,10 +347,10 @@ function renderConstructCards() {
 
 function createConstructCard(name) {
   const card = document.createElement('div');
-  card.className = 'phrase-card';
+  card.className = 'construct-card';
   card.dataset.name = name;
   const title = document.createElement('div');
-  title.className = 'phrase-word';
+  title.className = 'construct-name';
   title.textContent = name;
   card.appendChild(title);
   const recipe = recipes.find(r => r.name === name);
@@ -427,7 +428,7 @@ function castConstruct(name, el) {
     if (r) r.current = Math.min(r.max, r.current + amt);
   }
   speechState.voiceXp += def.xp || 0;
-  showPhraseCloud(name, el);
+  showConstructCloud(name, el);
   if (def.duration) {
     speechState.activeBuffs[name] = def.duration;
   } else {
@@ -448,7 +449,7 @@ function renderHotbar() {
   bar.innerHTML = '';
   speechState.activeConstructs.forEach(c => {
     const card = createConstructCard(c);
-    card.classList.add('hotbar-phrase');
+    card.classList.add('hotbar-construct');
     card.addEventListener('click', () => castConstruct(c, card));
     bar.appendChild(card);
   });
@@ -643,7 +644,7 @@ function tickActiveConstructs(dt) {
 
 function updateCooldownOverlays() {
   if (!container) return;
-  const cards = container.querySelectorAll('.phrase-card[data-name]');
+  const cards = container.querySelectorAll('.construct-card[data-name]');
   cards.forEach(card => {
     const name = card.dataset.name;
     const def = recipes.find(r => r.name === name);
@@ -682,10 +683,10 @@ export function tickSpeech(delta) {
   renderXpBar();
 }
 
-function showPhraseCloud(text, target) {
+function showConstructCloud(text, target) {
   if (!container) return;
   const el = document.createElement('div');
-  el.className = 'phrase-cloud';
+  el.className = 'construct-cloud';
   el.textContent = text;
   const parent = target || container;
   parent.appendChild(el);
