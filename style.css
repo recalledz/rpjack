@@ -2978,10 +2978,31 @@ body.darkenshift-mode .tabsContainer button.active {
     box-shadow: 0 0 6px rgba(183, 110, 255, 0.5);
     transition: all 0.2s;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
 }
 .speech-upgrades button:hover {
     box-shadow: 0 0 12px rgba(183, 110, 255, 0.8);
     color: #fff4b3;
+}
+.speech-upgrades .icon-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.speech-upgrades .icon-row i {
+    width: 12px;
+    height: 12px;
+}
+.speech-upgrades .upg-info {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.speech-upgrades .upgrade-level {
+    opacity: 0.8;
 }
 .speech-upgrades .section-title {
     margin-top: 8px;
@@ -3177,6 +3198,12 @@ body.darkenshift-mode .tabsContainer button.active {
     width: 80px;
     gap: 2px;
     margin: 4px;
+}
+
+.cooldown-timer {
+    font-size: 0.65rem;
+    height: 14px;
+    text-align: center;
 }
 
 .construct-info {
