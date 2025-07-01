@@ -3,10 +3,24 @@ import { coreState, refreshCore } from './core.js';
 
 // Core state for the Constructs system. Orbs and upgrades from the
 // previous speech implementation remain intact.
+// Insight regeneration constants
+const R_MAX = 0.125;
+const MIDPOINT = 1000;
+const K = 200;
+
+// Seasonal cycle configuration
+const SEASON_LENGTH_DAYS = 13;
+const seasons = [
+  { name: 'Verdantia', multiplier: 1.20 },
+  { name: 'Solara', multiplier: 1.35 },
+  { name: 'Aurelia', multiplier: 0.90 },
+  { name: 'Bruma', multiplier: 0.70 }
+];
+
 export const speechState = {
   orbs: {
     body: { current: 0, max: 10 },
-    insight: { current: 0, max: 10, regen: 0.1 },
+    insight: { current: 0, max: 2000, regen: R_MAX },
     will: { current: 0, max: 10 }
   },
   resources: {
@@ -16,11 +30,11 @@ export const speechState = {
   },
   gains: {
     body: 0,
-    insight: 0.2,
+    insight: 0,
     will: 0
   },
   upgrades: {
-    cohere: { level: 0, baseCost: { sound: 4 }, scale: 'linear' },
+    cohere: { level: 0, costFunc: lvl => Math.round(10 * Math.pow(1.12, lvl)) },
     vocalMaturity: { level: 0, baseCost: 2, unlocked: false },
     capacityBoost: { level: 0, baseCost: { insight: 10 }, unlocked: false },
     expandMind: {
@@ -32,6 +46,9 @@ export const speechState = {
   voiceXp: 0,
   voiceLevel: 1,
   memorySlots: 2,
+  seasonIndex: 0,
+  seasonDay: 0,
+  seasonTimer: 0,
   activeConstructs: ['Murmur'],
   savedConstructs: ['Murmur'],
   activeBuffs: {},
@@ -568,7 +585,7 @@ function purchaseUpgrade(name) {
   }
   up.level += 1;
   if (name === 'cohere') {
-    speechState.gains.insight = Math.min(1, 0.2 + up.level * 0.1);
+    // regen handled in tickSpeech based on upgrade level
   } else if (name === 'vocalMaturity') {
     speechState.voiceXp += 5;
   } else if (name === 'capacityBoost') {
@@ -670,7 +687,7 @@ function updateCooldownOverlays() {
 export function tickSpeech(delta) {
   if (!container) return;
   const dt = delta / 1000;
-  ['insight', 'body', 'will'].forEach(k => {
+  ['body', 'will'].forEach(k => {
     const orb = speechState.orbs[k];
     const rate = speechState.gains[k];
     if (rate > 0) {
@@ -681,8 +698,20 @@ export function tickSpeech(delta) {
       }
     }
   });
+  speechState.seasonTimer += dt;
+  if (speechState.seasonTimer >= 1) {
+    speechState.seasonTimer -= 1;
+    speechState.seasonDay += 1;
+    if (speechState.seasonDay >= SEASON_LENGTH_DAYS) {
+      speechState.seasonDay = 0;
+      speechState.seasonIndex = (speechState.seasonIndex + 1) % seasons.length;
+    }
+  }
   const ins = speechState.resources.insight;
-  ins.current = Math.min(ins.max, ins.current + ins.regen * dt);
+  const seasonMult = seasons[speechState.seasonIndex].multiplier;
+  const baseRate = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
+  const regen = baseRate * seasonMult + speechState.upgrades.cohere.level * R_MAX;
+  ins.current = Math.min(ins.max, ins.current + regen * dt);
   tickActiveConstructs(dt);
   updateCooldownOverlays();
   renderOrbs();
