@@ -16,6 +16,8 @@ const seasons = [
   { name: 'Aurelia', multiplier: 0.90 },
   { name: 'Bruma', multiplier: 0.70 }
 ];
+const seasonIcons = ['\uD83C\uDF31', '\u2600\uFE0F', '\uD83C\uDF42', '\u2744\uFE0F'];
+const seasonClasses = ['spring','summer','autumn','winter'];
 
 export const speechState = {
   orbs: {
@@ -41,7 +43,8 @@ export const speechState = {
       level: 0,
       unlocked: true,
       costFunc: lvl => ({ insight: 2 * Math.pow(lvl + 1, 2) })
-    }
+    },
+    clarividence: { level: 0, baseCost: 300, unlocked: false }
   },
   voiceXp: 0,
   voiceLevel: 1,
@@ -49,6 +52,8 @@ export const speechState = {
   seasonIndex: 0,
   seasonDay: 0,
   seasonTimer: 0,
+  weather: null,
+  insightRegenBase: 0,
   activeConstructs: ['Murmur'],
   savedConstructs: ['Murmur'],
   activeBuffs: {},
@@ -190,7 +195,7 @@ export function initSpeech() {
           <div id="orbInsightContainer" class="orb-container">
             <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
             <div id="orbInsightValue" class="orb-value"></div>
-            <div id="orbInsightRegen" class="orb-regen"></div>
+            <div id="orbInsightRegen" class="orb-regen"><span></span></div>
           </div>
           <div id="orbBodyContainer" class="orb-container" style="display:none">
             <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
@@ -241,6 +246,7 @@ export function initSpeech() {
   renderUpgrades();
   renderConstructCards();
   renderHotbar();
+  renderSeasonBanner();
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
 }
 
@@ -499,7 +505,23 @@ function renderOrbs() {
     const label = container.querySelector(`#${id}Value`);
     if (label) label.textContent = `${Math.floor(orb.current)}/${orb.max}`;
     const regenLabel = container.querySelector(`#${id}Regen`);
-    if (regenLabel) regenLabel.textContent = `${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(1)}/s`;
+    if (regenLabel) {
+      if (speechState.upgrades.clarividence.level > 0) {
+        const valEl = regenLabel.querySelector('span');
+        if (valEl) valEl.textContent = `+${speechState.gains[id.replace('orb','').toLowerCase()].toFixed(3)}/s`;
+        regenLabel.style.display = 'flex';
+        if (id === 'orbInsight') {
+          regenLabel.onmouseenter = e => {
+            showTooltip(`Base: ${speechState.insightRegenBase.toFixed(3)}<br>Current: ${speechState.gains.insight.toFixed(3)}`, e.clientX + 10, e.clientY + 10);
+          };
+          regenLabel.onmouseleave = hideTooltip;
+          const icon = seasonIcons[speechState.seasonIndex];
+          regenLabel.firstChild.textContent = icon;
+        }
+      } else {
+        regenLabel.style.display = 'none';
+      }
+    }
   };
   update('orbBody', speechState.orbs.body);
   update('orbInsight', speechState.orbs.insight);
@@ -509,6 +531,18 @@ function renderOrbs() {
   const willEl = container.querySelector('#orbWillContainer');
   if (willEl) willEl.style.display = speechState.orbs.will.current >= 1 ? 'flex' : 'none';
   window.dispatchEvent(new CustomEvent('orbs-changed'));
+}
+
+function renderSeasonBanner() {
+  const banner = document.getElementById('seasonBanner');
+  if (!banner) return;
+  const idx = speechState.seasonIndex;
+  const season = seasons[idx];
+  banner.textContent = season.name;
+  banner.className = `season-banner ${seasonClasses[idx]}`;
+  if (speechState.weather) {
+    banner.innerHTML = `${season.name}<span class="weather-icon">${speechState.weather.icon}</span>`;
+  }
 }
 
 function renderResources() {
@@ -630,6 +664,13 @@ export function renderUpgrades() {
     btn.addEventListener('click', () => purchaseUpgrade(name));
     coreGroup.appendChild(btn);
   });
+  if (speechState.upgrades.clarividence.unlocked && speechState.upgrades.clarividence.level === 0) {
+    const btn = document.createElement('button');
+    const cost = getUpgradeCost('clarividence');
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">clarividence</span></span><span class="icon-row"><span><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    btn.addEventListener('click', () => purchaseUpgrade('clarividence'));
+    coreGroup.appendChild(btn);
+  }
   if (speechState.upgrades.vocalMaturity.unlocked || speechState.failCount >= 5) {
     const vocal = document.createElement('div');
     vocal.className = 'upgrade-group';
@@ -703,6 +744,19 @@ export function tickSpeech(delta) {
   if (speechState.seasonTimer >= 1) {
     speechState.seasonTimer -= 1;
     speechState.seasonDay += 1;
+    if (speechState.weather) {
+      speechState.weather.days -= 1;
+      if (speechState.weather.days <= 0) speechState.weather = null;
+    } else if (Math.random() < 0.01) {
+      const type = Math.random() < 0.5 ? 'clear' : 'torment';
+      speechState.weather = {
+        type,
+        multiplier: type === 'clear' ? 1.25 : 0.5,
+        icon: type === 'clear' ? '\u2728' : '\uD83D\uDE2D',
+        days: 1
+      };
+      addLog(type === 'clear' ? 'Clear minded day!' : 'Torment sets in!', 'info');
+    }
     if (speechState.seasonDay >= SEASON_LENGTH_DAYS) {
       speechState.seasonDay = 0;
       speechState.seasonIndex = (speechState.seasonIndex + 1) % seasons.length;
@@ -711,11 +765,20 @@ export function tickSpeech(delta) {
   const ins = speechState.resources.insight;
   const seasonMult = seasons[speechState.seasonIndex].multiplier;
   const baseRate = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
-  const regen = baseRate * seasonMult + speechState.upgrades.cohere.level * R_MAX;
+  const upgradeBonus = speechState.upgrades.cohere.level * R_MAX;
+  let regen = baseRate * seasonMult + upgradeBonus;
+  speechState.insightRegenBase = baseRate + upgradeBonus;
+  if (speechState.weather) regen *= speechState.weather.multiplier;
+  speechState.gains.insight = regen;
   ins.current = Math.min(ins.max, ins.current + regen * dt);
+  if (!speechState.upgrades.clarividence.unlocked && ins.current >= 300) {
+    speechState.upgrades.clarividence.unlocked = true;
+    renderUpgrades();
+  }
   tickActiveConstructs(dt);
   updateCooldownOverlays();
   renderOrbs();
+  renderSeasonBanner();
   renderResources();
   refreshCore();
   renderXpBar();
