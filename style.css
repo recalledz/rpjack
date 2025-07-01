@@ -2907,7 +2907,7 @@ body.darkenshift-mode .tabsContainer button.active {
     overflow-y: auto;
     flex: 1;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
 }
 .construct-panel .phrase-card {
     width: 80px;
