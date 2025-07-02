@@ -49,8 +49,11 @@ export const speechState = {
     },
     clarividence: { level: 0, baseCost: 300, unlocked: false }
   },
-  voiceXp: 0,
-  voiceLevel: 1,
+  skills: {
+    voice: { xp: 0, level: 0 },
+    mind: { xp: 0, level: 0 }
+  },
+  mindSlotAwarded: false,
   memorySlots: 2,
   seasonIndex: 0,
   seasonDay: 0,
@@ -77,6 +80,7 @@ const recipes = [
     input: { insight: 25 },
     output: { sound: 1 },
     xp: 1,
+    tags: ['voice'],
     unlocked: true,
     cooldown: 1
   },
@@ -85,6 +89,7 @@ const recipes = [
     input: { sound: 1, insight: 1 },
     output: { thought: 1 },
     xp: 1,
+    tags: ['voice','mind'],
     unlocked: true,
     requirements: { voiceLevel: 3, insight: 1500 },
     duration: 5,
@@ -129,6 +134,25 @@ const resourceIcons = {
   body: 'heart',
   will: 'flame'
 };
+
+function awardXp(amount, tags) {
+  if (!tags || tags.length === 0) return;
+  const split = amount / tags.length;
+  tags.forEach(tag => {
+    const skill = speechState.skills[tag];
+    if (skill) {
+      skill.xp += split;
+      const newLevel = Math.floor(skill.xp / 10);
+      if (newLevel > skill.level) {
+        skill.level = newLevel;
+        if (tag === 'mind' && newLevel >= 1 && !speechState.mindSlotAwarded) {
+          speechState.memorySlots += 1;
+          speechState.mindSlotAwarded = true;
+        }
+      }
+    }
+  });
+}
 
 // Per-tick effects for active constructs. These are simplified
 // implementations to demonstrate the new constructs in action.
@@ -346,7 +370,7 @@ function performConstruct() {
   renderConstructRequirements();
   if (!recipe) return;
   if (recipe.requirements) {
-    if (recipe.requirements.voiceLevel && speechState.voiceLevel < recipe.requirements.voiceLevel) {
+    if (recipe.requirements.voiceLevel && speechState.skills.voice.level < recipe.requirements.voiceLevel) {
       addLog(`Requires Voice Lv.${recipe.requirements.voiceLevel}`, 'error');
       return;
     }
@@ -365,7 +389,7 @@ function performConstruct() {
     const r = speechState.resources[res];
     if (r) r.current = Math.min(r.max, r.current + amt);
   }
-  speechState.voiceXp += recipe.xp;
+  awardXp(recipe.xp, recipe.tags || ['voice']);
   addConstruct(recipe.name);
   renderResourcesUI();
   renderXpBar();
@@ -482,8 +506,13 @@ function toggleConstructActive(name) {
 function castConstruct(name, el) {
   const def = recipes.find(r => r.name === name);
   if (!def) return;
-  if (def.requirements && def.requirements.voiceLevel && speechState.voiceLevel < def.requirements.voiceLevel) {
+  const voiceSkill = speechState.skills.voice;
+  if (def.requirements && def.requirements.voiceLevel && voiceSkill.level < def.requirements.voiceLevel) {
     addLog(`Requires Voice Lv.${def.requirements.voiceLevel}`, 'error');
+    return;
+  }
+  if (def.requirements && def.requirements.insight && speechState.resources.insight.current < def.requirements.insight) {
+    addLog(`Requires ${def.requirements.insight} Insight`, 'error');
     return;
   }
   if (speechState.cooldowns[name] > 0) return;
@@ -498,7 +527,7 @@ function castConstruct(name, el) {
     const r = speechState.resources[res];
     if (r) r.current = Math.min(r.max, r.current + amt);
   }
-  speechState.voiceXp += def.xp || 0;
+  awardXp(def.xp || 0, def.tags || ['voice']);
   showConstructCloud(name, el);
   if (def.duration) {
     speechState.activeBuffs[name] = def.duration;
@@ -530,10 +559,12 @@ function renderXpBar() {
   const barFill = container.querySelector('.speech-xp-fill');
   const lvlEl = container.querySelector('#voiceLevel');
   if (!barFill || !lvlEl) return;
-  speechState.voiceLevel = Math.floor(speechState.voiceXp / 10) + 1;
-  const pct = Math.min(1, (speechState.voiceXp % 10) / 10);
+  const skill = speechState.skills.voice;
+  const lvl = Math.floor(skill.xp / 10);
+  skill.level = lvl;
+  const pct = Math.min(1, (skill.xp % 10) / 10);
   barFill.style.width = `${pct * 100}%`;
-  lvlEl.textContent = `Voice Lv.${speechState.voiceLevel}`;
+  lvlEl.textContent = `Voice Lv.${lvl}`;
 }
 
 function renderOrbs() {
@@ -651,6 +682,19 @@ function getUpgradeCost(name) {
   return costs;
 }
 
+function canAfford(cost) {
+  if (typeof cost === 'number') {
+    return speechState.orbs.insight.current >= cost;
+  }
+  for (const [k, v] of Object.entries(cost)) {
+    const orb = speechState.orbs[k];
+    const res = speechState.resources[k];
+    const have = orb ? orb.current : res ? res.current : 0;
+    if (have < v) return false;
+  }
+  return true;
+}
+
 function purchaseUpgrade(name) {
   const up = speechState.upgrades[name];
   const cost = getUpgradeCost(name);
@@ -671,7 +715,7 @@ function purchaseUpgrade(name) {
   if (name === 'cohere') {
     // regen handled in tickSpeech based on upgrade level
   } else if (name === 'vocalMaturity') {
-    speechState.voiceXp += 5;
+    awardXp(5, ['voice']);
   } else if (name === 'capacityBoost') {
     speechState.memorySlots += 1;
   } else if (name === 'expandMind') {
@@ -703,12 +747,20 @@ export function renderUpgrades() {
     const up = speechState.upgrades[name];
     let costHtml = '';
     if (typeof cost === 'number') {
-      costHtml = `<span class="icon-row"><span><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+      const have = speechState.orbs.insight.current;
+      const cls = have >= cost ? '' : 'cost-missing';
+      costHtml = `<span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
     } else {
       costHtml = `<span class="icon-row">` +
-        Object.entries(cost).map(([r,a]) => `<span><i data-lucide="${resourceIcons[r] || 'package'}"></i> ${a}</span>`).join(' ') +
+        Object.entries(cost).map(([r,a]) => {
+          const have = (speechState.orbs[r]?.current ?? speechState.resources[r]?.current ?? 0);
+          const cls = have >= a ? '' : 'cost-missing';
+          return `<span class="${cls}"><i data-lucide="${resourceIcons[r] || 'package'}"></i> ${a}</span>`;
+        }).join(' ') +
         `</span>`;
     }
+    const affordable = canAfford(cost);
+    btn.classList.toggle('unaffordable', !affordable);
     btn.innerHTML = `<span class="upg-info"><span class="upg-name">${name}</span><span class="upgrade-level">Lv.${up.level}</span></span>${costHtml}`;
     btn.addEventListener('click', () => purchaseUpgrade(name));
     coreGroup.appendChild(btn);
@@ -716,7 +768,9 @@ export function renderUpgrades() {
   if (speechState.upgrades.clarividence.unlocked && speechState.upgrades.clarividence.level === 0) {
     const btn = document.createElement('button');
     const cost = getUpgradeCost('clarividence');
-    btn.innerHTML = `<span class="upg-info"><span class="upg-name">clarividence</span></span><span class="icon-row"><span><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    const cls = speechState.orbs.insight.current >= cost ? '' : 'cost-missing';
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">clarividence</span></span><span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    btn.classList.toggle('unaffordable', !canAfford(cost));
     btn.addEventListener('click', () => purchaseUpgrade('clarividence'));
     coreGroup.appendChild(btn);
   }
@@ -726,7 +780,9 @@ export function renderUpgrades() {
     panelUp.appendChild(vocal);
     const btn = document.createElement('button');
     const cost = getUpgradeCost('vocalMaturity');
-    btn.innerHTML = `vocalMaturity (${cost})`;
+    const cls = speechState.orbs.insight.current >= cost ? '' : 'cost-missing';
+    btn.innerHTML = `<span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    btn.classList.toggle('unaffordable', !canAfford(cost));
     btn.addEventListener('click', () => purchaseUpgrade('vocalMaturity'));
     vocal.appendChild(btn);
   }
