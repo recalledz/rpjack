@@ -2714,7 +2714,17 @@ Object.assign(playerStats, state.playerStats || {});
   }
 
   if (state.speechState) {
-    Object.assign(speechState, state.speechState);
+    const { upgrades: savedUpgrades, ...restSpeech } = state.speechState;
+    Object.assign(speechState, restSpeech);
+    if (savedUpgrades) {
+      Object.entries(savedUpgrades).forEach(([name, data]) => {
+        if (speechState.upgrades[name]) {
+          Object.assign(speechState.upgrades[name], data);
+        } else {
+          speechState.upgrades[name] = data;
+        }
+      });
+    }
   }
 
   if (state.sectState) {
