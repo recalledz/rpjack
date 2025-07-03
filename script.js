@@ -434,6 +434,9 @@ let playerLexiconPanel;
 let playerSectPanel;
 let sectDisciplesDisplay;
 let sectTaskPanel;
+let sectDisciplesContainer;
+const sectDiscipleEls = {};
+let discipleMoveInterval;
 let sectTabUnlocked = false;
 let statsOverviewSubTabButton;
 let statsEconomySubTabButton;
@@ -591,6 +594,7 @@ function initTabs() {
   playerLexiconPanel = document.querySelector('.player-lexicon-panel');
   playerSectPanel = document.querySelector('.player-sect-panel');
   sectDisciplesDisplay = document.getElementById('sectDisciples');
+  sectDisciplesContainer = document.getElementById('sectDisciplesContainer');
   sectTaskPanel = document.getElementById('sectTaskPanel');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
   statsEconomySubTabButton = document.querySelector('.statsEconomySubTabButton');
@@ -869,21 +873,51 @@ function updateSectDisplay() {
   const orbs = document.getElementById('sectOrbs');
   if (orbs) {
     orbs.innerHTML = '';
-    for (let i = 0; i < total; i++) {
+    const positions = [
+      { cls: 'insight', left: '50%', top: '5%' },
+      { cls: 'body', left: '15%', top: '70%' },
+      { cls: 'will', left: '85%', top: '70%' }
+    ];
+    positions.forEach(p => {
       const orb = document.createElement('div');
-      orb.className = 'disciple-orb';
-      orb.style.left = `${10 + (i % 5) * 20}px`;
-      orb.style.top = `${10 + Math.floor(i / 5) * 20}px`;
+      orb.className = `sect-orb ${p.cls}`;
+      orb.style.left = p.left;
+      orb.style.top = p.top;
       orbs.appendChild(orb);
-    }
+    });
+  }
+
+  if (sectDisciplesContainer) {
+    speechState.disciples.forEach(d => {
+      if (!sectDiscipleEls[d.id]) {
+        const el = document.createElement('div');
+        el.className = 'sect-disciple';
+        el.textContent = d.id;
+        sectDiscipleEls[d.id] = el;
+        sectDisciplesContainer.appendChild(el);
+        moveDisciple(el);
+      }
+    });
+    Object.keys(sectDiscipleEls).forEach(id => {
+      if (!speechState.disciples.find(d => d.id == id)) {
+        sectDiscipleEls[id].remove();
+        delete sectDiscipleEls[id];
+      }
+    });
+    startDiscipleMovement();
   }
 
   if (sectTaskPanel) {
     sectTaskPanel.innerHTML = '';
     const row = document.createElement('div');
     row.className = 'sect-task';
+    const icon = document.createElement('i');
+    icon.dataset.lucide = 'leaf';
+    icon.className = 'task-icon';
+    icon.style.color = 'green';
+    row.appendChild(icon);
     const info = document.createElement('div');
-    info.innerHTML = '<strong>Gather Fruits</strong><br><em>Fruits of the wild void, nourishing the thought-body. Without them, your disciples will fade.</em>';
+    info.innerHTML = '<strong>Gather Fruit</strong><br><em>Fruits of the wild void, nourishing the thought-body. Without them, your disciples will fade.</em>';
     row.appendChild(info);
     const assignedLabel = document.createElement('div');
     assignedLabel.textContent = `Assigned: ${assigned}`;
@@ -903,7 +937,23 @@ function updateSectDisplay() {
     fruits.textContent = `Fruits: ${sectState.fruits}`;
     row.appendChild(fruits);
     sectTaskPanel.appendChild(row);
+    if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   }
+}
+
+function moveDisciple(el) {
+  const cont = el.parentElement;
+  if (!cont) return;
+  const x = Math.random() * (cont.clientWidth - 20);
+  const y = Math.random() * (cont.clientHeight - 20);
+  el.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function startDiscipleMovement() {
+  if (discipleMoveInterval) return;
+  discipleMoveInterval = setInterval(() => {
+    Object.values(sectDiscipleEls).forEach(moveDisciple);
+  }, 3000);
 }
 
 //=========card tab==========
@@ -2620,7 +2670,9 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     playerStats,
     worldProgress,
     barUpgrades,
-    lifeCore
+    lifeCore,
+    speechState,
+    sectState
   };
 
 try {
@@ -2658,6 +2710,14 @@ Object.assign(playerStats, state.playerStats || {});
 
   if (state.lifeCore) {
     Object.assign(lifeCore, state.lifeCore);
+  }
+
+  if (state.speechState) {
+    Object.assign(speechState, state.speechState);
+  }
+
+  if (state.sectState) {
+    Object.assign(sectState, state.sectState);
   }
 
   if (state.barUpgrades) {
@@ -2742,6 +2802,7 @@ updateUpgradeButtons();
   updateRedrawButton();
 
   updateWorldTabNotification();
+  updateSectDisplay();
 
 addLog("Game loaded!",
 "info");
