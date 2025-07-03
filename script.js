@@ -2760,6 +2760,10 @@ Object.assign(playerStats, state.playerStats || {});
   if (state.speechState) {
     const { upgrades: savedUpgrades, ...restSpeech } = state.speechState;
     Object.assign(speechState, restSpeech);
+    if (speechState.weather && speechState.weather.days !== undefined) {
+      speechState.weather.duration = speechState.weather.days;
+      delete speechState.weather.days;
+    }
     if (savedUpgrades) {
       Object.entries(savedUpgrades).forEach(([name, data]) => {
         if (speechState.upgrades[name]) {
