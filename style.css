@@ -3205,6 +3205,7 @@ body.darkenshift-mode .tabsContainer button.active {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    align-items: flex-start;
 }
 .sect-disciples {
     text-align: center;
@@ -3266,7 +3267,13 @@ body.darkenshift-mode .tabsContainer button.active {
     padding: 4px;
 }
 .sect-task button {
-    margin-left: auto;
+    margin-left: 0;
+    background: #2e7d32;
+    color: #fff;
+}
+#sectTaskPanel .sect-task {
+    width: 20%;
+    font-size: 0.75rem;
 }
 .sect-task .task-icon {
     width: 16px;
