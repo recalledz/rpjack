@@ -433,6 +433,7 @@ let playerLexiconSubTabButton;
 let playerLexiconPanel;
 let playerSectPanel;
 let sectDisciplesDisplay;
+let sectResourcesDisplay;
 let sectTaskPanel;
 let sectDisciplesContainer;
 const sectDiscipleEls = {};
@@ -594,6 +595,7 @@ function initTabs() {
   playerLexiconPanel = document.querySelector('.player-lexicon-panel');
   playerSectPanel = document.querySelector('.player-sect-panel');
   sectDisciplesDisplay = document.getElementById('sectDisciples');
+  sectResourcesDisplay = document.getElementById('sectResources');
   sectDisciplesContainer = document.getElementById('sectDisciplesContainer');
   sectTaskPanel = document.getElementById('sectTaskPanel');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
@@ -870,6 +872,8 @@ function updateSectDisplay() {
   const assigned = sectState.disciplesAssigned.gatherFruits;
   if (sectDisciplesDisplay)
     sectDisciplesDisplay.textContent = `Disciples: ${total - assigned} / ${total}`;
+  if (sectResourcesDisplay)
+    sectResourcesDisplay.textContent = `Fruits: ${sectState.fruits}`;
 
   const orbs = document.getElementById('sectOrbs');
   if (orbs) {
@@ -918,25 +922,30 @@ function updateSectDisplay() {
     icon.style.color = 'green';
     row.appendChild(icon);
     const info = document.createElement('div');
-    info.textContent = 'Gather Fruit';
+    info.textContent = 'Task: Gather Fruits';
     row.appendChild(info);
     const assignedLabel = document.createElement('div');
     assignedLabel.textContent = `Assigned: ${assigned}`;
     row.appendChild(assignedLabel);
+    const desc = document.createElement('div');
+    desc.className = 'task-desc';
+    desc.textContent = 'Essential for survival';
+    row.appendChild(desc);
     const addBtn = document.createElement('button');
-    addBtn.textContent = 'Add Disciple';
+    addBtn.textContent = '+';
     addBtn.addEventListener('click', () => {
       const total = speechState.disciples.length;
       const assigned = sectState.disciplesAssigned.gatherFruits;
       if (assigned < total) {
         sectState.disciplesAssigned.gatherFruits += 1;
         updateSectDisplay();
+        triggerOrbFlash();
       }
     });
     row.appendChild(addBtn);
 
     const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove Disciple';
+    removeBtn.textContent = '-';
     removeBtn.addEventListener('click', () => {
       const assigned = sectState.disciplesAssigned.gatherFruits;
       if (assigned > 0) {
@@ -945,9 +954,6 @@ function updateSectDisplay() {
       }
     });
     row.appendChild(removeBtn);
-    const fruits = document.createElement('div');
-    fruits.textContent = `Fruits: ${sectState.fruits}`;
-    row.appendChild(fruits);
     sectTaskPanel.appendChild(row);
     if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   }
@@ -968,6 +974,14 @@ function startDiscipleMovement() {
   discipleMoveInterval = setInterval(() => {
     Object.values(sectDiscipleEls).forEach(moveDisciple);
   }, 3000);
+}
+
+function triggerOrbFlash() {
+  const orbs = document.querySelectorAll('#sectOrbs .sect-orb');
+  orbs.forEach(o => {
+    o.classList.add('flash');
+    setTimeout(() => o.classList.remove('flash'), 500);
+  });
 }
 
 //=========card tab==========
