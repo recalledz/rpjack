@@ -20,7 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { initSpeech, tickSpeech, speechState } from "./speech.js";
+import { initSpeech, tickSpeech, speechState, DAY_LENGTH_SECONDS } from "./speech.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -164,6 +164,9 @@ const sectState = {
   disciplesAssigned: { gatherFruits: 0 },
   taskTimers: { gatherFruits: 0 }
 };
+
+const FRUIT_CYCLE_SECONDS = 319; // walk 200m out/back, gather and deposit
+const FRUIT_CYCLE_AMOUNT = 10;
 
 const lifeCore = { real: false };
 
@@ -434,6 +437,7 @@ let playerLexiconPanel;
 let playerSectPanel;
 let sectDisciplesDisplay;
 let sectResourcesDisplay;
+let sectUpkeepDisplay;
 let sectTaskPanel;
 let sectDisciplesContainer;
 const sectDiscipleEls = {};
@@ -596,6 +600,7 @@ function initTabs() {
   playerSectPanel = document.querySelector('.player-sect-panel');
   sectDisciplesDisplay = document.getElementById('sectDisciples');
   sectResourcesDisplay = document.getElementById('sectResources');
+  sectUpkeepDisplay = document.getElementById('sectUpkeep');
   sectDisciplesContainer = document.getElementById('sectDisciplesContainer');
   sectTaskPanel = document.getElementById('sectTaskPanel');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
@@ -857,10 +862,10 @@ function tickSect(delta) {
   const assigned = sectState.disciplesAssigned.gatherFruits;
   if (assigned > 0) {
     sectState.taskTimers.gatherFruits += dt * assigned;
-    const produced = Math.floor(sectState.taskTimers.gatherFruits / 5);
-    if (produced > 0) {
-      sectState.taskTimers.gatherFruits -= produced * 5;
-      sectState.fruits += produced;
+    const cycles = Math.floor(sectState.taskTimers.gatherFruits / FRUIT_CYCLE_SECONDS);
+    if (cycles > 0) {
+      sectState.taskTimers.gatherFruits -= cycles * FRUIT_CYCLE_SECONDS;
+      sectState.fruits += cycles * FRUIT_CYCLE_AMOUNT;
       updateSectDisplay();
     }
   }
@@ -874,6 +879,12 @@ function updateSectDisplay() {
     sectDisciplesDisplay.textContent = `Disciples: ${total - assigned} / ${total}`;
   if (sectResourcesDisplay)
     sectResourcesDisplay.textContent = `Fruits: ${sectState.fruits}`;
+  if (sectUpkeepDisplay) {
+    const remaining = Math.max(0, DAY_LENGTH_SECONDS - speechState.seasonTimer);
+    const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const ss = String(Math.floor(remaining % 60)).padStart(2, '0');
+    sectUpkeepDisplay.textContent = `Upkeep: 20 fruit/disciple per day (next in ${mm}:${ss})`;
+  }
 
   const orbs = document.getElementById('sectOrbs');
   if (orbs) {
@@ -1122,6 +1133,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   initCore();
   initSpeech();
+  document.addEventListener('day-passed', () => {
+    const cost = 20 * speechState.disciples.length;
+    sectState.fruits = Math.max(0, sectState.fruits - cost);
+    updateSectDisplay();
+  });
   document.addEventListener('disciple-gained', e => {
     if (!sectTabUnlocked && e.detail.count >= 1) {
       sectTabUnlocked = true;
