@@ -672,6 +672,7 @@ function initTabs() {
       if (sectTabUnlocked) {
         if (playerSectPanel) playerSectPanel.style.display = 'flex';
         if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
+        startDiscipleMovement();
       } else {
         if (playerLexiconPanel) playerLexiconPanel.style.display = 'flex';
         if (playerSectPanel) playerSectPanel.style.display = 'none';
