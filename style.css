@@ -2930,7 +2930,7 @@ body.darkenshift-mode .tabsContainer button.active {
 .built-constructs {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
     padding: 6px;
     margin-top: 6px;
     overflow-y: auto;
@@ -3324,14 +3324,19 @@ body.darkenshift-mode .tabsContainer button.active {
     font-size: 0.55rem;
     text-align: center;
 }
+.construct-duration,
+.construct-cooldown {
+    font-size: 0.55rem;
+    text-align: center;
+}
 
 .construct-card-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 60px;
-    gap: 2px;
-    margin: 4px;
+    width: 80px;
+    gap: 4px;
+    margin: 8px;
 }
 
 .cooldown-timer {
