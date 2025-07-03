@@ -918,14 +918,14 @@ function updateSectDisplay() {
     icon.style.color = 'green';
     row.appendChild(icon);
     const info = document.createElement('div');
-    info.innerHTML = '<strong>Gather Fruit</strong><br><em>Fruits of the wild void, nourishing the thought-body. Without them, your disciples will fade.</em>';
+    info.textContent = 'Gather Fruit';
     row.appendChild(info);
     const assignedLabel = document.createElement('div');
     assignedLabel.textContent = `Assigned: ${assigned}`;
     row.appendChild(assignedLabel);
-    const btn = document.createElement('button');
-    btn.textContent = 'Assign to Gather Fruits';
-    btn.addEventListener('click', () => {
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Add Disciple';
+    addBtn.addEventListener('click', () => {
       const total = speechState.disciples.length;
       const assigned = sectState.disciplesAssigned.gatherFruits;
       if (assigned < total) {
@@ -933,7 +933,18 @@ function updateSectDisplay() {
         updateSectDisplay();
       }
     });
-    row.appendChild(btn);
+    row.appendChild(addBtn);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove Disciple';
+    removeBtn.addEventListener('click', () => {
+      const assigned = sectState.disciplesAssigned.gatherFruits;
+      if (assigned > 0) {
+        sectState.disciplesAssigned.gatherFruits -= 1;
+        updateSectDisplay();
+      }
+    });
+    row.appendChild(removeBtn);
     const fruits = document.createElement('div');
     fruits.textContent = `Fruits: ${sectState.fruits}`;
     row.appendChild(fruits);

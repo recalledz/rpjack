@@ -3217,8 +3217,8 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 .disciple-orb {
     position: absolute;
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
@@ -3226,8 +3226,8 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 .sect-orb {
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     opacity: 0.9;
     box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
@@ -3270,6 +3270,7 @@ body.darkenshift-mode .tabsContainer button.active {
     margin-left: 0;
     background: #2e7d32;
     color: #fff;
+    width: 100%;
 }
 #sectTaskPanel .sect-task {
     width: 20%;
