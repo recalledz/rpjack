@@ -3247,6 +3247,8 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 .sect-disciple {
     position: absolute;
+    left: 0;
+    top: 0;
     width: 16px;
     height: 16px;
     border-radius: 50%;

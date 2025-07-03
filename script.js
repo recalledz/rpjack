@@ -956,8 +956,10 @@ function updateSectDisplay() {
 function moveDisciple(el) {
   const cont = el.parentElement;
   if (!cont) return;
-  const x = Math.random() * (cont.clientWidth - 20);
-  const y = Math.random() * (cont.clientHeight - 20);
+  const maxX = Math.max(cont.clientWidth - 20, 0);
+  const maxY = Math.max(cont.clientHeight - 20, 0);
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
   el.style.transform = `translate(${x}px, ${y}px)`;
 }
 
