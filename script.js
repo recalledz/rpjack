@@ -2673,7 +2673,8 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     barUpgrades,
     lifeCore,
     speechState,
-    sectState
+    sectState,
+    sectTabUnlocked
   };
 
 try {
@@ -2729,6 +2730,12 @@ Object.assign(playerStats, state.playerStats || {});
 
   if (state.sectState) {
     Object.assign(sectState, state.sectState);
+  }
+
+  if (state.sectTabUnlocked ||
+      (speechState.disciples && speechState.disciples.length > 0)) {
+    sectTabUnlocked = true;
+    if (playerLexiconSubTabButton) playerLexiconSubTabButton.textContent = 'Sect';
   }
 
   if (state.barUpgrades) {
