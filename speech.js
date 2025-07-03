@@ -541,14 +541,32 @@ function createConstructInfo(name) {
   if (!recipe) return null;
   const info = document.createElement('div');
   info.className = 'construct-info';
-  const effect = document.createElement('div');
-  effect.className = 'construct-effect';
-  effect.textContent = `${Object.entries(recipe.output).map(([k,v]) => `${v} ${k}`).join(', ')}`;
+  if (Object.keys(recipe.output).length) {
+    const effect = document.createElement('div');
+    effect.className = 'construct-effect';
+    effect.textContent = `Effect: ${Object.entries(recipe.output)
+      .map(([k, v]) => `+${v} ${k}`)
+      .join(', ')}`;
+    info.appendChild(effect);
+  }
   const cost = document.createElement('div');
   cost.className = 'construct-cost';
-  cost.textContent = `${Object.entries(recipe.input).map(([k,v]) => `${v} ${k}`).join(', ')}`;
-  info.appendChild(effect);
+  cost.textContent = `Cost: ${Object.entries(recipe.input)
+    .map(([k, v]) => `${v} ${k}`)
+    .join(', ')}`;
   info.appendChild(cost);
+  if (recipe.duration) {
+    const dur = document.createElement('div');
+    dur.className = 'construct-duration';
+    dur.textContent = `Duration: ${recipe.duration}s`;
+    info.appendChild(dur);
+  }
+  if (recipe.cooldown) {
+    const cd = document.createElement('div');
+    cd.className = 'construct-cooldown';
+    cd.textContent = `Cooldown: ${recipe.cooldown}s`;
+    info.appendChild(cd);
+  }
   return info;
 }
 
