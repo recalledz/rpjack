@@ -9,10 +9,10 @@ const MIDPOINT = 1000;
 const K = 200;
 
 // Seasonal cycle configuration
-// Each "day" in the season ticker currently represents one real second. To
-// ensure that every season lasts at least ten minutes, set the length to
-// 600 days (600 seconds).
-const SEASON_LENGTH_DAYS = 600;
+// A full in-game day lasts 10 real minutes (600 seconds). Each season spans
+// 28 of these days, so a complete season cycle takes 16,800 seconds.
+export const DAY_LENGTH_SECONDS = 600;
+export const SEASON_LENGTH_DAYS = 28;
 const seasons = [
   { name: 'Verdantia', multiplier: 1.20 },
   { name: 'Solara', multiplier: 1.35 },
@@ -923,9 +923,12 @@ export function tickSpeech(delta) {
     }
   });
   speechState.seasonTimer += dt;
-  if (speechState.seasonTimer >= 1) {
-    speechState.seasonTimer -= 1;
+  if (speechState.seasonTimer >= DAY_LENGTH_SECONDS) {
+    speechState.seasonTimer -= DAY_LENGTH_SECONDS;
     speechState.seasonDay += 1;
+    document.dispatchEvent(new CustomEvent('day-passed', {
+      detail: { day: speechState.seasonDay, season: speechState.seasonIndex }
+    }));
     if (speechState.weather) {
       speechState.weather.days -= 1;
       if (speechState.weather.days <= 0) speechState.weather = null;
