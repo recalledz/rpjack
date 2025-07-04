@@ -547,7 +547,20 @@ function createConstructInfo(name) {
   if (!recipe) return null;
   const info = document.createElement('div');
   info.className = 'construct-info';
-  if (Object.keys(recipe.output).length) {
+  if (name === 'The Calling') {
+    const effect = document.createElement('div');
+    effect.className = 'construct-effect';
+    effect.textContent = 'Effect: call for another faithful follower';
+    info.appendChild(effect);
+    const callPower = speechState.constructPotency['The Calling'] || 1;
+    const targetIdx = speechState.disciples.length + 1;
+    const reqPower = Math.pow(1.8, targetIdx - 1);
+    const chance = Math.max(0.05, Math.min(1, callPower / reqPower));
+    const chanceEl = document.createElement('div');
+    chanceEl.className = 'construct-chance';
+    chanceEl.textContent = `Chance: ${(chance * 100).toFixed(0)}%`;
+    info.appendChild(chanceEl);
+  } else if (Object.keys(recipe.output).length) {
     const effect = document.createElement('div');
     effect.className = 'construct-effect';
     effect.textContent = `Effect: ${Object.entries(recipe.output)
@@ -578,7 +591,11 @@ function createConstructInfo(name) {
 
 function getConstructEffect(name) {
   const recipe = recipes.find(r => r.name === name);
-  if (!recipe || !Object.keys(recipe.output).length) return null;
+  if (!recipe) return null;
+  if (name === 'The Calling') {
+    return 'call for another faithful follower';
+  }
+  if (!Object.keys(recipe.output).length) return null;
   return Object.entries(recipe.output)
     .map(([k, v]) => `+${v} ${k}`)
     .join(', ');
