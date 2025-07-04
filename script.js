@@ -1138,6 +1138,9 @@ function renderColonyInfo() {
 
 function renderColonyResources() {
   colonyResourcesPanel.innerHTML = '';
+  if (sectDisciplesDisplay) colonyResourcesPanel.appendChild(sectDisciplesDisplay);
+  if (sectResourcesDisplay) colonyResourcesPanel.appendChild(sectResourcesDisplay);
+  if (sectUpkeepDisplay) colonyResourcesPanel.appendChild(sectUpkeepDisplay);
   const fruits = document.createElement('div');
   fruits.textContent = `Fruits: ${sectState.fruits}`;
   const logs = document.createElement('div');
