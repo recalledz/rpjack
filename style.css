@@ -3247,7 +3247,7 @@ body.darkenshift-mode .tabsContainer button.active {
     width: 24px;
     height: 24px;
     padding: 2px;
-    font-size: 1rem;
+    font-size: 0.75rem;
     background: none;
     border: none;
     color: inherit;
@@ -3286,6 +3286,7 @@ body.darkenshift-mode .tabsContainer button.active {
     display: none;
     flex-direction: column;
     gap: 6px;
+    font-size: 0.75rem;
 }
 .task-entry {
     display: flex;
