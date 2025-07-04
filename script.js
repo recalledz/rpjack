@@ -631,6 +631,7 @@ function showColonyTab(name) {
     colonyInfoPanel.style.display = 'none';
     colonyResourcesPanel.style.display = 'flex';
     colonyBuildPanel.style.display = 'none';
+    renderColonyResources();
     if (colonyTasksTabButton) colonyTasksTabButton.classList.remove('active');
     if (colonyInfoTabButton) colonyInfoTabButton.classList.remove('active');
     if (colonyResourcesTabButton) colonyResourcesTabButton.classList.add('active');
