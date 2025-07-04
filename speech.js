@@ -133,7 +133,7 @@ const recipes = [
     cooldown: 60
   },
   {
-    name: 'Calling',
+    name: 'The Calling',
     input: { sound: 100 },
     output: {},
     xp: 0,
@@ -259,8 +259,8 @@ const constructEffects = {
         if (effect) effect(dt);
       });
   },
-  'Calling'() {
-    const callPower = speechState.constructPotency['Calling'] || 1;
+  'The Calling'() {
+    const callPower = speechState.constructPotency['The Calling'] || 1;
     const targetIdx = speechState.disciples.length + 1;
     const reqPower = Math.pow(1.8, targetIdx - 1);
     const chance = Math.max(0.05, Math.min(1, callPower / reqPower));
@@ -996,11 +996,11 @@ export function tickSpeech(delta) {
     speechState.upgrades.clarividence.unlocked = true;
     renderUpgrades();
   }
-  const call = recipes.find(r => r.name === 'Calling');
+  const call = recipes.find(r => r.name === 'The Calling');
   if (call && !call.unlocked && speechState.resources.sound.current >= 100) {
     call.unlocked = true;
-    addLog('Calling construct unlocked!', 'info');
-    addConstruct('Calling');
+    addLog('The Calling construct unlocked!', 'info');
+    addConstruct('The Calling');
   }
   tickActiveConstructs(dt);
   updateCooldownOverlays();

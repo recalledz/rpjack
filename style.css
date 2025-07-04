@@ -2754,6 +2754,7 @@ body.darkenshift-mode .tabsContainer button.active {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 80px;
     min-height: 48px;
     padding: 3px 6px 6px;
     border: 1px solid #555;
@@ -2954,7 +2955,7 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
 }
 .modal-constructor-panel .construct-card {
-    width: 60px;
+    width: 80px;
 }
 
 .speech-panel.construct-mode .speech-orbs {
