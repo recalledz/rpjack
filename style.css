@@ -2755,7 +2755,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex-direction: column;
     align-items: center;
     width: 80px;
-    min-height: 48px;
+    height: 90px;
     padding: 3px 6px 6px;
     border: 1px solid #555;
     border-radius: 4px;
@@ -2954,6 +2954,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex: 1;
     justify-content: center;
     align-items: center;
+    align-content: center;
 }
 .modal-constructor-panel .construct-card {
     width: 80px;
@@ -3477,8 +3478,8 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 
 .construct-info i {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 .construct-icons {
@@ -3494,8 +3495,8 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
 }
 .construct-icons i {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }
 
 .season-banner {
