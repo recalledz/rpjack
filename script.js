@@ -166,7 +166,9 @@ export const sectState = {
   discipleProgress: {} // map disciple id -> progress seconds in current cycle
 };
 
-const FRUIT_CYCLE_SECONDS = 319; // walk 200m out/back, gather and deposit
+// Each disciple can gather fruit three times per day.
+// Seconds per cycle is 200, so disciples repeat the cycle every ~3.3 minutes.
+const FRUIT_CYCLE_SECONDS = 200;
 const FRUIT_CYCLE_AMOUNT = 10;
 
 const lifeCore = { real: false };
