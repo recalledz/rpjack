@@ -274,6 +274,7 @@ const constructEffects = {
         power: 1,
         strength: 1,
         dexterity: 1,
+        endurance: 1,
         intelligence: 1,
         incapacitated: false
       });
