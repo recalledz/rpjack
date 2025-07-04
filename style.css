@@ -3298,6 +3298,9 @@ body.darkenshift-mode .tabsContainer button.active {
 .task-entry.selected {
     background: #333;
 }
+.disciple-task-name {
+    min-width: 80px;
+}
 .disciple-task-info {
     flex: 1;
     display: flex;

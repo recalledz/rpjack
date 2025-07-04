@@ -164,7 +164,8 @@ export const sectState = {
   logs: 0,
   discipleTasks: {}, // map disciple id -> current task
   taskTimers: { gatherFruits: 0 },
-  discipleProgress: {} // map disciple id -> progress seconds in current cycle
+  discipleProgress: {}, // map disciple id -> progress seconds in current cycle
+  discipleSkills: {} // map disciple id -> skill levels per task
 };
 
 // Each disciple can gather fruit three times per day.
@@ -448,6 +449,7 @@ let colonyTasksPanel;
 let colonyInfoPanel;
 let colonyResourcesPanel;
 let colonyTasksTabButton;
+let colonyInfoTabButton;
 let colonyResourcesTabButton;
 let sectDisciplesContainer;
 let selectedDiscipleId = null;
@@ -580,12 +582,21 @@ function showColonyTab(name) {
     colonyInfoPanel.style.display = 'flex';
     colonyResourcesPanel.style.display = 'none';
     if (colonyTasksTabButton) colonyTasksTabButton.classList.add('active');
+    if (colonyInfoTabButton) colonyInfoTabButton.classList.remove('active');
+    if (colonyResourcesTabButton) colonyResourcesTabButton.classList.remove('active');
+  } else if (name === 'info') {
+    colonyTasksPanel.style.display = 'none';
+    colonyInfoPanel.style.display = 'flex';
+    colonyResourcesPanel.style.display = 'flex';
+    if (colonyTasksTabButton) colonyTasksTabButton.classList.remove('active');
+    if (colonyInfoTabButton) colonyInfoTabButton.classList.add('active');
     if (colonyResourcesTabButton) colonyResourcesTabButton.classList.remove('active');
   } else if (name === 'resources') {
     colonyTasksPanel.style.display = 'none';
     colonyInfoPanel.style.display = 'none';
     colonyResourcesPanel.style.display = 'flex';
     if (colonyTasksTabButton) colonyTasksTabButton.classList.remove('active');
+    if (colonyInfoTabButton) colonyInfoTabButton.classList.remove('active');
     if (colonyResourcesTabButton) colonyResourcesTabButton.classList.add('active');
   }
 }
@@ -635,6 +646,7 @@ function initTabs() {
   colonyInfoPanel = document.getElementById('colonyInfoPanel');
   colonyResourcesPanel = document.getElementById('colonyResourcesPanel');
   colonyTasksTabButton = document.getElementById('colonyTasksTabBtn');
+  colonyInfoTabButton = document.getElementById('colonyInfoTabBtn');
   colonyResourcesTabButton = document.getElementById('colonyResourcesTabBtn');
   statsOverviewSubTabButton = document.querySelector('.statsOverviewSubTabButton');
   statsEconomySubTabButton = document.querySelector('.statsEconomySubTabButton');
@@ -643,6 +655,7 @@ function initTabs() {
   setupTabHandlers();
 
   if (colonyTasksTabButton) colonyTasksTabButton.addEventListener('click', () => showColonyTab('tasks'));
+  if (colonyInfoTabButton) colonyInfoTabButton.addEventListener('click', () => showColonyTab('info'));
   if (colonyResourcesTabButton) colonyResourcesTabButton.addEventListener('click', () => showColonyTab('resources'));
 
 
@@ -907,6 +920,10 @@ function tickSect(delta) {
         sectState.discipleProgress[d.id] -= cycles * cycleSeconds;
         if (task === 'Gather Fruit') sectState.fruits += cycles * cycleAmount;
         else sectState.logs += cycles * cycleAmount;
+        if (!sectState.discipleSkills[d.id]) {
+          sectState.discipleSkills[d.id] = { 'Idle': 0, 'Gather Fruit': 0, 'Log Wood': 0 };
+        }
+        sectState.discipleSkills[d.id][task] += cycles;
         updateSectDisplay();
       }
     } else {
@@ -1071,27 +1088,16 @@ function renderColonyTasks() {
     const row = document.createElement('div');
     row.className = 'task-entry';
     if (d.id === selectedDiscipleId) row.classList.add('selected');
-    row.addEventListener('click', e => {
-      if (e.target.tagName === 'SELECT') return;
+    row.addEventListener('click', () => {
       selectedDiscipleId = d.id;
       renderColonyTasks();
       renderColonyInfo();
     });
     const label = document.createElement('div');
     label.textContent = `Disciple #${d.id}`;
-    const select = document.createElement('select');
-    ['Idle', 'Gather Fruit', 'Log Wood'].forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t;
-      opt.textContent = t;
-      select.appendChild(opt);
-    });
-    select.value = sectState.discipleTasks[d.id] || 'Idle';
-    select.addEventListener('change', () => {
-      sectState.discipleTasks[d.id] = select.value;
-      discipleGatherPhase[d.id] = -1;
-      updateSectDisplay();
-    });
+    const taskName = document.createElement('div');
+    taskName.className = 'disciple-task-name';
+    taskName.textContent = sectState.discipleTasks[d.id] || 'Idle';
 
     const taskInfo = document.createElement('div');
     taskInfo.className = 'disciple-task-info';
@@ -1108,7 +1114,7 @@ function renderColonyTasks() {
     taskInfo.appendChild(bar);
 
     row.appendChild(label);
-    row.appendChild(select);
+    row.appendChild(taskName);
     row.appendChild(taskInfo);
     colonyTasksPanel.appendChild(row);
   });
@@ -1130,10 +1136,27 @@ function renderColonyInfo() {
   power.textContent = 'Invoke Power: 1.00';
   const stamina = document.createElement('div');
   stamina.textContent = 'Stamina: 100/100';
+
+  const taskList = document.createElement('div');
+  ['Idle', 'Gather Fruit', 'Log Wood'].forEach(t => {
+    const btn = document.createElement('button');
+    const skills = sectState.discipleSkills[d.id] || { 'Idle': 0, 'Gather Fruit': 0, 'Log Wood': 0 };
+    btn.textContent = `${t} (Lv ${skills[t] || 0})`;
+    btn.addEventListener('click', () => {
+      sectState.discipleTasks[d.id] = t;
+      discipleGatherPhase[d.id] = -1;
+      renderColonyTasks();
+      renderColonyInfo();
+      updateSectDisplay();
+    });
+    taskList.appendChild(btn);
+  });
+
   colonyInfoPanel.appendChild(header);
   colonyInfoPanel.appendChild(task);
   colonyInfoPanel.appendChild(power);
   colonyInfoPanel.appendChild(stamina);
+  colonyInfoPanel.appendChild(taskList);
 }
 
 function renderColonyResources() {
