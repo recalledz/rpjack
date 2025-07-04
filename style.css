@@ -3210,8 +3210,10 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 .sect-disciples-container {
     flex: 1;
-    position: relative;
+    position: absolute;
+    inset: 0;
     border: 1px solid #555;
+    box-sizing: border-box;
 }
 .sect-resources {
     text-align: center;
@@ -3230,18 +3232,28 @@ body.darkenshift-mode .tabsContainer button.active {
     gap: 6px;
 }
 .colony-tabs {
+    position: absolute;
+    top: 2px;
+    left: 2px;
     display: flex;
     gap: 2px;
-    margin-bottom: 6px;
+    z-index: 10;
+    margin: 0;
 }
 .colony-tabs button {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     padding: 2px;
     font-size: 1rem;
+    background: none;
+    border: none;
+    color: inherit;
 }
 .colony-tabs button.active {
-    background: #444;
+    outline: 1px solid #555;
+}
+#colonyTasksTabBtn {
+    color: #fff;
 }
 
 .colony-main {
@@ -3254,7 +3266,7 @@ body.darkenshift-mode .tabsContainer button.active {
 .colony-map {
     flex: 1;
     width: 100%;
-    display: flex;
+    position: relative;
 }
 
 .colony-side {
@@ -3292,7 +3304,7 @@ body.darkenshift-mode .tabsContainer button.active {
 .disciple-progress {
     position: relative;
     width: 120px;
-    height: 6px;
+    height: 12px;
     background: #222;
     border: 1px solid #555;
     border-radius: 4px;
@@ -3351,8 +3363,8 @@ body.darkenshift-mode .tabsContainer button.active {
 .sect-orb.will { background: rgba(255,163,127,0.6); }
 .sect-basket {
     position: absolute;
-    width: 30px;
-    height: 20px;
+    width: 8px;
+    height: 6px;
     background: #845;
     border-radius: 0 0 8px 8px;
     left: 50%;
@@ -3363,16 +3375,16 @@ body.darkenshift-mode .tabsContainer button.active {
     position: absolute;
     left: 0;
     top: 0;
-    width: 16px;
-    height: 16px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
     color: #000;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 0;
     pointer-events: none;
     transition: transform 3s;
 }
@@ -3501,7 +3513,7 @@ body.darkenshift-mode .tabsContainer button.active {
 @media (max-width: 600px) {
   .sect-orb { width: 30px; height: 30px; }
   .disciple-orb { width: 12px; height: 12px; }
-  .sect-disciple { width: 12px; height: 12px; font-size: 8px; }
-  .sect-basket { width: 20px; height: 15px; }
+  .sect-disciple { width: 3px; height: 3px; font-size: 0; }
+  .sect-basket { width: 6px; height: 4px; }
   #colonyTasksPanel .task-entry { width: 100%; flex-direction: column; gap: 4px; }
 }
