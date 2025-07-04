@@ -2852,6 +2852,7 @@ body.darkenshift-mode .tabsContainer button.active {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    align-items: center; /* center construct cards */
 }
 
 .construct-header {
@@ -3446,7 +3447,8 @@ body.darkenshift-mode .tabsContainer button.active {
     text-align: center;
 }
 .construct-duration,
-.construct-cooldown {
+.construct-cooldown,
+.construct-chance {
     font-size: 0.55rem;
     text-align: center;
 }
