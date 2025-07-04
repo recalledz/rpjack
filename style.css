@@ -3247,13 +3247,21 @@ body.darkenshift-mode .tabsContainer button.active {
 .colony-main {
     flex: 1;
     display: flex;
+    flex-direction: column;
     gap: 6px;
 }
 
+.colony-map {
+    flex: 1;
+    width: 100%;
+    display: flex;
+}
+
 .colony-side {
-    width: 380px;
+    width: 100%;
     display: flex;
     gap: 6px;
+    flex: 1;
 }
 .colony-panel {
     flex: 1;
