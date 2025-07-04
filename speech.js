@@ -608,10 +608,6 @@ function getConstructEffect(name) {
 
 function toggleConstructActive(name) {
   const def = recipes.find(r => r.name === name);
-  if (def && def.type !== 'buff') {
-    castConstruct(name);
-    return;
-  }
   const idx = speechState.activeConstructs.indexOf(name);
   if (idx >= 0) {
     speechState.activeConstructs.splice(idx, 1);
