@@ -15,7 +15,7 @@ The phrase builder has been replaced with a simpler construct mechanic. The **Co
 - Unlocked from the start.
 - Costs: 25 Insight
 - Produces: 1 Sound and 1 Voice XP
-- When slotted, Murmur converts Insight into Sound automatically.
+- When activated, Murmur converts 1 Insight into 1 Sound.
 - Your Sound resource can hold up to 200.
 
 ### Invocation Summary

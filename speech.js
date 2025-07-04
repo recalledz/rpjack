@@ -919,11 +919,8 @@ function renderGains() {
 }
 
 function tickActiveConstructs(dt) {
-  // apply effects for any constructs that are slotted in memory
-  speechState.activeConstructs.forEach(name => {
-    const effect = constructEffects[name];
-    if (effect) effect(dt);
-  });
+  // Constructs no longer auto-cast when slotted. Only active buffs
+  // from previously cast constructs are processed each tick.
   for (const name of Object.keys(speechState.activeBuffs)) {
     const effect = constructEffects[name];
     if (effect) effect(dt);
