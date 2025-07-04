@@ -465,7 +465,12 @@ function performConstruct() {
 function addConstruct(name) {
   if (!speechState.savedConstructs.includes(name)) {
     speechState.savedConstructs.push(name);
-    if (speechState.activeConstructs.length < speechState.memorySlots) {
+    const def = recipes.find(r => r.name === name);
+    if (
+      def &&
+      def.type === 'buff' &&
+      speechState.activeConstructs.length < speechState.memorySlots
+    ) {
       speechState.activeConstructs.push(name);
     }
   }
@@ -602,6 +607,11 @@ function getConstructEffect(name) {
 }
 
 function toggleConstructActive(name) {
+  const def = recipes.find(r => r.name === name);
+  if (def && def.type !== 'buff') {
+    castConstruct(name);
+    return;
+  }
   const idx = speechState.activeConstructs.indexOf(name);
   if (idx >= 0) {
     speechState.activeConstructs.splice(idx, 1);
