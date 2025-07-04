@@ -896,6 +896,11 @@ function renderGains() {
 }
 
 function tickActiveConstructs(dt) {
+  // apply effects for any constructs that are slotted in memory
+  speechState.activeConstructs.forEach(name => {
+    const effect = constructEffects[name];
+    if (effect) effect(dt);
+  });
   for (const name of Object.keys(speechState.activeBuffs)) {
     const effect = constructEffects[name];
     if (effect) effect(dt);

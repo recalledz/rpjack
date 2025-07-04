@@ -2926,13 +2926,17 @@ Object.assign(playerStats, state.playerStats || {});
     Object.assign(lifeCore, state.lifeCore);
   }
 
-  if (state.speechState) {
-    const { upgrades: savedUpgrades, ...restSpeech } = state.speechState;
-    Object.assign(speechState, restSpeech);
-    if (speechState.weather && speechState.weather.days !== undefined) {
-      speechState.weather.duration = speechState.weather.days;
-      delete speechState.weather.days;
-    }
+    if (state.speechState) {
+      const { upgrades: savedUpgrades, ...restSpeech } = state.speechState;
+      Object.assign(speechState, restSpeech);
+      // ensure the insight orb and resource reference the same object
+      if (speechState.orbs && speechState.orbs.insight) {
+        speechState.resources.insight = speechState.orbs.insight;
+      }
+      if (speechState.weather && speechState.weather.days !== undefined) {
+        speechState.weather.duration = speechState.weather.days;
+        delete speechState.weather.days;
+      }
     if (savedUpgrades) {
       Object.entries(savedUpgrades).forEach(([name, data]) => {
         if (speechState.upgrades[name]) {
