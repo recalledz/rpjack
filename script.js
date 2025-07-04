@@ -179,6 +179,24 @@ const FRUIT_CYCLE_AMOUNT = 10;
 const PINE_LOG_CYCLE_SECONDS = 215;
 const PINE_LOG_CYCLE_AMOUNT = 10;
 
+// XP progression for disciple tasks
+function taskXpRequired(level) {
+  return Math.round(50 * Math.pow(1.2, level));
+}
+
+function getTaskSkillProgress(xp) {
+  let total = 0;
+  let level = 0;
+  let next = taskXpRequired(level);
+  while (xp >= total + next) {
+    total += next;
+    level += 1;
+    next = taskXpRequired(level);
+  }
+  const progress = (xp - total) / next;
+  return { level, progress, next };
+}
+
 const BUILDINGS = {
   pineShack: { name: 'Pine Shack', cost: 30, time: 600, max: 1 },
   researchTable: { name: 'Research Table', cost: 15, time: 300, max: 1, requires: 'pineShack' }
@@ -1161,34 +1179,46 @@ function renderColonyInfo() {
     colonyInfoPanel.textContent = 'Select a disciple';
     return;
   }
-  const header = document.createElement('div');
-  header.textContent = `Disciple #${d.id}`;
-  const task = document.createElement('div');
-  task.textContent = `Current Task: ${sectState.discipleTasks[d.id] || 'Idle'}`;
-  const power = document.createElement('div');
-  power.textContent = 'Invoke Power: 1.00';
-  const stamina = document.createElement('div');
-  stamina.textContent = 'Stamina: 100/100';
-
   const taskList = document.createElement('div');
+  taskList.className = 'disciple-skill-list';
   ['Idle', 'Gather Fruit', 'Log Pine', 'Building'].forEach(t => {
-    const btn = document.createElement('button');
-    const skills = sectState.discipleSkills[d.id] || { 'Idle': 0, 'Gather Fruit': 0, 'Log Pine': 0, 'Building': 0 };
-    btn.textContent = `${t} (Lv ${skills[t] || 0})`;
-    btn.addEventListener('click', () => {
+    const option = document.createElement('div');
+    option.className = 'disciple-skill-option';
+
+    const skills =
+      sectState.discipleSkills[d.id] || {
+        Idle: 0,
+        'Gather Fruit': 0,
+        'Log Pine': 0,
+        Building: 0
+      };
+    const prog = getTaskSkillProgress(skills[t] || 0);
+
+    const label = document.createElement('div');
+    label.className = 'disciple-skill-label';
+    label.textContent = `${t} (Lv ${prog.level})`;
+
+    const bar = document.createElement('div');
+    bar.className = 'disciple-skill-progress';
+    const fill = document.createElement('div');
+    fill.className = 'disciple-skill-progress-fill';
+    fill.style.width = `${Math.floor(prog.progress * 100)}%`;
+    bar.appendChild(fill);
+
+    option.appendChild(label);
+    option.appendChild(bar);
+
+    option.addEventListener('click', () => {
       sectState.discipleTasks[d.id] = t;
       discipleGatherPhase[d.id] = -1;
       renderColonyTasks();
       renderColonyInfo();
       updateSectDisplay();
     });
-    taskList.appendChild(btn);
+
+    taskList.appendChild(option);
   });
 
-  colonyInfoPanel.appendChild(header);
-  colonyInfoPanel.appendChild(task);
-  colonyInfoPanel.appendChild(power);
-  colonyInfoPanel.appendChild(stamina);
   colonyInfoPanel.appendChild(taskList);
 }
 
