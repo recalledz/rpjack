@@ -1458,7 +1458,7 @@ function renderDiscipleDetails() {
   colonyResourcesPanel.appendChild(power);
 
   const attrs = document.createElement('div');
-  attrs.innerHTML = `Strength ${d.strength}<br>Dexterity ${d.dexterity}<br>Intelligence ${d.intelligence}`;
+  attrs.innerHTML = `Strength ${d.strength}<br>Dexterity ${d.dexterity}<br>Intelligence ${d.intelligence}<br>Endurance ${d.endurance}`;
   colonyResourcesPanel.appendChild(attrs);
 }
 
@@ -3287,6 +3287,7 @@ Object.assign(playerStats, state.playerStats || {});
         if (d.power === undefined) d.power = 1;
         if (d.strength === undefined) d.strength = 1;
         if (d.dexterity === undefined) d.dexterity = 1;
+        if (d.endurance === undefined) d.endurance = 1;
         if (d.intelligence === undefined) d.intelligence = 1;
         if (d.incapacitated === undefined) d.incapacitated = false;
         if (!d.name) d.name = `Disciple ${d.id}`;
