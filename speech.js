@@ -265,7 +265,18 @@ const constructEffects = {
     const reqPower = Math.pow(1.8, targetIdx - 1);
     const chance = Math.max(0.05, Math.min(1, callPower / reqPower));
     if (Math.random() < chance) {
-      speechState.disciples.push({ id: targetIdx });
+      speechState.disciples.push({
+        id: targetIdx,
+        name: `Disciple ${targetIdx}`,
+        health: 10,
+        stamina: 10,
+        hunger: 20,
+        power: 1,
+        strength: 1,
+        dexterity: 1,
+        intelligence: 1,
+        incapacitated: false
+      });
       addLog('A new Disciple has answered your call!', 'info');
       document.dispatchEvent(
         new CustomEvent('disciple-gained', { detail: { count: speechState.disciples.length } })
