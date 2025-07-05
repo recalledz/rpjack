@@ -1145,6 +1145,7 @@ export function tickSpeech(delta) {
     if (speechState.weather.duration <= 0) speechState.weather = null;
   }
   const ins = speechState.resources.insight;
+  const startInsight = ins.current;
   const seasonMult = seasons[speechState.seasonIndex].multiplier;
   const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
   const level = speechState.upgrades.cohere.level;
@@ -1161,7 +1162,6 @@ export function tickSpeech(delta) {
   if (speechState.weather) regen *= speechState.weather.multiplier;
   regen = Math.min(R_MAX, regen * getIntoneMultiplier());
   speechState.insightRegenBase = baseTotal;
-  speechState.gains.insight = regen;
   ins.current = Math.min(ins.max, ins.current + regen * dt);
   // Unlock clarividence once the player demonstrates basic insight control
   // by accumulating at least 50 insight.
@@ -1176,6 +1176,8 @@ export function tickSpeech(delta) {
     addConstruct('The Calling');
   }
   tickActiveConstructs(dt);
+  ins.current = Math.min(ins.max, Math.max(0, ins.current));
+  speechState.gains.insight = (ins.current - startInsight) / dt;
   updateCooldownOverlays();
   updateIntoneUI();
   renderOrbs();
