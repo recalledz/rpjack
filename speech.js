@@ -173,6 +173,15 @@ const resourceIcons = {
   will: 'flame'
 };
 
+const upgradeDescriptions = {
+  cohere: 'Improves insight regeneration.',
+  expandMind: 'Increase max insight by 15% each level.',
+  idleChatter: 'Bonus regen from idle disciples.',
+  capacityBoost: 'Adds one memory slot.',
+  clarividence: 'Reveals hidden constructs.',
+  vocalMaturity: 'Grants a burst of voice experience.'
+};
+
 function xpRequired(level) {
   return Math.round(50 * Math.pow(1.2, level));
 }
@@ -352,15 +361,6 @@ export function initSpeech() {
           </div>
         </div>
       </div>
-      <div class="xp-column">
-        <div class="speech-xp-container">
-          <i data-lucide="mic" class="speech-icon"></i>
-          <div class="speech-progress">
-            <div id="voiceLevel" class="speech-level"></div>
-            <div class="speech-xp-bar"><div class="speech-xp-fill"></div></div>
-          </div>
-        </div>
-      </div>
     </div>
     <div id="constructToggle" class="construct-toggle">❮</div>
     <div id="constructHotbar" class="construct-hotbar"></div>
@@ -380,7 +380,12 @@ export function initSpeech() {
     </div>
   `;
   panel = container.querySelector('#modalConstructorPanel');
-  container.querySelector('#constructToggle').addEventListener('click', togglePanel);
+  const toggleBtn = container.querySelector('#constructToggle');
+  toggleBtn.addEventListener('click', togglePanel);
+  toggleBtn.addEventListener('mouseenter', e => {
+    window.showTooltip('Toggle constructor panel', e.pageX + 10, e.pageY + 10);
+  });
+  toggleBtn.addEventListener('mouseleave', window.hideTooltip);
   panel.querySelector('#closeConstructBtn').addEventListener('click', togglePanel);
   panel.querySelector('#performConstruct').addEventListener('click', performConstruct);
   renderResourcesUI();
@@ -757,9 +762,9 @@ function renderHotbar() {
   });
 }
 
-function renderXpBar() {
-  const barFill = container.querySelector('.speech-xp-fill');
-  const lvlEl = container.querySelector('#voiceLevel');
+export function renderXpBar() {
+  const barFill = document.querySelector('#voiceSkillPanel .speech-xp-fill');
+  const lvlEl = document.getElementById('voiceLevel');
   if (!barFill || !lvlEl) return;
   const skill = speechState.skills.voice;
   const prog = getSkillProgress(skill.xp);
@@ -958,13 +963,6 @@ export function renderUpgrades() {
   const panelUp = document.getElementById('speechUpgrades');
   if (!panelUp) return;
   panelUp.innerHTML = '';
-  const addSection = title => {
-    const h = document.createElement('h4');
-    h.className = 'section-title';
-    h.textContent = title;
-    panelUp.appendChild(h);
-  };
-  addSection('Core Upgrades');
   const coreGroup = document.createElement('div');
   coreGroup.className = 'upgrade-group';
   panelUp.appendChild(coreGroup);
@@ -989,8 +987,14 @@ export function renderUpgrades() {
     }
     const affordable = canAfford(cost);
     btn.classList.toggle('unaffordable', !affordable);
-    btn.innerHTML = `<span class="upg-info"><span class="upg-name">${name}</span><span class="upgrade-level">Lv.${up.level}</span></span>${costHtml}`;
-    btn.addEventListener('click', () => purchaseUpgrade(name));
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">${name}</span><span class="upgrade-level">Lv.${up.level}</span></span><div class="detail"><div class="cost">${costHtml}</div><div class="desc">${upgradeDescriptions[name] || ''}</div></div>`;
+    btn.addEventListener('click', () => {
+      if (!btn.classList.contains('expanded')) {
+        btn.classList.add('expanded');
+        return;
+      }
+      purchaseUpgrade(name);
+    });
     coreGroup.appendChild(btn);
   });
   if (speechState.upgrades.clarividence.unlocked && speechState.upgrades.clarividence.level === 0) {
@@ -998,9 +1002,15 @@ export function renderUpgrades() {
     btn.dataset.upgrade = 'clarividence';
     const cost = getUpgradeCost('clarividence');
     const cls = speechState.orbs.insight.current >= cost ? '' : 'cost-missing';
-    btn.innerHTML = `<span class="upg-info"><span class="upg-name">clarividence</span></span><span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">clarividence</span><span class="upgrade-level">Lv.0</span></span><div class="detail"><div class="cost"><span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span></div><div class="desc">${upgradeDescriptions.clarividence}</div></div>`;
     btn.classList.toggle('unaffordable', !canAfford(cost));
-    btn.addEventListener('click', () => purchaseUpgrade('clarividence'));
+    btn.addEventListener('click', () => {
+      if (!btn.classList.contains('expanded')) {
+        btn.classList.add('expanded');
+        return;
+      }
+      purchaseUpgrade('clarividence');
+    });
     coreGroup.appendChild(btn);
   }
   if (speechState.upgrades.vocalMaturity.unlocked || speechState.failCount >= 5) {
@@ -1011,9 +1021,15 @@ export function renderUpgrades() {
     btn.dataset.upgrade = 'vocalMaturity';
     const cost = getUpgradeCost('vocalMaturity');
     const cls = speechState.orbs.insight.current >= cost ? '' : 'cost-missing';
-    btn.innerHTML = `<span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span>`;
+    btn.innerHTML = `<span class="upg-info"><span class="upg-name">vocalMaturity</span><span class="upgrade-level">Lv.${speechState.upgrades.vocalMaturity.level}</span></span><div class="detail"><div class="cost"><span class="icon-row"><span class="${cls}"><i data-lucide="${resourceIcons.insight}"></i> ${cost}</span></span></div><div class="desc">${upgradeDescriptions.vocalMaturity}</div></div>`;
     btn.classList.toggle('unaffordable', !canAfford(cost));
-    btn.addEventListener('click', () => purchaseUpgrade('vocalMaturity'));
+    btn.addEventListener('click', () => {
+      if (!btn.classList.contains('expanded')) {
+        btn.classList.add('expanded');
+        return;
+      }
+      purchaseUpgrade('vocalMaturity');
+    });
     vocal.appendChild(btn);
   }
 }
