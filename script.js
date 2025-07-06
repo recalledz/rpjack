@@ -1631,26 +1631,58 @@ function buildDiscipleStatusView(d) {
   task.textContent = `Current Task: ${sectState.discipleTasks[d.id] || 'Idle'}`;
   body.appendChild(task);
 
-  const attrs = document.createElement('div');
-  attrs.innerHTML =
-    `Strength ${d.strength} (×${(1 + 0.05 * (d.strength - 1)).toFixed(2)})<br>` +
-    `Dexterity ${d.dexterity} (×${(1 + 0.05 * (d.dexterity - 1)).toFixed(2)})<br>` +
-    `Intelligence ${d.intelligence} (×${(1 + 0.03 * (d.intelligence - 1)).toFixed(2)})<br>` +
-    `Endurance ${d.endurance} (×${(1 + 0.05 * (d.endurance - 1)).toFixed(2)})`;
-  body.appendChild(attrs);
+  const attrInfo = [
+    {
+      label: 'Strength',
+      value: d.strength,
+      mult: 1 + 0.05 * (d.strength - 1),
+      affects: 'Log Pine, Mining & Smithing XP'
+    },
+    {
+      label: 'Dexterity',
+      value: d.dexterity,
+      mult: 1 + 0.05 * (d.dexterity - 1),
+      affects: 'Woodcutting & Gather Fruit XP'
+    },
+    {
+      label: 'Intelligence',
+      value: d.intelligence,
+      mult: 1 + 0.03 * (d.intelligence - 1),
+      affects: 'Chant & Research XP'
+    },
+    {
+      label: 'Endurance',
+      value: d.endurance,
+      mult: 1 + 0.05 * (d.endurance - 1),
+      affects: 'Building, Defending & Combat XP'
+    }
+  ];
+  const attrContainer = document.createElement('div');
+  attrInfo.forEach(a => {
+    const row = document.createElement('div');
+    row.textContent = `${a.label} ${a.value} (×${a.mult.toFixed(2)} – affects ${a.affects})`;
+    attrContainer.appendChild(row);
+  });
+  body.appendChild(attrContainer);
   return body;
 }
 
 function buildDiscipleLifeStatsView(d) {
   const body = document.createElement('div');
   const skillMap = sectState.discipleSkills[d.id] || {};
-  const tasks = ['Gather Fruit', 'Log Pine', 'Building', 'Research', 'Chant'];
+  const tasks = [
+    { name: 'Gather Fruit', effect: 'yield' },
+    { name: 'Log Pine', effect: 'yield' },
+    { name: 'Building', effect: 'speed' },
+    { name: 'Research', effect: 'research pts' },
+    { name: 'Chant', effect: 'potency' }
+  ];
   tasks.forEach(t => {
-    const xp = skillMap[t] || 0;
+    const xp = skillMap[t.name] || 0;
     const prog = getTaskSkillProgress(xp);
     const row = document.createElement('div');
     const mult = 1 + 0.02 * prog.level;
-    row.textContent = `${t} Lv ${prog.level} (×${mult.toFixed(2)})`;
+    row.textContent = `${t.name} Lv ${prog.level} (×${mult.toFixed(2)} ${t.effect})`;
     body.appendChild(row);
   });
   return body;
