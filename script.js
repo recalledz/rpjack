@@ -862,6 +862,7 @@ function initTabs() {
       if (playerSectPanel) playerSectPanel.style.display = 'flex';
       startDiscipleMovement();
       playerSectSubTabButton.classList.add('active');
+      playerSectSubTabButton.classList.remove('glow-notify');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
       if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove('active');
       if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
@@ -1889,6 +1890,9 @@ document.addEventListener("DOMContentLoaded", () => {
       sectTabUnlocked = true;
       if (playerSectSubTabButton) playerSectSubTabButton.style.display = '';
       addLog('A presence stirs. The first disciple has heard the Calling.', 'info');
+    }
+    if (playerSectSubTabButton && !playerSectSubTabButton.classList.contains('active')) {
+      playerSectSubTabButton.classList.add('glow-notify');
     }
     updateSectDisplay();
     if (colonyInfoTabButton && colonyInfoTabButton.classList.contains('active')) {

@@ -344,11 +344,13 @@ const constructEffects = {
         incapacitated: false
       });
       addLog('A new Disciple has answered your call!', 'info');
+      if (lastConstructTarget) showConstructCloud('+1', lastConstructTarget);
       document.dispatchEvent(
         new CustomEvent('disciple-gained', { detail: { count: speechState.disciples.length } })
       );
     } else {
       addLog('Your call went unanswered.', 'info');
+      if (lastConstructTarget) showConstructCloud('Failed', lastConstructTarget, 'red');
     }
   }
 };
@@ -356,6 +358,7 @@ const constructEffects = {
 let container;
 let panel;
 let selectedChanter = null;
+let lastConstructTarget = null;
 
 export function initSpeech() {
   container = document.getElementById('speechPanel');
@@ -831,6 +834,7 @@ export function castConstruct(name, el, powerMult = 1) {
     }
   }
   awardXp(def.xp || 0, def.tags || ['voice']);
+  lastConstructTarget = el;
   showConstructCloud(name, el);
   if (def.duration) {
     speechState.activeBuffs[name] = { time: def.duration, mult: powerMult };
@@ -838,6 +842,7 @@ export function castConstruct(name, el, powerMult = 1) {
     const effect = constructEffects[name];
     if (effect) effect(1 * powerMult);
   }
+  lastConstructTarget = null;
   if (def.cooldown) {
     speechState.cooldowns[name] = def.cooldown;
   }
@@ -1335,11 +1340,12 @@ export function tickSpeech(delta) {
   renderXpBar();
 }
 
-function showConstructCloud(text, target) {
+function showConstructCloud(text, target, color) {
   if (!container) return;
   const el = document.createElement('div');
   el.className = 'construct-cloud';
   el.textContent = text;
+  if (color) el.style.color = color;
   const parent = target || container;
   parent.appendChild(el);
   setTimeout(() => el.remove(), 3000);
