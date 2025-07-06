@@ -1660,7 +1660,9 @@ function buildDiscipleStatusView(d) {
     {
       label: 'Strength',
       value: d.strength,
-      effect: `Melee Damage ×${(1 + 0.05 * (d.strength - 1)).toFixed(2)}`,
+      effect:
+        `Melee Damage ×${(1 + 0.05 * (d.strength - 1)).toFixed(2)}, ` +
+        `+${Math.floor((d.strength - 1) / 2)} Inventory Slots`,
       skills: 'Log Pine, Mining & Smithing'
     },
     {
@@ -1678,7 +1680,10 @@ function buildDiscipleStatusView(d) {
     {
       label: 'Endurance',
       value: d.endurance,
-      effect: `Stamina ×${(1 + 0.05 * (d.endurance - 1)).toFixed(2)}`,
+      effect:
+        `Stamina ×${(1 + 0.05 * (d.endurance - 1)).toFixed(2)}, ` +
+        `Regen ×${(1 + 0.01 * (d.endurance - 1)).toFixed(2)}, ` +
+        `+${10 * (d.endurance - 1)} HP`,
       skills: 'Building, Defending & Combat'
     }
   ];
