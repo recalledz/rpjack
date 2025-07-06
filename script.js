@@ -1854,6 +1854,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (systems.researchUnlocked && colonyResearchTabButton) {
     colonyResearchTabButton.style.display = '';
   }
+  if (systems.buildingUnlocked && colonyBuildTabButton) {
+    colonyBuildTabButton.style.display = '';
+  }
   updateSectDisplay();
   initVignetteToggles();
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
@@ -3519,7 +3522,13 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
     lifeCore,
     speechState,
     sectState,
-    sectTabUnlocked
+    sectTabUnlocked,
+    systems: {
+      manaUnlocked: systems.manaUnlocked,
+      buildingUnlocked: systems.buildingUnlocked,
+      researchUnlocked: systems.researchUnlocked,
+      chantingHallUnlocked: systems.chantingHallUnlocked
+    }
   };
 
 try {
@@ -3545,8 +3554,12 @@ const state = JSON.parse(json);
   upgradePowerPurchased = state.upgradePowerPurchased || 0;
   lastCashOutPoints = state.lastCashOutPoints || 0;
   Object.assign(stats, state.stats || {});
-systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
-Object.assign(stageData, state.stageData || {});
+  if (state.systems) {
+    Object.assign(systems, state.systems);
+  } else {
+    systems.manaUnlocked = (state.stats && state.stats.maxMana > 0);
+  }
+  Object.assign(stageData, state.stageData || {});
 Object.assign(playerStats, state.playerStats || {});
   if (state.worldProgress) {
     Object.entries(state.worldProgress).forEach(([id, data]) => {
