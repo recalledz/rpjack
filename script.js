@@ -1050,7 +1050,7 @@ function tickSect(delta) {
       const prog = sectState.discipleProgress[d.id];
       const skillXp = sectState.discipleSkills[d.id]?.[task] || 0;
       const lvl = getTaskSkillProgress(skillXp).level;
-      const yieldMult = 1 + 0.02 * lvl;
+      const yieldMult = 1 + 0.05 * lvl;
       const gatherAmt = Math.min(cycleAmount * yieldMult, d.inventorySlots);
       const cycleSeconds =
         baseSeconds * (gatherAmt / (cycleAmount * yieldMult));
@@ -1170,7 +1170,7 @@ function updateTaskProgressDisplay() {
         taskName === 'Gather Fruit' ? FRUIT_CYCLE_AMOUNT : PINE_LOG_CYCLE_AMOUNT;
       const skillXp = sectState.discipleSkills[d.id]?.[taskName] || 0;
       const lvl = getTaskSkillProgress(skillXp).level;
-      const yieldMult = 1 + 0.02 * lvl;
+      const yieldMult = 1 + 0.05 * lvl;
       const gatherAmt = Math.min(cycleAmount * yieldMult, d.inventorySlots);
       const cycleSeconds = baseSeconds * (gatherAmt / (cycleAmount * yieldMult));
       const phaseLength = cycleSeconds / 4;
@@ -1298,7 +1298,7 @@ function updateDiscipleGather(id, el) {
   const lvl = getTaskSkillProgress(
     sectState.discipleSkills[id]?.[task] || 0
   ).level;
-  const yieldMult = 1 + 0.02 * lvl;
+  const yieldMult = 1 + 0.05 * lvl;
   const gatherAmt = Math.min(cycleAmount * yieldMult, d?.inventorySlots || 10);
   const cycleSeconds = baseSeconds * (gatherAmt / (cycleAmount * yieldMult));
   const phaseLength = cycleSeconds / 4;
@@ -1769,7 +1769,8 @@ function buildDiscipleLifeStatsView(d) {
     const xp = skillMap[t.name] || 0;
     const prog = getTaskSkillProgress(xp);
     const row = document.createElement('div');
-    const mult = 1 + 0.02 * prog.level;
+    const isGather = t.name === 'Gather Fruit' || t.name === 'Log Pine';
+    const mult = 1 + (isGather ? 0.05 : 0.02) * prog.level;
     row.textContent = `${t.name} Lv ${prog.level} (×${mult.toFixed(2)} ${t.effect})`;
     body.appendChild(row);
   });

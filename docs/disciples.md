@@ -95,10 +95,10 @@ Increasing **Strength** speeds up XP gain for mining, smithing, and logging jobs
 ### Gathering Yield
 
 Proficiency does more than just award XP. For gathering tasks, every skill level
-increases the yield by **2%**, using the same logic as the game code:
+increases the yield by **5%**, using the same logic as the game code:
 
 ```javascript
-const yieldMult = 1 + 0.02 * level;
+const yieldMult = 1 + 0.05 * level;
 const gatherAmt = Math.min(cycleAmount * yieldMult, disciple.inventorySlots);
 ```
 
