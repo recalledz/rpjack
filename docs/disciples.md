@@ -89,7 +89,34 @@ export function intelligenceXpMultiplier(task) {
 }
 ```
 
+
 Increasing **Strength** speeds up XP gain for mining, smithing, and logging jobs. **Dexterity** now boosts XP for woodcutting and gathering, while **Intelligence** grants extra XP when chanting or researching. **Endurance** continues to help disciples learn faster when building or defending.
+
+### Gathering Yield
+
+Proficiency does more than just award XP. For gathering tasks, every skill level
+increases the yield by **2%**, using the same logic as the game code:
+
+```javascript
+const yieldMult = 1 + 0.02 * level;
+const gatherAmt = Math.min(cycleAmount * yieldMult, disciple.inventorySlots);
+```
+
+The multiplier scales the base cycle amount but is capped by the disciple's
+available inventory slots. New recruits start with 10 slots, so the bonus may
+not be visible until they gain extra carrying capacity from Strength or other
+upgrades.
+
+If carrying capacity does limit the haul, the disciple finishes the trip as soon
+as their inventory is full. The effective cycle time becomes
+
+```javascript
+const cycleSeconds = baseSeconds * (gatherAmt / (cycleAmount * yieldMult));
+```
+
+where `baseSeconds` is `FRUIT_CYCLE_SECONDS` or `PINE_LOG_CYCLE_SECONDS`. This
+shorter cycle means high-proficiency disciples drop off loads more frequently
+even when the yield per cycle is capped by inventory.
 
 ## Attribute Point Effects
 
