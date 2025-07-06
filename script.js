@@ -1046,16 +1046,26 @@ function tickSect(delta) {
       sectState.discipleProgress[d.id] += dt;
       const cycleSeconds = task === 'Gather Fruit' ? FRUIT_CYCLE_SECONDS : PINE_LOG_CYCLE_SECONDS;
       const cycleAmount = task === 'Gather Fruit' ? FRUIT_CYCLE_AMOUNT : PINE_LOG_CYCLE_AMOUNT;
-      if (sectState.discipleProgress[d.id] >= cycleSeconds) {
-        const cycles = Math.floor(sectState.discipleProgress[d.id] / cycleSeconds);
+      const phaseLength = cycleSeconds / 4;
+      const prog = sectState.discipleProgress[d.id];
+      const skillXp = sectState.discipleSkills[d.id]?.[task] || 0;
+      const lvl = getTaskSkillProgress(skillXp).level;
+      const yieldMult = 1 + 0.02 * lvl;
+      const gatherAmt = Math.min(cycleAmount * yieldMult, d.inventorySlots);
+      const resKey = task === 'Gather Fruit' ? 'fruit' : 'pineLog';
+      if (prog < phaseLength) {
+        d.inventory = {};
+      } else if (prog < phaseLength * 3) {
+        d.inventory = { [resKey]: gatherAmt };
+      } else {
+        d.inventory = {};
+      }
+      if (prog >= cycleSeconds) {
+        const cycles = Math.floor(prog / cycleSeconds);
         sectState.discipleProgress[d.id] -= cycles * cycleSeconds;
-        const skillXp = (sectState.discipleSkills[d.id]?.[task] || 0);
-        const lvl = getTaskSkillProgress(skillXp).level;
-        const yieldMult = 1 + 0.02 * lvl;
-        if (task === 'Gather Fruit')
-          sectState.fruits += cycles * cycleAmount * yieldMult;
-        else
-          sectState.pineLogs += cycles * cycleAmount * yieldMult;
+        const deposit = gatherAmt * cycles;
+        if (task === 'Gather Fruit') sectState.fruits += deposit;
+        else sectState.pineLogs += deposit;
         checkBuildingUnlock();
         if (!sectState.discipleSkills[d.id]) {
           sectState.discipleSkills[d.id] = {
@@ -1072,9 +1082,9 @@ function tickSect(delta) {
           enduranceXpMultiplier(task) *
           dexterityXpMultiplier(task) *
           intelligenceXpMultiplier(task);
-        const baseXp =
-          task === 'Gather Fruit' ? FRUIT_XP_PER_CYCLE : LOG_XP_PER_CYCLE;
+        const baseXp = task === 'Gather Fruit' ? FRUIT_XP_PER_CYCLE : LOG_XP_PER_CYCLE;
         sectState.discipleSkills[d.id][task] += cycles * baseXp * mult;
+        d.inventory = {};
         updateSectDisplay();
       }
     } else if (task === 'Research') {
@@ -1634,6 +1644,13 @@ function buildDiscipleStatusView(d) {
   const task = document.createElement('div');
   task.textContent = `Current Task: ${sectState.discipleTasks[d.id] || 'Idle'}`;
   body.appendChild(task);
+
+  const invRow = document.createElement('div');
+  const entries = Object.entries(d.inventory || {});
+  const filled = entries.reduce((a, [_, v]) => a + v, 0);
+  const desc = entries.map(([k, v]) => `${v} ${k}`).join(', ');
+  invRow.textContent = `Inventory: ${filled}/${d.inventorySlots}` + (desc ? ` (${desc})` : '');
+  body.appendChild(invRow);
 
   const attrInfo = [
     {
@@ -3610,6 +3627,8 @@ Object.assign(playerStats, state.playerStats || {});
         if (d.intelligence === undefined) d.intelligence = 1;
         if (d.incapacitated === undefined) d.incapacitated = false;
         if (!d.name) d.name = `Disciple ${d.id}`;
+        if (d.inventorySlots === undefined) d.inventorySlots = 10;
+        if (!d.inventory) d.inventory = {};
       });
     }
   }
