@@ -91,6 +91,7 @@ export const speechState = {
   constructUnlocked: true,
   pot: [],
   constructPotency: {},
+  playerConstructXp: {},
   disciples: [],
   murmurCasts: 0,
   intonePresses: 0,
@@ -230,6 +231,28 @@ function getIntoneMultiplier() {
   return 1.0;
 }
 
+function awardConstructXp(name, amount, caster = 'player') {
+  if (caster === 'player') {
+    speechState.playerConstructXp[name] =
+      (speechState.playerConstructXp[name] || 0) + amount;
+    if (!speechState.skills.voice) return;
+    speechState.skills.voice.xp += amount;
+  } else {
+    if (!sectState.discipleConstructXp[caster])
+      sectState.discipleConstructXp[caster] = {};
+    const obj = sectState.discipleConstructXp[caster];
+    obj[name] = (obj[name] || 0) + amount;
+  }
+}
+
+function getConstructLevel(caster = 'player', name) {
+  const xp =
+    caster === 'player'
+      ? speechState.playerConstructXp[name] || 0
+      : sectState.discipleConstructXp[caster]?.[name] || 0;
+  return getSkillProgress(xp).level;
+}
+
 function awardXp(amount, tags) {
   if (!tags || tags.length === 0) return;
   const split = amount / tags.length;
@@ -263,8 +286,7 @@ function awardXp(amount, tags) {
 // Per-tick effects for active constructs. These are simplified
 // implementations to demonstrate the new constructs in action.
 const constructEffects = {
-  Murmur(dt) {
-    const pot = speechState.constructPotency['Murmur'] || 1;
+  Murmur(dt, pot = speechState.constructPotency['Murmur'] || 1) {
     const amount = dt * pot; // 1 insight -> sound per second scaled
     const ins = speechState.resources.insight;
     const snd = speechState.resources.sound;
@@ -273,10 +295,9 @@ const constructEffects = {
       snd.current = Math.min(snd.max, snd.current + amount);
     }
   },
-  'Echo of Mind'(dt) {
+  'Echo of Mind'(dt, pot = speechState.constructPotency['Echo of Mind'] || 1) {
     const ins = speechState.resources.insight;
     const th = speechState.resources.thought;
-    const pot = speechState.constructPotency['Echo of Mind'] || 1;
     const amount = dt * 0.2 * pot; // slower rate
     if (ins.current >= amount) {
       ins.current -= amount;
@@ -284,8 +305,7 @@ const constructEffects = {
       th.unlocked = true;
     }
   },
-  'Clarity Pulse'(dt) {
-    const pot = speechState.constructPotency['Clarity Pulse'] || 1;
+  'Clarity Pulse'(dt, pot = speechState.constructPotency['Clarity Pulse'] || 1) {
     const bonus = 0.01 * dt * pot; // regen scaled by potency
     speechState.resources.insight.current = Math.min(
       speechState.resources.insight.max,
@@ -296,11 +316,10 @@ const constructEffects = {
       speechState.resources.sound.current + bonus
     );
   },
-  'Symbol Seed'(dt) {
+  'Symbol Seed'(dt, pot = speechState.constructPotency['Symbol Seed'] || 1) {
     const th = speechState.resources.thought;
     const snd = speechState.resources.sound;
     const str = speechState.resources.structure;
-    const pot = speechState.constructPotency['Symbol Seed'] || 1;
     const drain = dt * 0.1;
     if (th.current >= drain && snd.current >= drain) {
       th.current -= drain;
@@ -309,16 +328,16 @@ const constructEffects = {
       str.unlocked = true;
     }
   },
-  'Mental Construct'(dt) {
+  'Mental Construct'(dt, pot = 1) {
     // doubles effects of other constructs while active
     speechState.activeConstructs
       .filter(c => c !== 'Mental Construct')
       .forEach(c => {
         const effect = constructEffects[c];
-        if (effect) effect(dt);
+        if (effect) effect(dt, pot);
       });
   },
-  Intone() {
+  Intone(dt, pot = 1) {
     if (speechState.intoneTimer > 0) return;
     if (speechState.intonePresses < 15) {
       speechState.intonePresses += 1;
@@ -328,8 +347,8 @@ const constructEffects = {
       speechState.intoneTimer = 30;
     }
   },
-  'The Calling'() {
-    const callPower = speechState.constructPotency['The Calling'] || 1;
+  'The Calling'(dt, pot = speechState.constructPotency['The Calling'] || 1) {
+    const callPower = pot;
     const targetIdx = speechState.disciples.length + 1;
     const reqPower = Math.pow(1.8, targetIdx - 1);
     const chance = Math.max(0.05, Math.min(1, callPower / reqPower));
@@ -350,6 +369,7 @@ const constructEffects = {
         inventorySlots: 10,
         inventory: {}
       });
+      sectState.discipleConstructXp[targetIdx] = {};
       addLog('A new Disciple has answered your call!', 'info');
       if (lastConstructTarget) showConstructCloud('+1', lastConstructTarget);
       document.dispatchEvent(
@@ -811,7 +831,7 @@ function toggleConstructActive(name) {
   renderHotbar();
 }
 
-export function castConstruct(name, el, powerMult = 1) {
+export function castConstruct(name, el, powerMult = 1, caster = 'player') {
   const def = recipes.find(r => r.name === name);
   if (!def) return;
   const voiceSkill = speechState.skills.voice;
@@ -844,14 +864,21 @@ export function castConstruct(name, el, powerMult = 1) {
       addConstruct('Intone');
     }
   }
-  awardXp(def.xp || 0, def.tags || ['voice']);
+  const xp = def.xp || 0;
+  const tags = def.tags || ['voice'];
+  if (tags.includes('voice')) awardConstructXp(name, xp, caster);
+  const other = tags.filter(t => t !== 'voice');
+  if (other.length) awardXp(xp, other);
   lastConstructTarget = el;
   showConstructCloud(name, el);
+  const basePot = speechState.constructPotency[name] || 1;
+  const levelPot = Math.pow(1.05, getConstructLevel(caster, name));
+  const finalMult = powerMult * basePot * levelPot;
   if (def.duration) {
-    speechState.activeBuffs[name] = { time: def.duration, mult: powerMult };
+    speechState.activeBuffs[name] = { time: def.duration, mult: finalMult };
   } else {
     const effect = constructEffects[name];
-    if (effect) effect(1 * powerMult);
+    if (effect) effect(1, finalMult);
   }
   lastConstructTarget = null;
   if (def.cooldown) {
@@ -1197,7 +1224,7 @@ function tickActiveConstructs(dt) {
   for (const name of Object.keys(speechState.activeBuffs)) {
     const data = speechState.activeBuffs[name];
     const effect = constructEffects[name];
-    if (effect) effect(dt * (data.mult || 1));
+    if (effect) effect(dt, data.mult || 1);
     data.time -= dt;
     if (data.time <= 0) delete speechState.activeBuffs[name];
   }
