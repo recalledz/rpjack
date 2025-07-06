@@ -3535,6 +3535,12 @@ body.darkenshift-mode .tabsContainer button.active {
     pointer-events: none;
     white-space: nowrap;
 }
+.disciple-task-rate {
+    min-width: 50px;
+    font-size: 0.7rem;
+    text-align: right;
+    color: #ddd;
+}
 .sect-disciples {
     text-align: center;
     margin-bottom: 4px;
