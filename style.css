@@ -605,6 +605,33 @@ body.darkenshift-mode .tabsContainer button.active {
     margin: 4px;
 }
 
+.insight-regen-overlay {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-regen-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.insight-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.insight-row.negative {
+    color: #ff8888;
+}
+
+.insight-total {
+    margin-top: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
 .camp-box {
     display: flex;
     flex-direction: column;

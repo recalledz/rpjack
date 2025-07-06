@@ -20,7 +20,7 @@ import {
 import {
   initStarChart
 } from "./starChart.js"; // optional star chart tab
-import { initSpeech, tickSpeech, speechState, DAY_LENGTH_SECONDS, castConstruct, createConstructCard, createConstructInfo, recipes } from "./speech.js";
+import { initSpeech, tickSpeech, speechState, DAY_LENGTH_SECONDS, castConstruct, createConstructCard, createConstructInfo, recipes, openInsightRegenPopup } from "./speech.js";
 import { Jobs, assignJob, getAvailableJobs, renderJobAssignments, renderJobCarousel } from "./jobs.js"; // job definitions
 import RateTracker from "./utils/rateTracker.js";
 import { formatNumber } from "./utils/numberFormat.js";
@@ -1208,6 +1208,9 @@ function updateSectDisplay() {
       orb.className = `sect-orb ${p.cls}`;
       orb.style.left = p.left;
       orb.style.top = p.top;
+      if (p.cls === 'insight') {
+        orb.addEventListener('click', openInsightRegenPopup);
+      }
       orbs.appendChild(orb);
     });
   }
