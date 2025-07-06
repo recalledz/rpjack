@@ -171,7 +171,7 @@ const resourceIcons = {
   insight: 'star',
   sound: 'volume-2',
   thought: 'activity',
-  structure: 'cube',
+  structure: 'box',
   body: 'heart',
   will: 'flame'
 };
