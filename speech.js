@@ -1358,6 +1358,14 @@ export function openInsightRegenPopup() {
   header.textContent = 'Insight Regeneration';
   box.appendChild(header);
 
+  const info = document.createElement('p');
+  info.className = 'insight-info';
+  info.textContent =
+    `Base insight regeneration follows a logistic curve that slows as your` +
+    ` total insight rises. At ${MIDPOINT} insight the base rate is half of its` +
+    ` ${R_MAX}/s maximum before multipliers.`;
+  box.appendChild(info);
+
   const list = document.createElement('div');
   list.className = 'insight-regen-list';
 
