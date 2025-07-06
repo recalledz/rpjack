@@ -1157,6 +1157,7 @@ function updateTaskProgressDisplay() {
     if (!wrapper) return;
     const fill = wrapper.querySelector('.disciple-progress-fill');
     const label = wrapper.querySelector('.disciple-progress-label');
+    const rateEl = wrapper.querySelector('.disciple-task-rate');
     const taskName = sectState.discipleTasks[d.id] || 'Idle';
     if (taskName === 'Gather Fruit' || taskName === 'Log Pine') {
       const progress = sectState.discipleProgress[d.id] || 0;
@@ -1168,18 +1169,34 @@ function updateTaskProgressDisplay() {
       const phaseNames = ['Travelling', 'Gathering', 'Hauling', 'Storing'];
       if (fill) fill.style.width = `${pct}%`;
       if (label) label.textContent = phaseNames[phase];
+      if (rateEl) {
+        const cycleAmount =
+          taskName === 'Gather Fruit' ? FRUIT_CYCLE_AMOUNT : PINE_LOG_CYCLE_AMOUNT;
+        const skillXp = sectState.discipleSkills[d.id]?.[taskName] || 0;
+        const lvl = getTaskSkillProgress(skillXp).level;
+        const yieldMult = 1 + 0.02 * lvl;
+        const gatherAmt = Math.min(cycleAmount * yieldMult, d.inventorySlots);
+        const rate = gatherAmt / cycleSeconds;
+        rateEl.textContent = `+${rate.toFixed(2)}/s`;
+      }
     } else if (taskName === 'Research') {
       if (fill) fill.style.width = `${researchPct}%`;
       if (label)
         label.textContent = `Next RP: ${researchRate > 0 ? researchTime.toFixed(1) : '∞'}s`;
+      if (rateEl) {
+        const rate = 4;
+        rateEl.textContent = `+${rate.toFixed(2)}/s`;
+      }
     } else if (taskName === 'Building') {
       if (fill) fill.style.width = `${buildPct}%`;
       if (label && buildData)
         label.textContent = `${buildData.name} ${builderCount > 0 ? buildTime.toFixed(1) : '∞'}s`;
       else if (label) label.textContent = '';
+      if (rateEl) rateEl.textContent = '';
     } else {
       if (fill) fill.style.width = '0%';
       if (label) label.textContent = '';
+      if (rateEl) rateEl.textContent = '';
     }
   });
 }
@@ -1342,6 +1359,10 @@ function renderColonyTasks() {
     bar.appendChild(fill);
     bar.appendChild(text);
     taskInfo.appendChild(bar);
+    const rate = document.createElement('div');
+    rate.className = 'disciple-task-rate';
+    rate.id = `disciple-rate-${d.id}`;
+    taskInfo.appendChild(rate);
 
     row.appendChild(label);
     row.appendChild(taskName);
