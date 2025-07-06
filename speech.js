@@ -216,11 +216,11 @@ function getSkillProgress(xp) {
 }
 
 function getIntoneMultiplier() {
-  if (speechState.intoneTimer > 0) return 3.0;
+  if (speechState.intoneTimer > 0) return 2.0;
   const p = speechState.intonePresses;
-  if (p >= 15) return 3.0;
-  if (p >= 10) return 2.0;
-  if (p >= 5) return 1.5;
+  if (p >= 15) return 2.0;
+  if (p >= 10) return 1.5;
+  if (p >= 5) return 1.2;
   return 1.0;
 }
 
@@ -1298,7 +1298,7 @@ export function tickSpeech(delta) {
   const baseTotal = baseRateRaw * upgradeMult * idleMult;
   let regen = baseTotal * seasonMult;
   if (speechState.weather) regen *= speechState.weather.multiplier;
-  regen = Math.min(R_MAX, regen * getIntoneMultiplier());
+  regen = Math.min(R_MAX, regen) * getIntoneMultiplier();
   speechState.insightRegenBase = baseTotal;
   ins.current = Math.min(ins.max, ins.current + regen * dt);
   // Unlock clarividence once the player demonstrates basic insight control
