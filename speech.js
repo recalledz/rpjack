@@ -1371,9 +1371,16 @@ export function openInsightRegenPopup() {
   const weatherMult = speechState.weather ? speechState.weather.multiplier : 1;
   const intoneMult = getIntoneMultiplier();
 
+  // Compare against the level 0 baseline so the display shows the
+  // actual boost rather than a sub-1 multiplier.
+  const baseMult = 1 / 5; // (level + 1)/(level + 5) when level = 0
+  const cohereContribution = upgradeMult / baseMult;
   const rows = [
     { label: 'Base Rate', value: `${baseRateRaw.toFixed(3)}/s` },
-    { label: `Cohere Lv.${level}`, value: `×${upgradeMult.toFixed(2)}` },
+    {
+      label: `Cohere Lv.${level}`,
+      value: `×${cohereContribution.toFixed(2)}`,
+    },
   ];
   if (idleCount > 0) {
     rows.push({ label: `Idle Disciples (${idleCount})`, value: `×${idleMult.toFixed(2)}` });
