@@ -179,6 +179,7 @@ export const sectState = {
   taskTimers: { gatherFruits: 0 },
   discipleProgress: {}, // map disciple id -> progress seconds in current cycle
   discipleSkills: {}, // map disciple id -> skill levels per task
+  discipleConstructXp: {}, // map disciple id -> construct XP
   chantAssignments: {}, // map disciple id -> assigned construct
   buildings: { pineShack: 0, researchTable: 0, chantingHall: 0 },
   researchPoints: 0,
@@ -243,11 +244,18 @@ function ensureDiscipleSkills(id) {
   }
 }
 
+function ensureDiscipleConstructXp(id) {
+  if (!sectState.discipleConstructXp[id]) {
+    sectState.discipleConstructXp[id] = {};
+  }
+}
+
 function calculateDailyFruitGain() {
   let total = 0;
   speechState.disciples.forEach(d => {
     if (sectState.discipleTasks[d.id] === 'Gather Fruit') {
       ensureDiscipleSkills(d.id);
+      ensureDiscipleConstructXp(d.id);
       const xp = sectState.discipleSkills[d.id]['Gather Fruit'];
       const lvl = getTaskSkillProgress(xp).level;
       const yieldMult = 1 + 0.05 * lvl;
@@ -1091,6 +1099,7 @@ function tickSect(delta) {
   const dt = delta / 1000;
   speechState.disciples.forEach(d => {
     ensureDiscipleSkills(d.id);
+    ensureDiscipleConstructXp(d.id);
     const task = sectState.discipleTasks[d.id];
     if (task === 'Gather Fruit' || task === 'Log Pine') {
       if (!sectState.discipleProgress[d.id]) sectState.discipleProgress[d.id] = 0;
@@ -1172,7 +1181,7 @@ function tickSect(delta) {
           const xp = sectState.discipleSkills[d.id]?.['Chant'] || 0;
           const lvl = getTaskSkillProgress(xp).level;
           const pot = 0.3 * (1 + 0.02 * lvl) * attributes.Intelligence.constructPotencyMultiplier;
-          castConstruct(target, null, pot);
+          castConstruct(target, null, pot, d.id);
           sectState.discipleSkills[d.id]['Chant'] = xp + CHANT_XP_PER_CYCLE;
         }
       }
@@ -1593,6 +1602,7 @@ function tickBuilding(dt) {
     const t = sectState.discipleTasks[d.id];
     if (!t || t === 'Idle' || t === 'Building') {
       ensureDiscipleSkills(d.id);
+      ensureDiscipleConstructXp(d.id);
       const xp = sectState.discipleSkills[d.id]['Building'];
       const lvl = getTaskSkillProgress(xp).level;
       speed += 1 + 0.02 * lvl;
@@ -1878,9 +1888,29 @@ function buildDiscipleLifeStatsView(d) {
   return body;
 }
 
-function buildDiscipleCastingStatsView() {
+function buildDiscipleCastingStatsView(d) {
   const body = document.createElement('div');
-  body.textContent = 'Casting stats not implemented.';
+  ensureDiscipleConstructXp(d.id);
+  const xpMap = sectState.discipleConstructXp[d.id];
+  Object.keys(speechState.constructPotency).forEach(name => {
+    const xp = xpMap[name] || 0;
+    const prog = getTaskSkillProgress(xp);
+    const mult = Math.pow(1.05, prog.level);
+    const row = document.createElement('div');
+    row.className = 'disciple-skill-option';
+    const label = document.createElement('div');
+    label.className = 'disciple-skill-label';
+    label.textContent = `${name} Lv ${prog.level} (×${mult.toFixed(2)})`;
+    const bar = document.createElement('div');
+    bar.className = 'disciple-skill-progress';
+    const fill = document.createElement('div');
+    fill.className = 'disciple-skill-progress-fill';
+    fill.style.width = `${Math.floor(prog.progress * 100)}%`;
+    bar.appendChild(fill);
+    row.appendChild(label);
+    row.appendChild(bar);
+    body.appendChild(row);
+  });
   return body;
 }
 
