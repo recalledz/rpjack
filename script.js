@@ -1638,32 +1638,32 @@ function buildDiscipleStatusView(d) {
     {
       label: 'Strength',
       value: d.strength,
-      mult: 1 + 0.05 * (d.strength - 1),
-      affects: 'Log Pine, Mining & Smithing XP'
+      effect: `Melee Damage ×${(1 + 0.05 * (d.strength - 1)).toFixed(2)}`,
+      skills: 'Log Pine, Mining & Smithing'
     },
     {
       label: 'Dexterity',
       value: d.dexterity,
-      mult: 1 + 0.05 * (d.dexterity - 1),
-      affects: 'Woodcutting & Gather Fruit XP'
+      effect: `Attack Speed ×${(1 + 0.05 * (d.dexterity - 1)).toFixed(2)}`,
+      skills: 'Woodcutting & Gather Fruit'
     },
     {
       label: 'Intelligence',
       value: d.intelligence,
-      mult: 1 + 0.03 * (d.intelligence - 1),
-      affects: 'Chant & Research XP'
+      effect: `Construct Potency ×${(1 + 0.03 * (d.intelligence - 1)).toFixed(2)}`,
+      skills: 'Chant & Research'
     },
     {
       label: 'Endurance',
       value: d.endurance,
-      mult: 1 + 0.05 * (d.endurance - 1),
-      affects: 'Building, Defending & Combat XP'
+      effect: `Stamina ×${(1 + 0.05 * (d.endurance - 1)).toFixed(2)}`,
+      skills: 'Building, Defending & Combat'
     }
   ];
   const attrContainer = document.createElement('div');
   attrInfo.forEach(a => {
     const row = document.createElement('div');
-    row.textContent = `${a.label} ${a.value} (×${a.mult.toFixed(2)} – affects ${a.affects})`;
+    row.textContent = `${a.label} ${a.value} (${a.effect} – boosts ${a.skills} XP)`;
     attrContainer.appendChild(row);
   });
   body.appendChild(attrContainer);
