@@ -382,15 +382,19 @@ export function initSpeech() {
         <button id="closeConstructBtn" class="cast-button">❌</button>
       </div>
       <div class="construct-tab constructor-view">
-        <div class="construct-left">
+        <div class="constructor-container">
           <div id="constructPot" class="construct-pot">⚗️</div>
           <div id="resourceButtons" class="resource-buttons"></div>
           <button id="performConstruct" class="cast-button construct-button">Construct</button>
-          <div id="memorySlotsDisplay" class="memory-slots"></div>
           <div id="constructRequirements" class="construct-requirements"></div>
+        </div>
+        <div class="card-construct-container">
+          <div class="slots-and-disciples">
+            <div id="memorySlotsDisplay" class="memory-slots"></div>
+            <div id="constructDisciples" class="construct-disciples"></div>
+          </div>
           <div id="constructCards" class="built-constructs"></div>
         </div>
-        <div id="constructDisciples" class="construct-disciples"></div>
       </div>
     </div>
   `;

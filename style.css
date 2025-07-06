@@ -3014,11 +3014,26 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 
 
-.construct-left {
+.constructor-container {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-construct-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 6px;
+}
+
+.slots-and-disciples {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
 }
 
 .construct-disciples {
