@@ -627,6 +627,10 @@ function renderConstructCards() {
         selectedChanter = null;
         renderChantDisciples();
         renderConstructCards();
+      } else if (assignedId) {
+        delete sectState.chantAssignments[assignedId];
+        renderChantDisciples();
+        renderConstructCards();
       }
     });
     wrapper.appendChild(assign);

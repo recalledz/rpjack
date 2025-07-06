@@ -1430,8 +1430,15 @@ function renderColonyInfo() {
     option.appendChild(bar);
 
     option.addEventListener('click', () => {
+      const prev = sectState.discipleTasks[d.id];
       sectState.discipleTasks[d.id] = t;
       discipleGatherPhase[d.id] = -1;
+      if (prev === 'Chant' && t !== 'Chant') {
+        delete sectState.chantAssignments[d.id];
+        if (typeof renderConstructCards === 'function') {
+          renderConstructCards();
+        }
+      }
       renderColonyTasks();
       renderColonyInfo();
       updateSectDisplay();
