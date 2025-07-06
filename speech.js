@@ -55,6 +55,11 @@ export const speechState = {
       unlocked: true,
       costFunc: lvl => ({ insight: 2 * Math.pow(lvl + 1, 2) })
     },
+    soundExpansion: {
+      level: 0,
+      unlocked: true,
+      costFunc: lvl => ({ sound: 25 + lvl * 4 })
+    },
     clarividence: { level: 0, baseCost: 300, unlocked: false },
     idleChatter: {
       level: 0,
@@ -186,6 +191,7 @@ const upgradeDescriptions = {
     return `Improves insight regeneration. Next +${inc}/s (now ${current}/s)`;
   },
   expandMind: 'Increase max insight by 15% each level.',
+  soundExpansion: 'Raises sound capacity; Lv.2 grants an extra slot.',
   idleChatter: 'Bonus regen from idle disciples.',
   capacityBoost: 'Adds one memory slot.',
   clarividence: 'Reveals hidden constructs.',
@@ -1047,6 +1053,11 @@ function purchaseUpgrade(name) {
     speechState.memorySlots += 1;
   } else if (name === 'expandMind') {
     speechState.orbs.insight.max = Math.round(speechState.orbs.insight.max * 1.15);
+  } else if (name === 'soundExpansion') {
+    speechState.resources.sound.max += 25;
+    if (up.level === 2) {
+      speechState.memorySlots += 1;
+    }
   }
   renderUpgrades();
   renderGains();
@@ -1061,7 +1072,7 @@ export function renderUpgrades() {
   const coreGroup = document.createElement('div');
   coreGroup.className = 'upgrade-group';
   panelUp.appendChild(coreGroup);
-  ['cohere','expandMind','idleChatter'].forEach(name => {
+  ['cohere','expandMind','soundExpansion','idleChatter'].forEach(name => {
     const btn = document.createElement('button');
     btn.dataset.upgrade = name;
     const cost = getUpgradeCost(name);
