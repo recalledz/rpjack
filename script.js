@@ -3676,6 +3676,7 @@ function gameLoop(currentTime) {
 const rawDelta = currentTime - lastFrameTime;
 lastFrameTime = currentTime;
 const deltaTime = rawDelta * timeScale;
+const startInsight = speechState.resources.insight.current;
 
 if (currentEnemy) {
     currentEnemy.tick(deltaTime);
@@ -3760,6 +3761,11 @@ if (currentEnemy) {
   tickBarProgress(deltaTime);
   tickSpeech(deltaTime);
   tickSect(deltaTime);
+  const dtSeconds = deltaTime / 1000;
+  speechState.gains.insight =
+    dtSeconds > 0
+      ? (speechState.resources.insight.current - startInsight) / dtSeconds
+      : 0;
   requestAnimationFrame(gameLoop);
 }
 
