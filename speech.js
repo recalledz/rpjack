@@ -121,8 +121,9 @@ export const recipes = [
     output: { thought: 1 },
     xp: 1,
     tags: ['voice','mind'],
-    unlocked: true,
+    unlocked: false,
     requirements: { voiceLevel: 3, insight: 1500 },
+    castCost: { sound: 25, insight: 500 },
     duration: 5,
     cooldown: 5
   },
@@ -596,8 +597,10 @@ function addConstruct(name) {
       speechState.activeConstructs.push(name);
     }
   }
-  renderConstructCards();
-  renderHotbar();
+  if (panel && container) {
+    renderConstructCards();
+    renderHotbar();
+  }
 }
 
 function renderConstructCards() {
@@ -776,7 +779,8 @@ export function createConstructInfo(name) {
   }
   const cost = document.createElement('div');
   cost.className = 'construct-cost';
-  cost.textContent = `Cost: ${Object.entries(recipe.input)
+  const cc = recipe.castCost || recipe.input;
+  cost.textContent = `Cost: ${Object.entries(cc)
     .map(([k, v]) => `${v} ${k}`)
     .join(', ')}`;
   info.appendChild(cost);
@@ -844,11 +848,12 @@ export function castConstruct(name, el, powerMult = 1, caster = 'player') {
     return;
   }
   if (speechState.cooldowns[name] > 0) return;
-  for (const [res, amt] of Object.entries(def.input)) {
+  const cost = def.castCost || def.input;
+  for (const [res, amt] of Object.entries(cost)) {
     const r = speechState.resources[res];
     if (!r || r.current < amt) return;
   }
-  for (const [res, amt] of Object.entries(def.input)) {
+  for (const [res, amt] of Object.entries(cost)) {
     speechState.resources[res].current -= amt;
   }
   for (const [res, amt] of Object.entries(def.output)) {
@@ -1245,7 +1250,8 @@ function updateCooldownOverlays() {
     const ratio = def.cooldown ? 1 - remaining / def.cooldown : 1;
     const overlay = card.querySelector('.cooldown-overlay');
     if (overlay) overlay.style.setProperty('--cooldown', ratio);
-    const affordable = Object.entries(def.input || {}).every(([res, amt]) => {
+    const cost = def.castCost || def.input || {};
+    const affordable = Object.entries(cost).every(([res, amt]) => {
       const r = speechState.resources[res];
       return r && r.current >= amt;
     });
@@ -1285,7 +1291,7 @@ function updateIntoneUI() {
 }
 
 export function tickSpeech(delta) {
-  if (!container) return;
+  const hasUI = !!container;
   const dt = delta / 1000;
   if (speechState.intoneTimer > 0) {
     speechState.intoneTimer = Math.max(0, speechState.intoneTimer - dt);
@@ -1362,23 +1368,45 @@ export function tickSpeech(delta) {
   // by accumulating at least 50 insight.
   if (!speechState.upgrades.clarividence.unlocked && ins.current >= 50) {
     speechState.upgrades.clarividence.unlocked = true;
-    renderUpgrades();
+    if (hasUI) renderUpgrades();
+  }
+  const echo = recipes.find(r => r.name === 'Echo of Mind');
+  if (
+    echo &&
+    !echo.unlocked &&
+    speechState.skills.voice.level >= 3 &&
+    ins.current >= 1500
+  ) {
+    echo.unlocked = true;
+    delete echo.requirements;
+    addLog('Echo of Mind construct unlocked!', 'info');
+    if (hasUI) {
+      addConstruct('Echo of Mind');
+    } else if (!speechState.savedConstructs.includes('Echo of Mind')) {
+      speechState.savedConstructs.push('Echo of Mind');
+    }
   }
   const call = recipes.find(r => r.name === 'The Calling');
   if (call && !call.unlocked && speechState.resources.sound.current >= 100) {
     call.unlocked = true;
     addLog('The Calling construct unlocked!', 'info');
-    addConstruct('The Calling');
+    if (hasUI) {
+      addConstruct('The Calling');
+    } else if (!speechState.savedConstructs.includes('The Calling')) {
+      speechState.savedConstructs.push('The Calling');
+    }
   }
   tickActiveConstructs(dt);
   ins.current = Math.min(ins.max, Math.max(0, ins.current));
-  updateCooldownOverlays();
-  updateIntoneUI();
-  renderOrbs();
-  renderSeasonBanner();
-  renderResources();
-  refreshCore();
-  renderXpBar();
+  if (hasUI) {
+    updateCooldownOverlays();
+    updateIntoneUI();
+    renderOrbs();
+    renderSeasonBanner();
+    renderResources();
+    refreshCore();
+    renderXpBar();
+  }
 }
 
 function showConstructCloud(text, target, color) {
