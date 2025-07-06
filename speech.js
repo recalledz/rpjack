@@ -1304,7 +1304,6 @@ export function tickSpeech(delta) {
   }
   tickActiveConstructs(dt);
   ins.current = Math.min(ins.max, Math.max(0, ins.current));
-  speechState.gains.insight = (ins.current - startInsight) / dt;
   updateCooldownOverlays();
   updateIntoneUI();
   renderOrbs();
