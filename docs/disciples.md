@@ -26,6 +26,8 @@ if (Array.isArray(speechState.disciples)) {
     if (d.intelligence === undefined) d.intelligence = 1;
     if (d.incapacitated === undefined) d.incapacitated = false;
     if (!d.name) d.name = `Disciple ${d.id}`;
+    if (d.inventorySlots === undefined) d.inventorySlots = 10;
+    if (!d.inventory) d.inventory = {};
   });
 }
 ```
@@ -33,6 +35,13 @@ if (Array.isArray(speechState.disciples)) {
 Newly recruited disciples receive **3–5 additional attribute points**. These
 extra points are distributed across Strength, Dexterity, Endurance and
 Intelligence with diminishing chances to stack points on the same attribute.
+
+## Inventory
+
+Each disciple carries resources in a personal inventory when gathering or logging. All followers begin with **10 slots**. As they gain more slots (for example through future upgrades) they can haul larger quantities per trip.
+
+The current inventory contents are shown in the colony interface when viewing a disciple's status. Empty slots are simply unused.
+
 Gaining three points in a single stat is therefore possible but uncommon.
 
 ## Task Proficiency

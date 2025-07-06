@@ -341,7 +341,9 @@ const constructEffects = {
         dexterity: 1 + bonus.dexterity,
         endurance: 1 + bonus.endurance,
         intelligence: 1 + bonus.intelligence,
-        incapacitated: false
+        incapacitated: false,
+        inventorySlots: 10,
+        inventory: {}
       });
       addLog('A new Disciple has answered your call!', 'info');
       if (lastConstructTarget) showConstructCloud('+1', lastConstructTarget);
