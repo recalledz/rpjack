@@ -1180,16 +1180,16 @@ function updateTaskProgressDisplay() {
       if (fill) fill.style.width = `${pct}%`;
       if (label) label.textContent = phaseNames[phase];
       if (rateEl) {
-        const rate = gatherAmt / cycleSeconds;
-        rateEl.textContent = `+${rate.toFixed(2)}/s`;
+        const rate = (gatherAmt / cycleSeconds) * 60;
+        rateEl.textContent = `+${rate.toFixed(1)}/m`;
       }
     } else if (taskName === 'Research') {
       if (fill) fill.style.width = `${researchPct}%`;
       if (label)
         label.textContent = `Next RP: ${researchRate > 0 ? researchTime.toFixed(1) : '∞'}s`;
       if (rateEl) {
-        const rate = 4;
-        rateEl.textContent = `+${rate.toFixed(2)}/s`;
+        const rate = 4 * 60;
+        rateEl.textContent = `+${rate.toFixed(0)}/m`;
       }
     } else if (taskName === 'Building') {
       if (fill) fill.style.width = `${buildPct}%`;
