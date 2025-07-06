@@ -1,6 +1,6 @@
 import addLog from './log.js';
 import { coreState, refreshCore } from './core.js';
-import { sectState } from './script.js';
+import { sectState, systems } from './script.js';
 import { generateDiscipleAttributes } from './discipleAttributes.js';
 import { createOverlay } from './ui/overlay.js';
 
@@ -12,8 +12,12 @@ import { createOverlay } from './ui/overlay.js';
 // with diminishing returns as more Cohere levels are purchased. The curve
 // still tapers off as Insight accumulates.
 const R_MAX = 6;        // cap per-second regen
-const MIDPOINT = 1000;  // inflection point of logistic curve
+const BASE_MIDPOINT = 1000;  // default inflection point
 const K = 150;          // controls steepness of taper
+
+function getInsightMidpoint() {
+  return systems.voiceOfThePeople ? 1500 : BASE_MIDPOINT;
+}
 
 // Seasonal cycle configuration
 // A full in-game day lasts 10 real minutes (600 seconds). Each season spans
@@ -1300,7 +1304,7 @@ export function tickSpeech(delta) {
   const ins = speechState.resources.insight;
   const startInsight = ins.current;
   const seasonMult = seasons[speechState.seasonIndex].multiplier;
-  const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
+  const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - getInsightMidpoint()) / K));
   const level = speechState.upgrades.cohere.level;
   // provide baseline regen at level 0 while still tapering off with higher levels
   const upgradeMult = (level + 1) / (level + 5);
@@ -1362,7 +1366,7 @@ export function openInsightRegenPopup() {
   info.className = 'insight-info';
   info.textContent =
     `Base insight regeneration follows a logistic curve that slows as your` +
-    ` total insight rises. At ${MIDPOINT} insight the base rate is half of its` +
+    ` total insight rises. At ${getInsightMidpoint()} insight the base rate is half of its` +
     ` ${R_MAX}/s maximum before multipliers.`;
   box.appendChild(info);
 
@@ -1371,7 +1375,7 @@ export function openInsightRegenPopup() {
 
   const ins = speechState.resources.insight;
   const season = seasons[speechState.seasonIndex];
-  const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
+  const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - getInsightMidpoint()) / K));
   const level = speechState.upgrades.cohere.level;
   const upgradeMult = (level + 1) / (level + 5);
   const idleCount =
