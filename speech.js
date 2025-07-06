@@ -1370,6 +1370,12 @@ export function openInsightRegenPopup() {
   const seasonMult = season.multiplier;
   const weatherMult = speechState.weather ? speechState.weather.multiplier : 1;
   const intoneMult = getIntoneMultiplier();
+  const researcherCount = speechState.disciples.filter(
+    d => sectState.discipleTasks[d.id] === 'Research'
+  ).length;
+  const chanterCount = speechState.disciples.filter(
+    d => sectState.discipleTasks[d.id] === 'Chant'
+  ).length;
 
   const rows = [
     { label: 'Base Rate', value: `${baseRateRaw.toFixed(3)}/s` },
@@ -1383,10 +1389,25 @@ export function openInsightRegenPopup() {
     rows.push({ label: `Weather (${speechState.weather.type})`, value: `×${weatherMult.toFixed(2)}` });
   }
   rows.push({ label: 'Intone', value: `×${intoneMult.toFixed(2)}` });
+  if (researcherCount > 0) {
+    rows.push({
+      label: `Research (${researcherCount})`,
+      value: `-${(researcherCount * 4).toFixed(3)}/s`
+    });
+  }
+  if (chanterCount > 0) {
+    rows.push({
+      label: `Chant (${chanterCount})`,
+      value: `-${chanterCount.toFixed(3)}/s`
+    });
+  }
 
   rows.forEach(r => {
     const row = document.createElement('div');
-    row.className = 'insight-row' + (parseFloat(r.value.slice(1)) < 1 ? ' negative' : '');
+    const isNeg =
+      r.value.startsWith('-') ||
+      (r.value.startsWith('×') && parseFloat(r.value.slice(1)) < 1);
+    row.className = 'insight-row' + (isNeg ? ' negative' : '');
     row.innerHTML = `<span>${r.label}</span><span>${r.value}</span>`;
     list.appendChild(row);
   });
