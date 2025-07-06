@@ -1388,6 +1388,10 @@ function renderColonyInfo() {
       renderColonyTasks();
       renderColonyInfo();
       updateSectDisplay();
+      // Ensure constructor panel reflects new chanter assignments
+      if (typeof renderChantDisciples === 'function') {
+        renderChantDisciples();
+      }
     });
 
     taskList.appendChild(option);
