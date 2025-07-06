@@ -2,6 +2,7 @@ import addLog from './log.js';
 import { coreState, refreshCore } from './core.js';
 import { sectState } from './script.js';
 import { generateDiscipleAttributes } from './discipleAttributes.js';
+import { createOverlay } from './ui/overlay.js';
 
 // Core state for the Constructs system. Orbs and upgrades from the
 // previous speech implementation remain intact.
@@ -417,6 +418,8 @@ export function initSpeech() {
   renderHotbar();
   renderSeasonBanner();
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  const insightOrbEl = container.querySelector('#orbInsight');
+  if (insightOrbEl) insightOrbEl.addEventListener('click', openInsightRegenPopup);
   document.addEventListener('disciple-gained', renderChantDisciples);
 }
 
@@ -1322,3 +1325,59 @@ function showConstructCloud(text, target) {
   parent.appendChild(el);
   setTimeout(() => el.remove(), 3000);
 }
+
+export function openInsightRegenPopup() {
+  const overlay = createOverlay({ className: 'insight-regen-overlay' });
+  const box = overlay.box;
+  const header = document.createElement('h2');
+  header.textContent = 'Insight Regeneration';
+  box.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'insight-regen-list';
+
+  const ins = speechState.resources.insight;
+  const season = seasons[speechState.seasonIndex];
+  const baseRateRaw = R_MAX / (1 + Math.exp((ins.current - MIDPOINT) / K));
+  const level = speechState.upgrades.cohere.level;
+  const upgradeMult = (level + 1) / (level + 5);
+  const idleCount =
+    speechState.upgrades.idleChatter.level > 0
+      ? speechState.disciples.filter(
+          d => (sectState.discipleTasks[d.id] || 'Idle') === 'Idle'
+        ).length
+      : 0;
+  const idleMult = 1 + idleCount * 0.05;
+  const seasonMult = season.multiplier;
+  const weatherMult = speechState.weather ? speechState.weather.multiplier : 1;
+  const intoneMult = getIntoneMultiplier();
+
+  const rows = [
+    { label: 'Base Rate', value: `${baseRateRaw.toFixed(3)}/s` },
+    { label: `Cohere Lv.${level}`, value: `×${upgradeMult.toFixed(2)}` },
+  ];
+  if (idleCount > 0) {
+    rows.push({ label: `Idle Disciples (${idleCount})`, value: `×${idleMult.toFixed(2)}` });
+  }
+  rows.push({ label: `Season (${season.name})`, value: `×${seasonMult.toFixed(2)}` });
+  if (speechState.weather) {
+    rows.push({ label: `Weather (${speechState.weather.type})`, value: `×${weatherMult.toFixed(2)}` });
+  }
+  rows.push({ label: 'Intone', value: `×${intoneMult.toFixed(2)}` });
+
+  rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'insight-row' + (parseFloat(r.value.slice(1)) < 1 ? ' negative' : '');
+    row.innerHTML = `<span>${r.label}</span><span>${r.value}</span>`;
+    list.appendChild(row);
+  });
+
+  const totalRow = document.createElement('div');
+  totalRow.className = 'insight-total';
+  totalRow.textContent = `Total: ${speechState.gains.insight.toFixed(3)}/s`;
+  list.appendChild(totalRow);
+
+  box.appendChild(list);
+  overlay.appendButton('Close', overlay.close);
+}
+
