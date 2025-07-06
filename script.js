@@ -523,6 +523,7 @@ let colonyBuildTabButton;
 let colonyResearchTabButton;
 let sectDisciplesContainer;
 let selectedDiscipleId = null;
+let discipleInfoView = 'status';
 const sectDiscipleEls = {};
 const discipleGatherPhase = {};
 let discipleMoveInterval;
@@ -1552,6 +1553,7 @@ function renderDiscipleList() {
     row.textContent = d.name || `Disciple ${d.id}`;
     row.addEventListener('click', () => {
       selectedDiscipleId = d.id;
+      discipleInfoView = 'status';
       renderDiscipleList();
       renderDiscipleDetails();
     });
@@ -1571,12 +1573,47 @@ function renderDiscipleDetails() {
   const container = document.createElement('div');
   container.className = 'disciple-details';
 
+  const header = document.createElement('div');
+  header.className = 'disciple-details-header';
+  const nameSpan = document.createElement('span');
+  nameSpan.textContent = d.name || `Disciple ${d.id}`;
+  header.appendChild(nameSpan);
+
+  const views = [
+    { key: 'status', label: 'Status' },
+    { key: 'life', label: 'Life Stats' },
+    { key: 'casting', label: 'Casting Stats' },
+    { key: 'combat', label: 'Combat Stats' }
+  ];
+  views.forEach(v => {
+    const btn = document.createElement('button');
+    btn.textContent = v.label;
+    if (discipleInfoView === v.key) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      discipleInfoView = v.key;
+      renderDiscipleDetails();
+    });
+    header.appendChild(btn);
+  });
+  container.appendChild(header);
+
+  let body;
+  if (discipleInfoView === 'status') body = buildDiscipleStatusView(d);
+  else if (discipleInfoView === 'life') body = buildDiscipleLifeStatsView(d);
+  else if (discipleInfoView === 'casting') body = buildDiscipleCastingStatsView(d);
+  else if (discipleInfoView === 'combat') body = buildDiscipleCombatStatsView(d);
+  if (body) container.appendChild(body);
+
+  colonyResourcesPanel.appendChild(container);
+}
+
+function buildDiscipleStatusView(d) {
+  const body = document.createElement('div');
   const stats = [
     { label: 'Health', color: '#a33', value: d.health, max: 10 },
     { label: 'Stamina', color: '#cc3', value: d.stamina, max: 10 },
     { label: 'Hunger', color: '#cc3', value: d.hunger, max: 20 }
   ];
-
   stats.forEach(s => {
     const wrapper = document.createElement('div');
     wrapper.textContent = `${s.label} ${s.value}/${s.max}`;
@@ -1588,33 +1625,53 @@ function renderDiscipleDetails() {
     fill.style.width = `${(s.value / s.max) * 100}%`;
     bar.appendChild(fill);
     wrapper.appendChild(bar);
-    container.appendChild(wrapper);
+    body.appendChild(wrapper);
   });
-
-  const power = document.createElement('div');
-  power.textContent = `Construct Power: ${d.power}`;
-  container.appendChild(power);
+  const task = document.createElement('div');
+  task.textContent = `Current Task: ${sectState.discipleTasks[d.id] || 'Idle'}`;
+  body.appendChild(task);
 
   const attrs = document.createElement('div');
-  attrs.innerHTML = `Strength ${d.strength}<br>Dexterity ${d.dexterity}<br>Intelligence ${d.intelligence}<br>Endurance ${d.endurance}`;
-  container.appendChild(attrs);
+  attrs.innerHTML =
+    `Strength ${d.strength} (×${(1 + 0.05 * (d.strength - 1)).toFixed(2)})<br>` +
+    `Dexterity ${d.dexterity} (×${(1 + 0.05 * (d.dexterity - 1)).toFixed(2)})<br>` +
+    `Intelligence ${d.intelligence} (×${(1 + 0.03 * (d.intelligence - 1)).toFixed(2)})<br>` +
+    `Endurance ${d.endurance} (×${(1 + 0.05 * (d.endurance - 1)).toFixed(2)})`;
+  body.appendChild(attrs);
+  return body;
+}
 
-  const bonuses = document.createElement('div');
-  bonuses.className = 'disciple-bonus-list';
-
+function buildDiscipleLifeStatsView(d) {
+  const body = document.createElement('div');
   const skillMap = sectState.discipleSkills[d.id] || {};
   const tasks = ['Gather Fruit', 'Log Pine', 'Building', 'Research', 'Chant'];
   tasks.forEach(t => {
     const xp = skillMap[t] || 0;
-    const lvl = getTaskSkillProgress(xp).level;
-    const mult = 1 + 0.02 * lvl;
+    const prog = getTaskSkillProgress(xp);
     const row = document.createElement('div');
-    row.textContent = `${t}: ×${mult.toFixed(2)}`;
-    bonuses.appendChild(row);
+    const mult = 1 + 0.02 * prog.level;
+    row.textContent = `${t} Lv ${prog.level} (×${mult.toFixed(2)})`;
+    body.appendChild(row);
   });
+  return body;
+}
 
-  container.appendChild(bonuses);
-  colonyResourcesPanel.appendChild(container);
+function buildDiscipleCastingStatsView() {
+  const body = document.createElement('div');
+  body.textContent = 'Casting stats not implemented.';
+  return body;
+}
+
+function buildDiscipleCombatStatsView(d) {
+  const body = document.createElement('div');
+  const melee = (1 + 0.05 * (d.strength - 1)).toFixed(2);
+  const attackSpeed = (1 + 0.05 * (d.dexterity - 1)).toFixed(2);
+  const stamina = (1 + 0.05 * (d.endurance - 1)).toFixed(2);
+  body.innerHTML =
+    `Melee Damage ×${melee}<br>` +
+    `Attack Speed ×${attackSpeed}<br>` +
+    `Stamina ×${stamina}`;
+  return body;
 }
 
 function triggerOrbFlash() {

@@ -3750,6 +3750,19 @@ body.darkenshift-mode .tabsContainer button.active {
     margin-top: 4px;
 }
 
+.disciple-details-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.disciple-details-header button {
+    font-size: 0.6rem;
+    padding: 2px 4px;
+}
+.disciple-details-header button.active {
+    background: #444;
+}
+
 /* Research progress bar shown in the research panel */
 .research-progress {
     position: relative;
