@@ -163,11 +163,12 @@ const BASE_STATS = {
 const stats = { ...BASE_STATS };
 stats.cardSlots = BASE_STATS.cardSlots + attributes.Strength.inventorySlots;
 
-const systems = {
+export const systems = {
   manaUnlocked: false,
   buildingUnlocked: false,
   researchUnlocked: false,
-  chantingHallUnlocked: false
+  chantingHallUnlocked: false,
+  voiceOfThePeople: false
 };
 
 export const sectState = {
@@ -1555,6 +1556,20 @@ function renderColonyResearchPanel() {
         systems.chantingHallUnlocked = true;
         renderColonyResearchPanel();
         renderColonyBuildPanel();
+      }
+    });
+    colonyResearchPanel.appendChild(btn);
+  }
+  if (!systems.voiceOfThePeople) {
+    const btn = document.createElement('button');
+    btn.textContent = 'Voice of the People (5 RP)';
+    btn.disabled = sectState.researchPoints < 5;
+    btn.addEventListener('click', () => {
+      if (sectState.researchPoints >= 5) {
+        sectState.researchPoints -= 5;
+        systems.voiceOfThePeople = true;
+        addLog('Research complete: Voice of the People', 'good');
+        renderColonyResearchPanel();
       }
     });
     colonyResearchPanel.appendChild(btn);
@@ -3557,7 +3572,8 @@ Object.entries(upgrades).map(([k, u]) => [k, u.unlocked])
       manaUnlocked: systems.manaUnlocked,
       buildingUnlocked: systems.buildingUnlocked,
       researchUnlocked: systems.researchUnlocked,
-      chantingHallUnlocked: systems.chantingHallUnlocked
+      chantingHallUnlocked: systems.chantingHallUnlocked,
+      voiceOfThePeople: systems.voiceOfThePeople
     }
   };
 
