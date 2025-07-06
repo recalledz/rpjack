@@ -193,6 +193,7 @@ const FRUIT_CYCLE_SECONDS = 200;
 const FRUIT_CYCLE_AMOUNT = 10;
 const PINE_LOG_CYCLE_SECONDS = 215;
 const PINE_LOG_CYCLE_AMOUNT = 10;
+const DAILY_FRUIT_CONSUMPTION = 20; // fruits eaten by each disciple per day
 
 // XP earned for disciple tasks
 const FRUIT_XP_PER_CYCLE = 25;
@@ -240,6 +241,27 @@ function ensureDiscipleSkills(id) {
       'Delve Dungeon': 0
     };
   }
+}
+
+function calculateDailyFruitGain() {
+  let total = 0;
+  speechState.disciples.forEach(d => {
+    if (sectState.discipleTasks[d.id] === 'Gather Fruit') {
+      ensureDiscipleSkills(d.id);
+      const xp = sectState.discipleSkills[d.id]['Gather Fruit'];
+      const lvl = getTaskSkillProgress(xp).level;
+      const yieldMult = 1 + 0.05 * lvl;
+      const gatherAmt = Math.min(
+        FRUIT_CYCLE_AMOUNT * yieldMult,
+        d.inventorySlots
+      );
+      const cycleSeconds =
+        FRUIT_CYCLE_SECONDS * (gatherAmt / (FRUIT_CYCLE_AMOUNT * yieldMult));
+      const perSecond = gatherAmt / cycleSeconds;
+      total += perSecond * DAY_LENGTH_SECONDS;
+    }
+  });
+  return total;
 }
 
 
@@ -1272,7 +1294,7 @@ function updateSectDisplay() {
     const remaining = Math.max(0, DAY_LENGTH_SECONDS - speechState.seasonTimer);
     const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
     const ss = String(Math.floor(remaining % 60)).padStart(2, '0');
-    sectUpkeepDisplay.textContent = `Upkeep: 1 fruit/disciple per day (next in ${mm}:${ss})`;
+    sectUpkeepDisplay.textContent = `Upkeep: ${DAILY_FRUIT_CONSUMPTION} fruits/disciple per day (next in ${mm}:${ss})`;
   }
 
   const orbs = document.getElementById('sectOrbs');
@@ -1520,6 +1542,13 @@ function renderColonyResources() {
   fruits.textContent = `Fruits: ${sectState.fruits}`;
   const logs = document.createElement('div');
   logs.textContent = `Pine Logs: ${sectState.pineLogs}`;
+  const dailyGain = calculateDailyFruitGain();
+  const dailyLoss = speechState.disciples.length * DAILY_FRUIT_CONSUMPTION;
+  const dailyNet = dailyGain - dailyLoss;
+  const foodRate = document.createElement('div');
+  const sign = dailyNet >= 0 ? '+' : '';
+  foodRate.textContent =
+    `Fruits/day: +${dailyGain.toFixed(1)} / -${dailyLoss} = ${sign}${dailyNet.toFixed(1)}`;
   const sound = document.createElement('div');
   sound.textContent = 'Sound: 0';
   const insight = document.createElement('div');
@@ -1528,6 +1557,7 @@ function renderColonyResources() {
   research.textContent = `Research Points: ${sectState.researchPoints}`;
   colonyResourcesPanel.appendChild(fruits);
   colonyResourcesPanel.appendChild(logs);
+  colonyResourcesPanel.appendChild(foodRate);
   colonyResourcesPanel.appendChild(sound);
   colonyResourcesPanel.appendChild(insight);
   colonyResourcesPanel.appendChild(research);
@@ -2022,8 +2052,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderConstructLexicon();
   document.addEventListener('day-passed', () => {
     speechState.disciples.forEach(d => {
-      if (sectState.fruits > 0) {
-        sectState.fruits--;
+      if (sectState.fruits >= DAILY_FRUIT_CONSUMPTION) {
+        sectState.fruits -= DAILY_FRUIT_CONSUMPTION;
         d.hunger = 20;
       } else {
         d.hunger = Math.max(0, d.hunger - 1);
