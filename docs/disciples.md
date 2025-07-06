@@ -82,6 +82,18 @@ export function intelligenceXpMultiplier(task) {
 
 Increasing **Strength** speeds up XP gain for mining, smithing, and logging jobs. **Dexterity** now boosts XP for woodcutting and gathering, while **Intelligence** grants extra XP when chanting or researching. **Endurance** continues to help disciples learn faster when building or defending.
 
+## Attribute Point Effects
+
+Beyond improving XP gain, each attribute provides passive bonuses based on the
+number of points invested:
+
+- **Strength** – increases melee damage by 5% per point and grants one extra
+  inventory slot for every 2 points.
+- **Endurance** – raises maximum stamina by 5% per point, improves stamina
+  regeneration by 1% per point and adds 10&nbsp;HP per point.
+- **Dexterity** – speeds up attack animations by 5% per point.
+- **Intelligence** – boosts the potency of constructs by 3% per point.
+
 ## XP Gain Rates
 
 Each task provides a small amount of skill XP whenever a work cycle is completed. The base cycle lengths are derived from constants in `script.js`:
