@@ -227,6 +227,7 @@ function getIntoneMultiplier() {
 function awardXp(amount, tags) {
   if (!tags || tags.length === 0) return;
   const split = amount / tags.length;
+  const prevSlots = speechState.memorySlots;
   tags.forEach(tag => {
     const skill = speechState.skills[tag];
     if (skill) {
@@ -248,6 +249,9 @@ function awardXp(amount, tags) {
       }
     }
   });
+  if (speechState.memorySlots !== prevSlots) {
+    renderConstructCards();
+  }
 }
 
 // Per-tick effects for active constructs. These are simplified
@@ -1031,6 +1035,7 @@ function updateUpgradeAffordability() {
 function purchaseUpgrade(name) {
   const up = speechState.upgrades[name];
   const cost = getUpgradeCost(name);
+  const prevSlots = speechState.memorySlots;
   if (typeof cost === 'number') {
     if (speechState.orbs.insight.current < cost) return;
     speechState.orbs.insight.current -= cost;
@@ -1063,6 +1068,9 @@ function purchaseUpgrade(name) {
   renderGains();
   renderOrbs();
   renderResources();
+  if (speechState.memorySlots !== prevSlots) {
+    renderConstructCards();
+  }
 }
 
 export function renderUpgrades() {
