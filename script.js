@@ -37,6 +37,10 @@ import { createOverlay } from './ui/overlay.js';
 import { showRestartScreen } from './ui/restartOverlay.js';
 import { calculateKillXp, XP_EFFICIENCY } from './utils/xp.js';
 import {
+  calculateMaxStamina,
+  calculateStaminaRegen
+} from './utils/stamina.js';
+import {
   rollNewCardUpgrades,
   applyCardUpgrade,
   renderCardUpgrades,
@@ -203,6 +207,7 @@ const BUILD_XP_RATE = 0.1; // per second
 const RESEARCH_XP_PER_CYCLE = 20;
 const CHANT_XP_PER_CYCLE = 0.5;
 const EXPLORATION_CYCLE_SECONDS = 150;
+const STAMINA_DRAIN_PER_EXPLORATION = 1;
 
 const LOCATION_DEFS = [
   { name: 'Firewood Grove', reqDistance: 100, baseChance: 0.2, x: '30%', y: '70%' },
@@ -1100,7 +1105,16 @@ function tickSect(delta) {
   speechState.disciples.forEach(d => {
     ensureDiscipleSkills(d.id);
     ensureDiscipleConstructXp(d.id);
+    const maxStamina = calculateMaxStamina(d.endurance);
+    const regenRate = calculateStaminaRegen(d.endurance);
+    d.stamina = Math.min(maxStamina, Math.max(0, d.stamina));
     const task = sectState.discipleTasks[d.id];
+    if (task === 'Exploration') {
+      // drain stamina once per completed cycle
+      if (!sectState.discipleProgress[d.id]) sectState.discipleProgress[d.id] = 0;
+    } else {
+      d.stamina = Math.min(maxStamina, d.stamina + regenRate * dt);
+    }
     if (task === 'Gather Fruit' || task === 'Log Pine') {
       if (!sectState.discipleProgress[d.id]) sectState.discipleProgress[d.id] = 0;
       sectState.discipleProgress[d.id] += dt;
@@ -1207,6 +1221,7 @@ function tickSect(delta) {
         });
         if (found) addLog(`Discovered ${found}!`, 'good');
         else addLog('No discovery this trip.', 'info');
+        d.stamina = Math.max(0, d.stamina - STAMINA_DRAIN_PER_EXPLORATION);
       }
     } else {
       sectState.discipleProgress[d.id] = 0;
@@ -1798,7 +1813,12 @@ function buildDiscipleStatusView(d) {
   const body = document.createElement('div');
   const stats = [
     { label: 'Health', color: '#a33', value: d.health, max: 10 },
-    { label: 'Stamina', color: '#cc3', value: d.stamina, max: 10 },
+    {
+      label: 'Stamina',
+      color: '#cc3',
+      value: d.stamina,
+      max: calculateMaxStamina(d.endurance)
+    },
     { label: 'Hunger', color: '#cc3', value: d.hunger, max: 20 }
   ];
   stats.forEach(s => {
