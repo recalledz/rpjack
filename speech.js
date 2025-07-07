@@ -34,6 +34,9 @@ const seasonIcons = ['\uD83C\uDF31', '\u2600\uFE0F', '\uD83C\uDF42', '\u2744\uFE
 const seasonClasses = ['spring','summer','autumn','winter'];
 const seasonTemps = [15, 25, 10, -5];
 
+// Tags that grant construct experience when used
+const CONSTRUCT_XP_TAGS = ['voice', 'mind', 'invocation'];
+
 export const speechState = {
   orbs: {
     body: { current: 0, max: 10 },
@@ -84,7 +87,8 @@ export const speechState = {
   },
   skills: {
     voice: { xp: 0, level: 0 },
-    mind: { xp: 0, level: 0 }
+    mind: { xp: 0, level: 0 },
+    invocation: { xp: 0, level: 0 }
   },
   mindSlotAwarded: false,
   memorySlots: 2,
@@ -242,19 +246,7 @@ function getIntoneMultiplier() {
   return 1.0;
 }
 
-function awardConstructXp(name, amount, caster = 'player') {
-  if (caster === 'player') {
-    speechState.playerConstructXp[name] =
-      (speechState.playerConstructXp[name] || 0) + amount;
-    if (!speechState.skills.voice) return;
-    speechState.skills.voice.xp += amount;
-  } else {
-    if (!sectState.discipleConstructXp[caster])
-      sectState.discipleConstructXp[caster] = {};
-    const obj = sectState.discipleConstructXp[caster];
-    obj[name] = (obj[name] || 0) + amount;
-  }
-}
+
 
 function getConstructLevel(caster = 'player', name) {
   const xp =
@@ -588,7 +580,8 @@ function performConstruct() {
     const r = speechState.resources[res];
     if (r) r.current = Math.min(r.max, r.current + amt);
   }
-  awardXp(recipe.xp, recipe.tags || ['voice']);
+  const xpTags = (recipe.tags || []).filter(t => CONSTRUCT_XP_TAGS.includes(t));
+  xpTags.forEach(tag => awardXp(recipe.xp, [tag]));
   addConstruct(recipe.name);
   renderResourcesUI();
   renderXpBar();
@@ -880,10 +873,8 @@ export function castConstruct(name, el, powerMult = 1, caster = 'player') {
     }
   }
   const xp = def.xp || 0;
-  const tags = def.tags || ['voice'];
-  if (tags.includes('voice')) awardConstructXp(name, xp, caster);
-  const other = tags.filter(t => t !== 'voice');
-  if (other.length) awardXp(xp, other);
+  const xpTags = (def.tags || []).filter(t => CONSTRUCT_XP_TAGS.includes(t));
+  xpTags.forEach(tag => awardXp(xp, [tag]));
   lastConstructTarget = el;
   showConstructCloud(name, el);
   const basePot = speechState.constructPotency[name] || 1;
