@@ -66,6 +66,15 @@ export const speechState = {
       unlocked: true,
       costFunc: lvl => ({ sound: 25 + lvl * 4 })
     },
+    cognitiveLattice: {
+      level: 0,
+      unlocked: true,
+      costFunc: lvl => ({
+        sound: 50 + lvl * 10,
+        thought: 10 + lvl * 2,
+        structure: 5 + lvl
+      })
+    },
     clarividence: { level: 0, baseCost: 300, unlocked: false },
     idleChatter: {
       level: 0,
@@ -200,6 +209,7 @@ const upgradeDescriptions = {
   },
   expandMind: 'Increase max insight by 15% each level.',
   soundExpansion: 'Raises sound capacity; Lv.2 grants an extra slot.',
+  cognitiveLattice: 'Increase caps by +50 sound, +10 thought and +5 structure.',
   idleChatter: 'Bonus regen from idle disciples.',
   capacityBoost: 'Adds one memory slot.',
   clarividence: 'Reveals hidden constructs.',
@@ -1117,6 +1127,10 @@ function purchaseUpgrade(name) {
     if (up.level === 2) {
       speechState.memorySlots += 1;
     }
+  } else if (name === 'cognitiveLattice') {
+    speechState.resources.sound.max += 50;
+    speechState.resources.thought.max += 10;
+    speechState.resources.structure.max += 5;
   }
   renderUpgrades();
   renderGains();
@@ -1134,7 +1148,7 @@ export function renderUpgrades() {
   const coreGroup = document.createElement('div');
   coreGroup.className = 'upgrade-group';
   panelUp.appendChild(coreGroup);
-  ['cohere','expandMind','soundExpansion','idleChatter'].forEach(name => {
+  ['cohere','expandMind','soundExpansion','cognitiveLattice','idleChatter'].forEach(name => {
     const btn = document.createElement('button');
     btn.dataset.upgrade = name;
     const cost = getUpgradeCost(name);
