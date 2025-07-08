@@ -476,20 +476,26 @@ export function initSpeech() {
       <div class="orbs-section">
         <h3 class="section-title">Core Orbs</h3>
         <div class="construct-orbs construct-tab-orbs">
-          <div id="orbInsightContainer" class="orb-container">
-          <div id="orbInsight" class="construct-orb"><div class="orb-fill"></div></div>
+          <div id="orbInsightContainer" class="orb-wrapper">
+            <div class="orb-container">
+              <div id="orbInsight" class="construct-orb"><div class="orb-fill"></div></div>
+            </div>
             <div id="orbInsightValue" class="orb-value"></div>
             <div id="orbInsightRegen" class="orb-regen">
               <span class="season-icon"></span><span class="regen-value"></span><span id="intoneMultiplier" class="mult-badge"></span>
             </div>
           </div>
-          <div id="orbBodyContainer" class="orb-container" style="display:none">
-          <div id="orbBody" class="construct-orb"><div class="orb-fill"></div></div>
+          <div id="orbBodyContainer" class="orb-wrapper" style="display:none">
+            <div class="orb-container">
+              <div id="orbBody" class="construct-orb"><div class="orb-fill"></div></div>
+            </div>
             <div id="orbBodyValue" class="orb-value"></div>
             <div id="orbBodyRegen" class="orb-regen"></div>
           </div>
-          <div id="orbWillContainer" class="orb-container" style="display:none">
-          <div id="orbWill" class="construct-orb"><div class="orb-fill"></div></div>
+          <div id="orbWillContainer" class="orb-wrapper" style="display:none">
+            <div class="orb-container">
+              <div id="orbWill" class="construct-orb"><div class="orb-fill"></div></div>
+            </div>
             <div id="orbWillValue" class="orb-value"></div>
             <div id="orbWillRegen" class="orb-regen"></div>
           </div>
