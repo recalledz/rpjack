@@ -2687,6 +2687,23 @@ body.darkenshift-mode .tabsContainer button.active {
     display: flex;
     gap: 10px;
     transition: transform 0.3s ease-out;
+    position: relative; /* enable ambient shimmer */
+}
+
+.speech-orbs::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.05) 100%);
+    background-size: 200% 200%;
+    animation: orb-shimmer 30s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes orb-shimmer {
+    from { background-position: 0 0; }
+    to { background-position: 100% 0; }
 }
 
 .orb-container {
@@ -3082,6 +3099,18 @@ body.darkenshift-mode .tabsContainer button.active {
     justify-content: center;
     align-items: center;
     align-content: center;
+    position: relative; /* allow background texture overlay */
+}
+
+.built-constructs::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url('img/crystal-pattern.png');
+    background-size: cover;
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: -1;
 }
 .construct-lexicon {
     justify-content: center;
