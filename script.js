@@ -548,8 +548,8 @@ let deckUpgradesViewBtn;
 let deckUpgradesContainer;
 let playerCoreSubTabButton;
 let playerCorePanel;
-let playerSpeechSubTabButton;
-let playerSpeechPanel;
+let playerConstructSubTabButton;
+let playerConstructPanel;
 let playerLexiconSubTabButton;
 let playerLexiconPanel;
 let playerSectSubTabButton;
@@ -652,7 +652,7 @@ function setupTabHandlers() {
         refreshCore();
         showTab(playerTab);
         setActiveTabButton(playerTabButton);
-        if (playerSpeechSubTabButton) playerSpeechSubTabButton.click();
+        if (playerConstructSubTabButton) playerConstructSubTabButton.click();
       }
     },
     {
@@ -802,8 +802,8 @@ function initTabs() {
   jobsCarouselBtn = document.querySelector('.jobsCarouselBtn');
   playerCoreSubTabButton = document.querySelector(".playerCoreSubTabButton");
   playerCorePanel = document.querySelector(".player-core-panel");
-  playerSpeechSubTabButton = document.querySelector('.playerSpeechSubTabButton');
-  playerSpeechPanel = document.querySelector('.player-speech-panel');
+  playerConstructSubTabButton = document.querySelector('.playerConstructSubTabButton');
+  playerConstructPanel = document.querySelector('.player-construct-panel');
   playerLexiconSubTabButton = document.querySelector('.playerLexiconSubTabButton');
   playerLexiconPanel = document.querySelector('.player-lexicon-panel');
   playerSectSubTabButton = document.querySelector('.playerSectSubTabButton');
@@ -890,45 +890,45 @@ function initTabs() {
   if (playerCoreSubTabButton)
     playerCoreSubTabButton.addEventListener("click", () => {
       if (playerCorePanel) playerCorePanel.style.display = "flex";
-      if (playerSpeechPanel) playerSpeechPanel.style.display = "none";
+      if (playerConstructPanel) playerConstructPanel.style.display = "none";
       if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
       if (playerSectPanel) playerSectPanel.style.display = 'none';
       playerCoreSubTabButton.classList.add("active");
-      if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove("active");
+      if (playerConstructSubTabButton) playerConstructSubTabButton.classList.remove("active");
       if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
     });
-  if (playerSpeechSubTabButton)
-    playerSpeechSubTabButton.addEventListener('click', () => {
+  if (playerConstructSubTabButton)
+    playerConstructSubTabButton.addEventListener('click', () => {
       if (playerCorePanel) playerCorePanel.style.display = 'none';
-      if (playerSpeechPanel) playerSpeechPanel.style.display = 'flex';
+      if (playerConstructPanel) playerConstructPanel.style.display = 'flex';
       if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
       if (playerSectPanel) playerSectPanel.style.display = 'none';
-      playerSpeechSubTabButton.classList.add('active');
+      playerConstructSubTabButton.classList.add('active');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
       if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
     });
   if (playerLexiconSubTabButton)
     playerLexiconSubTabButton.addEventListener('click', () => {
       if (playerCorePanel) playerCorePanel.style.display = 'none';
-      if (playerSpeechPanel) playerSpeechPanel.style.display = 'none';
+      if (playerConstructPanel) playerConstructPanel.style.display = 'none';
       if (playerLexiconPanel) playerLexiconPanel.style.display = 'flex';
       if (playerSectPanel) playerSectPanel.style.display = 'none';
       playerLexiconSubTabButton.classList.add('active');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
-      if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove('active');
+      if (playerConstructSubTabButton) playerConstructSubTabButton.classList.remove('active');
       if (playerSectSubTabButton) playerSectSubTabButton.classList.remove('active');
     });
   if (playerSectSubTabButton)
     playerSectSubTabButton.addEventListener('click', () => {
       if (playerCorePanel) playerCorePanel.style.display = 'none';
-      if (playerSpeechPanel) playerSpeechPanel.style.display = 'none';
+      if (playerConstructPanel) playerConstructPanel.style.display = 'none';
       if (playerLexiconPanel) playerLexiconPanel.style.display = 'none';
       if (playerSectPanel) playerSectPanel.style.display = 'flex';
       startDiscipleMovement();
       playerSectSubTabButton.classList.add('active');
       playerSectSubTabButton.classList.remove('glow-notify');
       if (playerCoreSubTabButton) playerCoreSubTabButton.classList.remove('active');
-      if (playerSpeechSubTabButton) playerSpeechSubTabButton.classList.remove('active');
+      if (playerConstructSubTabButton) playerConstructSubTabButton.classList.remove('active');
       if (playerLexiconSubTabButton) playerLexiconSubTabButton.classList.remove('active');
     });
   if (statsOverviewSubTabButton)
