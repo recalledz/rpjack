@@ -269,6 +269,16 @@ export const constructEffectText = {
   'The Calling': 'Attempts to recruit a Disciple based on Calling potency'
 };
 
+export const constructColors = {
+  'Murmur': '#b0b0b0', // Metallic Grey
+  'Echo of Mind': '#8a2be2', // Violet
+  'Clarity Pulse': '#87ceeb', // Sky Blue
+  'Symbol Seed': '#8a2be2', // Violet
+  'Intone': '#87ceeb', // Sky Blue
+  'Mental Construct': '#ffbf00', // Amber
+  'Mnemonic Rhythm': '#ffd700' // Gold
+};
+
 function xpRequired(level) {
   return Math.round(50 * Math.pow(1.2, level));
 }
@@ -735,6 +745,8 @@ export function createConstructCard(name) {
   const card = document.createElement('div');
   card.className = 'construct-card';
   card.dataset.name = name;
+  const color = constructColors[name];
+  if (color) card.style.setProperty('--element-color', color);
   const title = document.createElement('div');
   title.className = 'construct-name';
   title.textContent = name;
