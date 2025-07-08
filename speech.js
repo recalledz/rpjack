@@ -347,7 +347,7 @@ function awardXp(amount, tags) {
   if (speechState.memorySlots !== prevSlots) {
     renderConstructCards();
   }
-  window.dispatchEvent(new CustomEvent('speech-xp-changed'));
+  window.dispatchEvent(new CustomEvent('voice-xp-changed'));
 }
 
 function awardConstructXp(xpObj = {}, mult = 1) {
@@ -469,27 +469,27 @@ let selectedChanter = null;
 let lastConstructTarget = null;
 
 export function initSpeech() {
-  container = document.getElementById('speechPanel');
+  container = document.getElementById('constructTabCardContainer');
   if (!container) return;
   container.innerHTML = `
-    <div class="speech-top">
+    <div class="construct-top">
       <div class="orbs-section">
         <h3 class="section-title">Core Orbs</h3>
-        <div class="speech-orbs speech-tab-orbs">
+        <div class="construct-orbs construct-tab-orbs">
           <div id="orbInsightContainer" class="orb-container">
-            <div id="orbInsight" class="speech-orb"><div class="orb-fill"></div></div>
+          <div id="orbInsight" class="construct-orb"><div class="orb-fill"></div></div>
             <div id="orbInsightValue" class="orb-value"></div>
             <div id="orbInsightRegen" class="orb-regen">
               <span class="season-icon"></span><span class="regen-value"></span><span id="intoneMultiplier" class="mult-badge"></span>
             </div>
           </div>
           <div id="orbBodyContainer" class="orb-container" style="display:none">
-            <div id="orbBody" class="speech-orb"><div class="orb-fill"></div></div>
+          <div id="orbBody" class="construct-orb"><div class="orb-fill"></div></div>
             <div id="orbBodyValue" class="orb-value"></div>
             <div id="orbBodyRegen" class="orb-regen"></div>
           </div>
           <div id="orbWillContainer" class="orb-container" style="display:none">
-            <div id="orbWill" class="speech-orb"><div class="orb-fill"></div></div>
+          <div id="orbWill" class="construct-orb"><div class="orb-fill"></div></div>
             <div id="orbWillValue" class="orb-value"></div>
             <div id="orbWillRegen" class="orb-regen"></div>
           </div>
@@ -510,12 +510,12 @@ export function initSpeech() {
           <button id="performConstruct" class="cast-button construct-button">Construct</button>
           <div id="constructRequirements" class="construct-requirements"></div>
         </div>
-        <div class="card-construct-container">
+        <div class="modal-card-container">
           <div class="slots-and-disciples">
             <div id="memorySlotsDisplay" class="memory-slots"></div>
             <div id="constructDisciples" class="construct-disciples"></div>
           </div>
-          <div id="constructCards" class="built-constructs"></div>
+          <div id="modalCardContainer" class="built-constructs crystal-backdrop"></div>
           <div id="constructStats" class="construct-stats"></div>
         </div>
       </div>
@@ -693,7 +693,7 @@ function addConstruct(name) {
 }
 
 function renderConstructCards() {
-  const cont = panel.querySelector('#constructCards');
+  const cont = panel.querySelector('#modalCardContainer');
   const slotCont = panel.querySelector('#memorySlotsDisplay');
   if (!cont || !slotCont) return;
   cont.innerHTML = '';
@@ -844,7 +844,7 @@ export function createConstructInfo(name) {
     .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
     .join(' ');
   const cd = recipe.cooldown || 0;
-  const pot = speechState.constructPotency[name] || 1;
+  const pot = (speechState.constructPotency[name] || 1).toFixed(2);
   const eff = getConstructEffect(name) || '';
   info.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
@@ -874,7 +874,7 @@ function showConstructStats(name) {
     .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
     .join(' ');
   const cd = recipe.cooldown || 0;
-  const pot = speechState.constructPotency[name] || 1;
+  const pot = (speechState.constructPotency[name] || 1).toFixed(2);
   const eff = getConstructEffect(name) || '';
   statsEl.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
@@ -997,7 +997,7 @@ function renderHotbar() {
 }
 
 export function renderXpBar() {
-  const barFill = document.querySelector('#voiceSkillPanel .speech-xp-fill');
+  const barFill = document.querySelector('#voiceSkillPanel .voice-xp-fill');
   const lvlEl = document.getElementById('voiceLevel');
   const detailEl = document.getElementById('voiceDetail');
   if (!barFill || !lvlEl) return;
@@ -1146,7 +1146,7 @@ function canAfford(cost) {
 }
 
 function updateUpgradeAffordability() {
-  const panelUp = document.getElementById('speechUpgrades');
+  const panelUp = document.getElementById('constructUpgrades');
   if (!panelUp) return;
   const buttons = panelUp.querySelectorAll('button[data-upgrade]');
   buttons.forEach(btn => {
@@ -1218,7 +1218,7 @@ function purchaseUpgrade(name) {
 }
 
 export function renderUpgrades() {
-  const panelUp = document.getElementById('speechUpgrades');
+  const panelUp = document.getElementById('constructUpgrades');
   if (!panelUp) return;
   panelUp.innerHTML = '';
   const coreGroup = document.createElement('div');
@@ -1308,7 +1308,7 @@ export function renderUpgrades() {
 }
 
 function renderGains() {
-  const panel = document.getElementById('speechGains');
+  const panel = document.getElementById('constructGains');
   if (!panel) return;
   panel.innerHTML = '';
 }
