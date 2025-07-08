@@ -2706,12 +2706,27 @@ body.darkenshift-mode .tabsContainer button.active {
     to { background-position: 100% 0; }
 }
 
-.orb-container {
+.orb-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
     padding: 4px;
+}
+
+.orb-container {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 16px rgba(100,180,240,0.6),
+                inset 0 0 8px rgba(255,255,255,0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.orb-container:hover {
+    box-shadow: 0 0 24px rgba(100,180,240,0.8),
+                inset 0 0 12px rgba(255,255,255,0.3);
 }
 
 .orb-value {
@@ -3102,19 +3117,32 @@ body.darkenshift-mode .tabsContainer button.active {
     position: relative; /* allow background texture overlay */
 }
 
-.crystal-backdrop {
-    position: relative;
-}
 
-.crystal-backdrop::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(10, 20, 60, 0.8), rgba(10, 20, 60, 0.8)), url('img/crystal-pattern.png');
-    background-size: cover;
-    opacity: 0.1;
-    pointer-events: none;
-    z-index: -1;
+.construct-area {
+    position: relative;
+    padding: 32px;
+    border-radius: 8px;
+    background:
+        repeating-linear-gradient(
+            60deg,
+            rgba(255,255,255,0.03),
+            rgba(255,255,255,0.03) 1px,
+            transparent 1px,
+            transparent 20px
+        ),
+        repeating-linear-gradient(
+            -60deg,
+            rgba(255,255,255,0.03),
+            rgba(255,255,255,0.03) 1px,
+            transparent 1px,
+            transparent 20px
+        ),
+        radial-gradient(
+            circle at top center,
+            rgba(60,70,90,0.4),
+            rgba(20,25,35,0.8)
+        );
+    z-index: 0;
 }
 
 #constructTabCardContainer {
