@@ -515,7 +515,7 @@ export function initSpeech() {
             <div id="memorySlotsDisplay" class="memory-slots"></div>
             <div id="constructDisciples" class="construct-disciples"></div>
           </div>
-          <div id="constructCards" class="built-constructs crystal-backdrop"></div>
+          <div id="constructCards" class="built-constructs"></div>
           <div id="constructStats" class="construct-stats"></div>
         </div>
       </div>
@@ -844,7 +844,7 @@ export function createConstructInfo(name) {
     .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
     .join(' ');
   const cd = recipe.cooldown || 0;
-  const pot = (speechState.constructPotency[name] || 1).toFixed(2);
+  const pot = speechState.constructPotency[name] || 1;
   const eff = getConstructEffect(name) || '';
   info.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
@@ -874,7 +874,7 @@ function showConstructStats(name) {
     .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
     .join(' ');
   const cd = recipe.cooldown || 0;
-  const pot = (speechState.constructPotency[name] || 1).toFixed(2);
+  const pot = speechState.constructPotency[name] || 1;
   const eff = getConstructEffect(name) || '';
   statsEl.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
