@@ -3102,16 +3102,21 @@ body.darkenshift-mode .tabsContainer button.active {
     position: relative; /* allow background texture overlay */
 }
 
-.built-constructs::before {
+.crystal-backdrop {
+    position: relative;
+}
+
+.crystal-backdrop::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: url('img/crystal-pattern.png');
+    background: linear-gradient(rgba(0, 0, 64, 0.3), rgba(0, 0, 64, 0.3)), url('img/crystal-pattern.png');
     background-size: cover;
     opacity: 0.1;
     pointer-events: none;
     z-index: -1;
 }
+
 .construct-lexicon {
     justify-content: center;
 }
@@ -3148,6 +3153,8 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
     gap: 6px;
     width: 100%;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .slots-and-disciples {
@@ -3787,7 +3794,7 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 
 .construct-info {
-    font-size: 0.55rem;
+    font-size: 0.45rem;
     text-align: center;
     display: none;
     flex-direction: column;
@@ -3803,8 +3810,8 @@ body.darkenshift-mode .tabsContainer button.active {
 }
 
 .construct-info i {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 .construct-icons {
@@ -3812,7 +3819,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    font-size: 0.55rem;
+    font-size: 0.45rem;
 }
 .construct-icons .icon-row {
     display: flex;
@@ -3820,12 +3827,12 @@ body.darkenshift-mode .tabsContainer button.active {
     align-items: center;
 }
 .construct-icons i {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 .construct-icon {
-    font-size: 1.2rem;
+    font-size: 1rem;
     margin-bottom: 2px;
 }
 
@@ -3834,12 +3841,13 @@ body.darkenshift-mode .tabsContainer button.active {
     border-bottom: 1px solid #555;
     padding: 4px;
     margin-top: 6px;
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     gap: 2px;
     align-items: center;
+    min-height: 32px;
 }
 
 .construct-stats .stat-line {
