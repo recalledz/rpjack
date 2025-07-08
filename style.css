@@ -27,6 +27,8 @@ body {
     --core-accent: #7fafff;
     --core-text: #e0e0f0;
     --core-glow: rgba(127, 175, 255, 0.2);
+    --season-start: rgba(60,70,90,0.4);
+    --season-end: rgba(20,25,35,0.8);
 }
 
 body.darkenshift-mode {
@@ -3139,8 +3141,8 @@ body.darkenshift-mode .tabsContainer button.active {
         ),
         radial-gradient(
             circle at top center,
-            rgba(60,70,90,0.4),
-            rgba(20,25,35,0.8)
+            var(--season-start),
+            var(--season-end)
         );
     z-index: 0;
 }
