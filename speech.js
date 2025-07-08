@@ -35,6 +35,21 @@ const seasonIcons = ['\uD83C\uDF31', '\u2600\uFE0F', '\u2728', '\uD83C\uDF42', '
 const seasonClasses = ['spring','summer','aurora','autumn','winter'];
 const seasonTemps = [15, 25, 20, 10, -5];
 
+export const SEASON_COLORS = {
+  Verdantia: ['rgba(40,90,40,0.4)', 'rgba(20,40,20,0.8)'],
+  Solaria: ['rgba(120,50,20,0.4)', 'rgba(60,20,10,0.8)'],
+  Aurora: ['rgba(100,80,40,0.4)', 'rgba(50,40,20,0.8)'],
+  Aurelia: ['rgba(90,90,100,0.4)', 'rgba(40,40,50,0.8)'],
+  Bruma: ['rgba(40,80,100,0.4)', 'rgba(20,40,50,0.8)']
+};
+
+export function setSeasonBackdrop(season) {
+  const [start, end] = SEASON_COLORS[season];
+  const root = document.documentElement;
+  root.style.setProperty('--season-start', start);
+  root.style.setProperty('--season-end', end);
+}
+
 
 export const speechState = {
   orbs: {
@@ -1070,6 +1085,7 @@ function renderSeasonBanner() {
   if (!banner) return;
   const idx = speechState.seasonIndex;
   const season = seasons[idx];
+  setSeasonBackdrop(season.name);
   const day = speechState.seasonDay + 1;
   const daysLeft = SEASON_LENGTH_DAYS - day;
   const temp = seasonTemps[idx];
