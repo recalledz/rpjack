@@ -793,9 +793,12 @@ export function createConstructCard(name) {
       card.appendChild(bar);
     }
     if (recipe.cooldown) {
-      const overlay = document.createElement('div');
-      overlay.className = 'cooldown-overlay';
-      card.appendChild(overlay);
+      const bar = document.createElement('div');
+      bar.className = 'cooldown-bar';
+      const fill = document.createElement('div');
+      fill.className = 'cooldown-bar-fill';
+      bar.appendChild(fill);
+      card.appendChild(bar);
     }
   } else {
     card.textContent = name;
@@ -1335,8 +1338,8 @@ function updateCooldownOverlays() {
     if (!def) return;
     const remaining = def.cooldown ? (speechState.cooldowns[name] || 0) : 0;
     const ratio = def.cooldown ? 1 - remaining / def.cooldown : 1;
-    const overlay = card.querySelector('.cooldown-overlay');
-    if (overlay) overlay.style.setProperty('--cooldown', ratio);
+    const fill = card.querySelector('.cooldown-bar-fill');
+    if (fill) fill.style.width = `${ratio * 100}%`;
     const cost = def.castCost || def.input || {};
     const affordable = Object.entries(cost).every(([res, amt]) => {
       const r = speechState.resources[res];
