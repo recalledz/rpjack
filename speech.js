@@ -836,42 +836,15 @@ export function createConstructInfo(name) {
   if (!recipe) return null;
   const info = document.createElement('div');
   info.className = 'construct-info';
-  const effText = getConstructEffect(name);
-  if (effText) {
-    const effect = document.createElement('div');
-    effect.className = 'construct-effect';
-    effect.textContent = `Effect: ${effText}`;
-    info.appendChild(effect);
-  }
-  if (name === 'The Calling') {
-    const callPower = speechState.constructPotency['The Calling'] || 1;
-    const targetIdx = speechState.disciples.length + 1;
-    const reqPower = Math.pow(1.8, targetIdx - 1);
-    const chance = Math.max(0.05, Math.min(1, callPower / reqPower));
-    const chanceEl = document.createElement('div');
-    chanceEl.className = 'construct-chance';
-    chanceEl.textContent = `Chance: ${(chance * 100).toFixed(0)}%`;
-    info.appendChild(chanceEl);
-  }
-  const cost = document.createElement('div');
-  cost.className = 'construct-cost';
-  const cc = recipe.castCost || recipe.input;
-  cost.textContent = `Cost: ${Object.entries(cc)
-    .map(([k, v]) => `${v} ${k}`)
-    .join(', ')}`;
-  info.appendChild(cost);
-  if (recipe.duration) {
-    const dur = document.createElement('div');
-    dur.className = 'construct-duration';
-    dur.textContent = `Duration: ${recipe.duration}s`;
-    info.appendChild(dur);
-  }
-  if (recipe.cooldown) {
-    const cd = document.createElement('div');
-    cd.className = 'construct-cooldown';
-    cd.textContent = `Cooldown: ${recipe.cooldown}s`;
-    info.appendChild(cd);
-  }
+  const cc = recipe.castCost || recipe.input || {};
+  const costHtml = Object.entries(cc)
+    .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
+    .join(' ');
+  const cd = recipe.cooldown || 0;
+  const pot = speechState.constructPotency[name] || 1;
+  const eff = getConstructEffect(name) || '';
+  info.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
   return info;
 }
 
@@ -1014,13 +987,8 @@ function renderHotbar() {
     card.classList.add('hotbar-construct');
     card.addEventListener('click', () => castConstruct(c, card));
     wrapper.appendChild(card);
-    const effectText = getConstructEffect(c);
-    if (effectText) {
-      const eff = document.createElement('div');
-      eff.className = 'construct-effect';
-      eff.textContent = effectText;
-      wrapper.appendChild(eff);
-    }
+    const info = createConstructInfo(c);
+    if (info) wrapper.appendChild(info);
     bar.appendChild(wrapper);
   });
 }
