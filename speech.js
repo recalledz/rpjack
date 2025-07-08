@@ -515,7 +515,7 @@ export function initSpeech() {
             <div id="memorySlotsDisplay" class="memory-slots"></div>
             <div id="constructDisciples" class="construct-disciples"></div>
           </div>
-          <div id="modalCardContainer" class="built-constructs crystal-backdrop"></div>
+          <div id="modalCardContainer" class="built-constructs"></div>
           <div id="constructStats" class="construct-stats"></div>
         </div>
       </div>
