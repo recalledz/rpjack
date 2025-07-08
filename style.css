@@ -3567,6 +3567,7 @@ body.darkenshift-mode .tabsContainer button.active {
     flex: 1;
     width: 100%;
     position: relative;
+    min-height: 200px;
 }
 
 .colony-side {
@@ -3574,6 +3575,12 @@ body.darkenshift-mode .tabsContainer button.active {
     display: flex;
     gap: 6px;
     flex: 1;
+}
+#colonyTasksPanel {
+    border-right: 1px solid var(--core-border);
+}
+#colonyInfoPanel {
+    border-left: 1px solid var(--core-border);
 }
 .colony-panel {
     flex: 1;
@@ -3596,6 +3603,9 @@ body.darkenshift-mode .tabsContainer button.active {
 .task-entry.selected {
     background: #333;
 }
+.task-entry.idle {
+    opacity: 0.5;
+}
 .disciple-task-name {
     min-width: 80px;
 }
@@ -3608,8 +3618,8 @@ body.darkenshift-mode .tabsContainer button.active {
 .disciple-progress {
     position: relative;
     width: 120px;
-    height: 12px;
-    background: #222;
+    height: 10px;
+    background: #333;
     border: 1px solid #555;
     border-radius: 4px;
     overflow: hidden;
@@ -3620,7 +3630,7 @@ body.darkenshift-mode .tabsContainer button.active {
     left: 0;
     height: 100%;
     width: 0%;
-    background: #6b5b95;
+    background: var(--core-accent);
     transition: width 0.3s ease;
 }
 .disciple-progress-label {
@@ -3638,6 +3648,12 @@ body.darkenshift-mode .tabsContainer button.active {
     font-size: 0.7rem;
     text-align: right;
     color: #ddd;
+}
+.panel-heading {
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: center;
+    margin-bottom: 4px;
 }
 .sect-disciples {
     text-align: center;
@@ -3900,7 +3916,7 @@ body.darkenshift-mode .tabsContainer button.active {
     position: relative;
     width: 100%;
     height: 8px;
-    background: #222;
+    background: #333;
     border: 1px solid #555;
     border-radius: 4px;
     overflow: hidden;
@@ -3909,7 +3925,7 @@ body.darkenshift-mode .tabsContainer button.active {
     position: absolute;
     top: 0; left: 0; bottom: 0;
     width: 0%;
-    background: #6b5b95;
+    background: var(--core-accent);
     transition: width 0.3s ease;
 }
 

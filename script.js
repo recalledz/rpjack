@@ -209,6 +209,17 @@ const CHANT_XP_PER_CYCLE = 0.5;
 const EXPLORATION_CYCLE_SECONDS = 150;
 const STAMINA_DRAIN_PER_EXPLORATION = 1;
 
+const TASK_ICONS = {
+  'Gather Fruit': '🍎',
+  'Log Pine': '🪵',
+  Building: '⚒️',
+  Research: '🔬',
+  Chant: '🎶',
+  Exploration: '🧭',
+  'Delve Dungeon': '🗝️',
+  Idle: '💤'
+};
+
 const LOCATION_DEFS = [
   { name: 'Firewood Grove', reqDistance: 100, baseChance: 0.2, x: '30%', y: '70%' },
   { name: 'Crystal Cavern', reqDistance: 300, baseChance: 0.15, x: '70%', y: '40%' },
@@ -1448,20 +1459,37 @@ function startDiscipleMovement() {
 
 function renderColonyTasks() {
   colonyTasksPanel.innerHTML = '';
+  const heading = document.createElement('div');
+  heading.className = 'panel-heading';
+  heading.textContent = 'Tasks';
+  colonyTasksPanel.appendChild(heading);
+
   speechState.disciples.forEach(d => {
     const row = document.createElement('div');
     row.className = 'task-entry';
     if (d.id === selectedDiscipleId) row.classList.add('selected');
+    const current = sectState.discipleTasks[d.id] || 'Idle';
+    if (current === 'Idle') row.classList.add('idle');
     row.addEventListener('click', () => {
       selectedDiscipleId = d.id;
       renderColonyTasks();
       renderColonyInfo();
     });
+    const icon = document.createElement('span');
+    icon.textContent = TASK_ICONS[current] || '⚪️';
     const label = document.createElement('div');
-    label.textContent = `Disciple #${d.id}`;
+    label.textContent = d.name || `Disciple ${d.id}`;
+    label.addEventListener('dblclick', () => {
+      const nn = prompt('Rename disciple', d.name || `Disciple ${d.id}`);
+      if (nn) {
+        d.name = nn;
+        renderColonyTasks();
+        renderColonyInfo();
+      }
+    });
     const taskName = document.createElement('div');
     taskName.className = 'disciple-task-name';
-    taskName.textContent = sectState.discipleTasks[d.id] || 'Idle';
+    taskName.textContent = current;
 
     const taskInfo = document.createElement('div');
     taskInfo.className = 'disciple-task-info';
@@ -1481,6 +1509,7 @@ function renderColonyTasks() {
     rate.id = `disciple-rate-${d.id}`;
     taskInfo.appendChild(rate);
 
+    row.appendChild(icon);
     row.appendChild(label);
     row.appendChild(taskName);
     row.appendChild(taskInfo);
@@ -1491,9 +1520,15 @@ function renderColonyTasks() {
 
 function renderColonyInfo() {
   colonyInfoPanel.innerHTML = '';
+  const heading = document.createElement('div');
+  heading.className = 'panel-heading';
+  heading.textContent = 'Proficiencies';
+  colonyInfoPanel.appendChild(heading);
   const d = speechState.disciples.find(x => x.id === selectedDiscipleId);
   if (!d) {
-    colonyInfoPanel.textContent = 'Select a disciple';
+    const info = document.createElement('div');
+    info.textContent = 'Select a disciple';
+    colonyInfoPanel.appendChild(info);
     return;
   }
   const taskList = document.createElement('div');
