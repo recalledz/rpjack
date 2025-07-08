@@ -3772,6 +3772,31 @@ body.darkenshift-mode .tabsContainer button.active {
     height: 8px;
 }
 
+.construct-icon {
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+}
+
+.construct-stats {
+    border-top: 1px solid #555;
+    border-bottom: 1px solid #555;
+    padding: 4px;
+    margin-top: 6px;
+    font-size: 0.65rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+}
+
+.construct-stats .stat-line {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
 .season-banner {
     text-align: center;
     font-weight: bold;

@@ -279,6 +279,17 @@ export const constructColors = {
   'Mnemonic Rhythm': '#ffd700' // Gold
 };
 
+export const constructIcons = {
+  'Murmur': 'volume-1',
+  'Echo of Mind': 'brain',
+  'Clarity Pulse': 'zap',
+  'Symbol Seed': 'leaf',
+  'Intone': 'mic',
+  'Mental Construct': 'cpu',
+  'Mnemonic Rhythm': 'music',
+  'The Calling': 'bell'
+};
+
 function xpRequired(level) {
   return Math.round(50 * Math.pow(1.2, level));
 }
@@ -505,6 +516,7 @@ export function initSpeech() {
             <div id="constructDisciples" class="construct-disciples"></div>
           </div>
           <div id="constructCards" class="built-constructs"></div>
+          <div id="constructStats" class="construct-stats"></div>
         </div>
       </div>
     </div>
@@ -697,19 +709,15 @@ function renderConstructCards() {
     wrapper.className = 'construct-card-wrapper';
     wrapper.dataset.name = c;
     const card = createConstructCard(c);
-    card.classList.add('collapsed');
     if (speechState.activeConstructs.includes(c)) card.classList.add('active');
     card.addEventListener('click', () => {
       toggleConstructActive(c);
-      wrapper.classList.toggle('expanded');
-      card.classList.toggle('collapsed');
+      showConstructStats(c);
     });
     wrapper.appendChild(card);
     const timer = document.createElement('div');
     timer.className = 'cooldown-timer';
     wrapper.appendChild(timer);
-    const info = createConstructInfo(c);
-    if (info) wrapper.appendChild(info);
     const assignedId = Object.entries(sectState.chantAssignments).find(([id, n]) => n === c)?.[0];
     const assign = document.createElement('div');
     assign.className = 'construct-assignment';
@@ -738,6 +746,9 @@ function renderConstructCards() {
     cont.appendChild(wrapper);
   });
   if (window.lucide) lucide.createIcons({ icons: lucide.icons });
+  if (speechState.savedConstructs.length > 0) {
+    showConstructStats(speechState.savedConstructs[0]);
+  }
   renderChantDisciples();
 }
 
@@ -747,31 +758,16 @@ export function createConstructCard(name) {
   card.dataset.name = name;
   const color = constructColors[name];
   if (color) card.style.setProperty('--element-color', color);
+  const icon = document.createElement('div');
+  icon.className = 'construct-icon';
+  icon.innerHTML = `<i data-lucide="${constructIcons[name] || 'package'}"></i>`;
+  card.appendChild(icon);
   const title = document.createElement('div');
   title.className = 'construct-name';
   title.textContent = name;
   card.appendChild(title);
   const recipe = recipes.find(r => r.name === name);
   if (recipe) {
-    const iconCont = document.createElement('div');
-    iconCont.className = 'construct-icons';
-    const outRow = document.createElement('div');
-    outRow.className = 'icon-row';
-    Object.entries(recipe.output).forEach(([res, amt]) => {
-      const span = document.createElement('span');
-      span.innerHTML = `<i data-lucide="${resourceIcons[res] || 'package'}"></i> ${amt}`;
-      outRow.appendChild(span);
-    });
-    iconCont.appendChild(outRow);
-    const costRow = document.createElement('div');
-    costRow.className = 'icon-row';
-    Object.entries(recipe.input).forEach(([res, amt]) => {
-      const span = document.createElement('span');
-      span.innerHTML = `<i data-lucide="${resourceIcons[res] || 'package'}"></i> ${amt}`;
-      costRow.appendChild(span);
-    });
-    iconCont.appendChild(costRow);
-    card.appendChild(iconCont);
     if (name === 'Intone') {
       const meter = document.createElement('div');
       meter.className = 'intone-meter';
@@ -887,6 +883,25 @@ export function getConstructEffect(name) {
   return Object.entries(recipe.output)
     .map(([k, v]) => `+${v} ${k}`)
     .join(', ');
+}
+
+function showConstructStats(name) {
+  const statsEl = panel.querySelector('#constructStats');
+  if (!statsEl) return;
+  const recipe = recipes.find(r => r.name === name);
+  if (!recipe) {
+    statsEl.textContent = '';
+    return;
+  }
+  const cc = recipe.castCost || recipe.input || {};
+  const costHtml = Object.entries(cc)
+    .map(([res, amt]) => `${amt} <i data-lucide="${resourceIcons[res] || 'package'}"></i>`)
+    .join(' ');
+  const cd = recipe.cooldown || 0;
+  const pot = speechState.constructPotency[name] || 1;
+  const eff = getConstructEffect(name) || '';
+  statsEl.innerHTML = `<div class="stat-line"><span class="stat-cost">Cost: ${costHtml || '—'}</span> <span class="stat-cd">CD: ${cd} s</span> <span class="stat-potency">Potency: ${pot}</span></div><div class="stat-line">Effect: ${eff}</div>`;
+  if (window.lucide) lucide.createIcons({ icons: lucide.icons });
 }
 
 function toggleConstructActive(name) {
