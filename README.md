@@ -29,6 +29,8 @@ Progression Systems:
 
 Stages and Worlds: Advance through stages, encountering bosses at milestones (e.g., stage 10) and progressing to new worlds with increased difficulty.
 
+Next Stage Mechanics: Defeating 10 enemies fills the stage's kill requirement. Once met, the "Next Stage" button activates, allowing manual advancement. Every tenth stage is a boss fight; beating the boss advances to the next world, resets the stage to 1, and raises enemy stats.
+
 Auto-Attack: Activate automated attacks with adjustable speeds, influenced by card stats.
 
 Prestige System: Reset progress for long-term benefits, including deck reshuffling, HP refill, and stage resets.
