@@ -1,0 +1,22 @@
+entrypoint="index.html"
+hidden=[".config"]
+modules = ["web:v2-20230623-0b7a606"]
+
+[nix]
+channel = "stable-23_11"
+
+[deployment]
+publicDir = "/"
+deploymentTarget = "static"
+
+[workflows]
+runButton = "Start Game"
+
+[[workflows.workflow]]
+name = "Start Game"
+author = 43110356
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m http.server 5000"
