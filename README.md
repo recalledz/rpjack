@@ -125,6 +125,22 @@ Base Card HP        +3 per level   ?       100 * level^2   Enhance base HP for a
 Card HP per Kill        1       ?       150 * level^2	HP recovered by cards after each kill
 
 
+### Card Upgrade Mechanics
+
+Clearing encounters can present a selection of upgrade cards. Each upgrade
+applies immediately and can be purchased multiple times to stack its level.
+
+- **Cost formula:** `100 * stage * world` multiplied by a rarity modifier.
+  Rarity multipliers are 1× for common, 1.5× for uncommon, 2× for rare,
+  and 3× for super‑rare upgrades.
+- If none of the options are affordable, one upgrade is offered for free.
+- **Prestige upgrades** appear only after resetting and focus on mana and other
+  long‑term bonuses.
+
+Examples include healing when cards are redrawn, extra card slots, and damage
+or HP multipliers. For a deeper explanation, see
+[docs/UPGRADES.md](docs/UPGRADES.md).
+
 🃏 Card Progression
 
 Stat	Scaling Formula	Notes
