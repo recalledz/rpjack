@@ -175,7 +175,23 @@ Cards level up by defeating enemies. Two formulas keep the pace near
    levels to the scale. The small epsilon term increases kills needed by
    roughly one every few stages (e.g., stage 9 takes ~3m10s instead of 3m).
 
-Cards in the deck but not currently drawn gain only half of this XP.
+   For example, defeating a stage 5 enemy in world 1 (`L = 5`) grants about
+   9.5 XP. Cards on the bench receive only half of this reward.
+
+  Cards in the deck but not currently drawn gain only half of this XP.
+
+### Power Gain per Level
+
+Leveling up increases a card's offensive and defensive power by fixed amounts
+before any attribute multipliers or upgrades are applied:
+
+- **Damage** – `damage = baseDamage + 5 × (L - 1)`. Each level adds 5 points of
+  damage on top of the value-based starting amount.
+- **Max HP** – `maxHp = 5 × baseMultiplier + 5 × (L - 1)` (rounded). This yields
+  5 additional maximum HP per level, scaled by the card's value and any bonuses.
+
+The XP requirement for the next level is recalculated after each level-up using
+`XpReq = value × L²`, so higher levels demand increasingly more XP.
 
 
 🧠 Attributes
