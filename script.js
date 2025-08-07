@@ -2117,7 +2117,15 @@ function showJobCarouselView() {
 
 
 //========render functions==========
-document.addEventListener("DOMContentLoaded", () => {
+function onDocumentReady(fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn);
+  } else {
+    fn();
+  }
+}
+
+onDocumentReady(() => {
   // now the DOM is in, and lucide.js has run, so window.lucide is defined
   initTabs();
   window.addEventListener('location-discovered', e => addDiscoveredLocation(e.detail.name));
@@ -4085,12 +4093,12 @@ toggleDebug();
 }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-const btn = document.getElementById("debugToggle");
-if (btn) btn.addEventListener("click", toggleDebug);
+onDocumentReady(() => {
+  const btn = document.getElementById("debugToggle");
+  if (btn) btn.addEventListener("click", toggleDebug);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+onDocumentReady(() => {
   const tbtn = document.getElementById("themeToggle");
   if (tbtn) {
     isDarkenshift = localStorage.getItem('isDarkenshift') === 'true';
