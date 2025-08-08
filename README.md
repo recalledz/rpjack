@@ -39,7 +39,7 @@ Constructs System: Combine resources to craft constructs (see docs/phrase-system
 
 Resource Management:
 
-Cash: Earned based on active card values and current stage/world.
+Cash: Chips accumulate based on active card values and the current stage/world. Cashing out at camp converts those chips into spendable cash (`chips × points`). Normally cashing out redraws your hand, but the "Cash Out w/out Redraw" upgrade lets you bank chips without a redraw.
 
 Card HP per Kill: Each enemy defeated heals your cards.
 
